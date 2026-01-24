@@ -173,4 +173,98 @@
                     <div class="pl-4 py-2"><p class="text-[10px] font-black uppercase italic text-white/80">${satuan}</p><p class="text-sm font-black text-white">Rp ${formatRupiah(harga)}</p></div>
                     <div class="flex items-center bg-black/10">
                         <button onclick="updateCart('${esc}', '${satuan}', ${harga}, '${warna}', -1)" class="w-12 h-12 font-black text-xl">-</button>
-                        <input type="number" value="${qty}" onchange="manualInput('${esc}', '${satuan}', ${harga}, '${warna}', this.value)" class="
+                        <input type="number" value="${qty}" onchange="manualInput('${esc}', '${satuan}', ${harga}, '${warna}', this.value)" class="w-10 bg-transparent text-center font-black text-base text-white outline-none border-none p-0">
+                        <button onclick="updateCart('${esc}', '${satuan}', ${harga}, '${warna}', 1)" class="w-12 h-12 font-black text-xl">+</button>
+                    </div>
+                </div>`;
+            }
+        }
+
+        function updateCart(nama, satuan, harga, warna, delta) {
+            const key = `${nama} (${satuan})`;
+            if (!cart[key]) cart[key] = { qty: 0, harga: harga, warna: warna };
+            cart[key].qty += delta;
+            const q = cart[key].qty;
+            if (q <= 0) delete cart[key];
+            const tid = getSafeId(nama, satuan);
+            const html = renderBtn(nama, satuan, harga, warna);
+            const elK = document.getElementById(`box-${tid}`); if(elK) elK.innerHTML = html;
+            const elS = document.getElementById(`sum-${tid}`);
+            if(elS) { if(q <= 0) elS.closest('.cart-row').remove(); else elS.innerHTML = html; }
+            updateTotals();
+        }
+
+        function manualInput(n, s, h, w, v) {
+            const val = parseInt(v);
+            if (isNaN(val) || val <= 0) delete cart[`${n} (${s})`]; 
+            else cart[`${n} (${s})`] = { qty: val, harga: h, warna: w };
+            updateCart(n, s, h, w, 0);
+        }
+
+        function updateTotals() {
+            let tQty = 0, tPrice = 0;
+            for (let k in cart) { tQty += cart[k].qty; tPrice += (cart[k].qty * cart[k].harga); }
+            document.getElementById('cart-total').innerText = tQty;
+            document.getElementById('cart-price').innerText = formatRupiah(tPrice);
+            document.getElementById('summary-price').innerText = formatRupiah(tPrice);
+            document.getElementById('float-cart').style.display = tQty > 0 ? 'flex' : 'none';
+        }
+
+        function filterByCategory(cat) {
+            document.getElementById('searchInput').value = "";
+            currentCategory = cat;
+            document.querySelectorAll('.cat-btn, #btn-all').forEach(b => b.classList.toggle('cat-btn-active', b.innerText === cat));
+            filterProducts();
+        }
+
+        function filterProducts() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                const q = document.getElementById('searchInput').value.toLowerCase().trim();
+                document.querySelectorAll('.product-item').forEach(item => {
+                    const mK = (currentCategory === "SEMUA" || item.dataset.kat === currentCategory);
+                    const mS = (q === "" || item.dataset.nama.includes(q));
+                    item.style.display = (mK && mS) ? "block" : "none";
+                });
+                document.querySelectorAll('.category-section').forEach(s => {
+                    const v = s.querySelectorAll('.product-item[style="display: block;"]').length;
+                    s.style.display = v > 0 ? "block" : "none";
+                });
+            }, 100);
+        }
+
+        function renderCategoryBar() {
+            const b = document.getElementById('category-bar');
+            categories.forEach(c => b.innerHTML += `<button onclick="filterByCategory('${c}')" class="cat-btn">${c}</button>`);
+        }
+
+        function toggleCart() { 
+            const m = document.getElementById('cart-footer');
+            m.classList.toggle('hidden');
+            if(!m.classList.contains('hidden')) {
+                const l = document.getElementById('cart-list'); l.innerHTML = "";
+                for(let k in cart) {
+                    const match = k.match(/(.*) \((.*)\)/);
+                    l.innerHTML += `<div class="cart-row bg-white p-4 rounded-3xl border border-slate-100 shadow-sm"><p class="text-[11px] font-black text-slate-400 uppercase mb-3 tracking-wider italic">${match[1]}</p><div id="sum-${getSafeId(match[1], match[2])}">${renderBtn(match[1], match[2], cart[k].harga, cart[k].warna)}</div></div>`;
+                }
+            }
+        }
+
+        function sendToWhatsApp() {
+            const name = document.getElementById('custName').value.trim();
+            if (!name) return alert("MOHON ISI NAMA!");
+            let total = 0, p = `*ORDER TOKO DAMAI*\n👤 Nama: *${name.toUpperCase()}*\n\n`;
+            for (let k in cart) {
+                let sub = cart[k].qty * cart[k].harga;
+                p += `✅ *${k}*\n   ${cart[k].qty} x Rp ${formatRupiah(cart[k].harga)} = *Rp ${formatRupiah(sub)}*\n`;
+                total += sub;
+            }
+            p += `\n💰 *TOTAL: Rp ${formatRupiah(total)}*`;
+            const n = document.getElementById('orderNote').value.trim();
+            if (n) p += `\n\n📝 Note: _${n}_`;
+            window.open(`https://wa.me/6285815022210?text=${encodeURIComponent(p)}`);
+        }
+        loadData();
+    </script>
+</body>
+</html>
