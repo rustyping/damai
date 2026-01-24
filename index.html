@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Katalog Toko Damai v1.2</title>
+    <title>Katalog Toko Damai v1.2.1</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -11,6 +11,11 @@
             font-family: 'Inter', sans-serif;
             background: linear-gradient(135deg, #ffffff 0%, #f0f4f8 100%);
             background-attachment: fixed;
+        }
+        /* Progress Bar Scroll */
+        #scroll-progress {
+            position: fixed; top: 0; left: 0; width: 0%; height: 4px;
+            background: #fb923c; z-index: 100; transition: width 0.1s;
         }
         .category-header { 
             position: sticky; top: 185px; background: rgba(255, 255, 255, 0.9);
@@ -33,6 +38,8 @@
     </style>
 </head>
 <body class="pb-40 text-gray-900">
+
+    <div id="scroll-progress"></div>
 
     <header class="bg-[#075E54] text-white p-5 sticky top-0 z-50 shadow-2xl">
         <div class="flex justify-between items-center mb-4">
@@ -94,6 +101,14 @@
     <script>
         const githubUrl = "https://raw.githubusercontent.com/rustyping/damai/main/listDamaiFull.csv?v=" + Date.now();
         let productsData = [], categories = [], cart = {}, currentCategory = "SEMUA", searchTimeout;
+
+        // Script untuk Slider Progress Bar
+        window.onscroll = function() {
+            let winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            let height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            let scrolled = (winScroll / height) * 100;
+            document.getElementById("scroll-progress").style.width = scrolled + "%";
+        };
 
         async function loadData() {
             try {
