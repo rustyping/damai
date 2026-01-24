@@ -42,18 +42,18 @@
     <div id="cart-footer" class="fixed inset-0 bg-black/50 z-[100] hidden flex items-end">
         <div class="w-full bg-white rounded-t-[40px] p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
             <div class="max-w-xl mx-auto text-center">
-                <div class="flex justify-between items-center mb-6 text-gray-800">
+                <div class="flex justify-between items-center mb-6 text-gray-800 border-b pb-4">
                     <h3 class="font-black text-lg uppercase tracking-tight">Ringkasan Order</h3>
                     <button onclick="toggleCart()"><i class="fas fa-times-circle text-2xl text-gray-300"></i></button>
                 </div>
-                <div id="cart-list" class="max-h-60 overflow-y-auto mb-4 space-y-3 text-left border-b pb-4"></div>
+                <div id="cart-list" class="max-h-60 overflow-y-auto mb-4 space-y-3 text-left"></div>
                 <div class="bg-gray-100 p-4 rounded-2xl mb-6 flex justify-between items-center">
                     <span class="font-bold text-gray-600 uppercase text-xs">Total Bayar:</span>
                     <span class="font-black text-xl text-green-700">Rp <span id="summary-price">0</span></span>
                 </div>
                 <div class="space-y-3 mb-6">
                     <input type="text" id="custName" placeholder="TULIS NAMA ANDA..." class="w-full p-4 border rounded-2xl font-black bg-gray-50 text-center uppercase outline-none focus:border-green-500 shadow-sm">
-                    <textarea id="orderNote" rows="2" placeholder="CATATAN (CONTOH: KIRIM SORE)..." class="w-full p-4 border rounded-2xl font-bold bg-gray-50 text-[12px] outline-none focus:border-green-500 resize-none shadow-sm"></textarea>
+                    <textarea id="orderNote" rows="2" placeholder="CATATAN TAMBAHAN..." class="w-full p-4 border rounded-2xl font-bold bg-gray-50 text-[12px] outline-none focus:border-green-500 resize-none shadow-sm"></textarea>
                 </div>
                 <button onclick="sendToWhatsApp()" class="w-full bg-[#25D366] text-white font-black py-4 rounded-2xl flex justify-center items-center gap-2 uppercase shadow-lg active:scale-95">
                     <i class="fab fa-whatsapp text-2xl"></i> KIRIM KE WHATSAPP
@@ -82,16 +82,17 @@
                     const nama = cols[2] || "";
                     const lowerNama = nama.toLowerCase().trim();
 
-                    // Filter Baris Sampah & Judul
                     if (nama === "" || lowerNama === "nama barang" || lowerNama.includes("xxx") || lowerNama.includes("___") || lowerNama.includes("ongkos kirim")) return null;
                     
-                    const kat = cols[4] || "UMUM";
-                    catSet.add(kat);
+                    catSet.add(cols[4] || "UMUM");
 
                     return { 
                         nama: nama, 
-                        kategori: kat, 
-                        s1: cols[6] || "", s2: cols[7] || "", s3: cols[8] || "", 
+                        kategori: cols[4] || "UMUM", 
+                        s1: cols[6] || "", s2: cols[7] || "", s3: cols[8] || "",
+                        // Konversi: L(11), M(12), N(13)
+                        k1: cols[11] || "", k2: cols[12] || "", k3: cols[13] || "",
+                        // Harga: T(19), W(22), Z(25)
                         h1: parseInt(cols[19]) || 0, h2: parseInt(cols[22]) || 0, h3: parseInt(cols[25]) || 0 
                     };
                 }).filter(Boolean);
@@ -107,8 +108,7 @@
 
         function formatRupiah(angka) { return new Intl.NumberFormat('id-ID').format(angka); }
         function getSafeId(nama, satuan) { 
-            const seed = nama + satuan;
-            let hash = 0;
+            let hash = 0, seed = nama + satuan;
             for (let i = 0; i < seed.length; i++) hash = ((hash << 5) - hash) + seed.charCodeAt(i);
             return 'p_' + Math.abs(hash);
         }
@@ -127,11 +127,11 @@
                 grouped[kat].forEach(p => {
                     section += `
                     <div class="product-item product-card bg-white p-4 rounded-2xl shadow-sm border border-gray-100" data-nama="${p.nama.toLowerCase()}" data-kat="${p.kategori}">
-                        <p class="font-bold text-gray-800 text-sm uppercase leading-tight mb-3">${p.nama}</p>
+                        <p class="font-bold text-gray-800 text-sm uppercase mb-3 leading-tight">${p.nama}</p>
                         <div class="flex flex-col gap-2">
-                            ${p.s1 && p.h1 > 0 ? `<div id="box-${getSafeId(p.nama, p.s1)}">${renderBtn(p.nama, p.s1, p.h1, 'emerald')}</div>` : ''}
-                            ${p.s2 && p.h2 > 0 ? `<div id="box-${getSafeId(p.nama, p.s2)}">${renderBtn(p.nama, p.s2, p.h2, 'orange')}</div>` : ''}
-                            ${p.s3 && p.h3 > 0 ? `<div id="box-${getSafeId(p.nama, p.s3)}">${renderBtn(p.nama, p.s3, p.h3, 'blue')}</div>` : ''}
+                            ${p.s1 && p.h1 > 0 ? `<div id="box-${getSafeId(p.nama, p.s1)}">${renderBtn(p.nama, p.s1, p.h1, 'emerald', p.k1)}</div>` : ''}
+                            ${p.s2 && p.h2 > 0 ? `<div id="box-${getSafeId(p.nama, p.s2)}">${renderBtn(p.nama, p.s2, p.h2, 'orange', p.k2)}</div>` : ''}
+                            ${p.s3 && p.h3 > 0 ? `<div id="box-${getSafeId(p.nama, p.s3)}">${renderBtn(p.nama, p.s3, p.h3, 'blue', p.k3)}</div>` : ''}
                         </div>
                     </div>`;
                 });
@@ -139,126 +139,78 @@
             }
         }
 
-        function renderBtn(nama, satuan, harga, warna) {
+        function renderBtn(nama, satuan, harga, warna, konv = "") {
             const key = `${nama} (${satuan})`;
             const qty = cart[key]?.qty || 0;
             const escNama = nama.replace(/'/g, "\\'");
+            const konvText = konv ? `<span class="opacity-60 ml-1 text-[8px]">(${konv})</span>` : "";
             
             if (qty === 0) {
                 return `<div class="flex items-center justify-between bg-${warna}-50 rounded-xl border border-${warna}-100 overflow-hidden">
-                    <div class="flex flex-col pl-3 py-1"><span class="text-[9px] font-black text-${warna}-700 uppercase italic leading-none mb-1">${satuan}</span><span class="text-[12px] font-bold text-gray-600">Rp ${formatRupiah(harga)}</span></div>
-                    <button onclick="updateCart('${escNama}', '${satuan}', ${harga}, '${warna}', 1)" class="bg-${warna}-600 text-white px-5 py-3 text-[10px] font-black uppercase">+ BELI</button>
+                    <div class="flex flex-col pl-3 py-1">
+                        <span class="text-[9px] font-black text-${warna}-700 uppercase italic leading-none mb-1">${satuan} ${konvText}</span>
+                        <span class="text-[12px] font-bold text-gray-600">Rp ${formatRupiah(harga)}</span>
+                    </div>
+                    <button onclick="updateCart('${escNama}', '${satuan}', ${harga}, '${warna}', 1, '${konv}')" class="bg-${warna}-600 text-white px-5 py-3 text-[10px] font-black uppercase">+ BELI</button>
                 </div>`;
             } else {
                 return `<div class="flex items-center justify-between bg-${warna}-600 text-white rounded-xl border-2 border-${warna}-700 overflow-hidden shadow-md">
-                    <div class="flex flex-col pl-3 py-1"><span class="text-[9px] font-black uppercase italic text-white/80">${satuan}</span><span class="text-[12px] font-bold">Rp ${formatRupiah(harga)}</span></div>
+                    <div class="flex flex-col pl-3 py-1">
+                        <span class="text-[9px] font-black uppercase italic text-white/80">${satuan} ${konvText}</span>
+                        <span class="text-[12px] font-bold">Rp ${formatRupiah(harga)}</span>
+                    </div>
                     <div class="flex items-center bg-white/20">
-                        <button onclick="updateCart('${escNama}', '${satuan}', ${harga}, '${warna}', -1)" class="w-10 h-10 font-bold text-xl">-</button>
-                        <input type="number" value="${qty}" onchange="manualInput('${escNama}', '${satuan}', ${harga}, '${warna}', this.value)" class="w-10 bg-transparent text-center font-black text-sm text-white">
-                        <button onclick="updateCart('${escNama}', '${satuan}', ${harga}, '${warna}', 1)" class="w-10 h-10 font-bold text-xl">+</button>
+                        <button onclick="updateCart('${escNama}', '${satuan}', ${harga}, '${warna}', -1, '${konv}')" class="w-10 h-10 font-bold text-xl">-</button>
+                        <input type="number" value="${qty}" onchange="manualInput('${escNama}', '${satuan}', ${harga}, '${warna}', this.value, '${konv}')" class="w-10 bg-transparent text-center font-black text-sm text-white">
+                        <button onclick="updateCart('${escNama}', '${satuan}', ${harga}, '${warna}', 1, '${konv}')" class="w-10 h-10 font-bold text-xl">+</button>
                     </div>
                 </div>`;
             }
         }
 
-        function updateCart(nama, satuan, harga, warna, delta) {
+        function updateCart(nama, satuan, harga, warna, delta, konv = "") {
             const key = `${nama} (${satuan})`;
-            
-            // Pastikan data item ada
-            if (!cart[key]) {
-                cart[key] = { qty: 0, harga: harga, warna: warna };
-            }
-            
+            if (!cart[key]) cart[key] = { qty: 0, harga: harga, warna: warna, konv: konv };
             cart[key].qty += delta;
-            const currentQty = cart[key].qty;
-
-            // Jika Qty 0 atau kurang, hapus dari memori
-            if (currentQty <= 0) {
-                delete cart[key];
-            }
-
-            // Update Semua UI (Katalog & Modal)
-            const tid = getSafeId(nama, satuan);
-            const htmlBaru = renderBtn(nama, satuan, harga, warna);
-
-            // Perbarui di Katalog Utama
-            const elKatalog = document.getElementById(`box-${tid}`);
-            if (elKatalog) elKatalog.innerHTML = htmlBaru;
-
-            // Perbarui di Ringkasan Order
-            const elRingkasan = document.getElementById(`sum-${tid}`);
-            if (elRingkasan) {
-                if (currentQty <= 0) {
-                    // Jika habis, hilangkan barisnya di modal
-                    elRingkasan.closest('.item-keranjang').remove();
-                } else {
-                    elRingkasan.innerHTML = htmlBaru;
-                }
-            }
-
-            updateTotals();
-
-            // Jika keranjang kosong saat modal terbuka, tutup modal atau tampilkan pesan kosong
-            if (Object.keys(cart).length === 0) {
-                const list = document.getElementById('cart-list');
-                if (list) list.innerHTML = "<p class='text-center text-gray-400 py-4'>Keranjang Kosong</p>";
-                setTimeout(() => { toggleCart(); }, 1000);
-            }
-        }
-
-        function toggleCart() { 
-            const m = document.getElementById('cart-footer');
-            const isHidden = m.classList.contains('hidden');
+            const curQty = cart[key].qty;
+            if (curQty <= 0) delete cart[key];
             
-            if(isHidden) {
-                // Saat membuka modal, gambar ulang daftar belanja
-                const list = document.getElementById('cart-list');
-                list.innerHTML = "";
-                
-                for(let k in cart) {
-                    // Ambil kembali nama dan satuan dari key "Nama (Satuan)"
-                    const match = k.match(/(.*) \((.*)\)/);
-                    if (!match) continue;
-                    
-                    const name = match[1];
-                    const unit = match[2];
-                    const item = cart[k];
-                    const tid = getSafeId(name, unit);
+            const tid = getSafeId(nama, satuan);
+            const html = renderBtn(nama, satuan, harga, warna, konv);
+            
+            // Sync UI Katalog
+            const elK = document.getElementById(`box-${tid}`);
+            if(elK) elK.innerHTML = html;
 
-                    list.innerHTML += `
-                    <div class="item-keranjang p-3 border-b border-gray-100 bg-white">
-                        <p class="text-[10px] font-black uppercase text-gray-500 mb-2">${name}</p>
-                        <div id="sum-${tid}">
-                            ${renderBtn(name, unit, item.harga, item.warna)}
-                        </div>
-                    </div>`;
-                }
-                m.classList.remove('hidden');
-            } else {
-                m.classList.add('hidden');
+            // Sync UI Modal Ringkasan
+            const elM = document.getElementById(`sum-${tid}`);
+            if(elM) {
+                if(curQty <= 0) elM.closest('.item-keranjang').remove();
+                else elM.innerHTML = html;
             }
+            updateTotals();
         }
 
-        function manualInput(nama, satuan, harga, warna, val) {
+        function manualInput(nama, satuan, harga, warna, val, konv) {
             const n = parseInt(val);
             if (isNaN(n) || n <= 0) delete cart[`${nama} (${satuan})`]; 
-            else cart[`${nama} (${satuan})`] = { qty: n, harga: harga, warna: warna };
-            updateCart(nama, satuan, harga, warna, 0);
+            else cart[`${nama} (${satuan})`] = { qty: n, harga: harga, warna: warna, konv: konv };
+            updateCart(nama, satuan, harga, warna, 0, konv);
         }
 
         function updateTotals() {
-            let totalQty = 0, totalPrice = 0;
-            for (let k in cart) { totalQty += cart[k].qty; totalPrice += (cart[k].qty * cart[k].harga); }
-            document.getElementById('cart-total').innerText = totalQty;
-            document.getElementById('cart-price').innerText = formatRupiah(totalPrice);
-            document.getElementById('summary-price').innerText = formatRupiah(totalPrice);
-            document.getElementById('float-cart').style.display = totalQty > 0 ? 'block' : 'none';
+            let tQty = 0, tPrice = 0;
+            for (let k in cart) { tQty += cart[k].qty; tPrice += (cart[k].qty * cart[k].harga); }
+            document.getElementById('cart-total').innerText = tQty;
+            document.getElementById('cart-price').innerText = formatRupiah(tPrice);
+            document.getElementById('summary-price').innerText = formatRupiah(tPrice);
+            document.getElementById('float-cart').style.display = tQty > 0 ? 'block' : 'none';
         }
 
         function filterByCategory(cat) {
             document.getElementById('searchInput').value = "";
             currentCategory = cat;
-            document.querySelectorAll('.cat-btn, #btn-all').forEach(btn => btn.classList.toggle('cat-btn-active', btn.innerText === cat));
+            document.querySelectorAll('.cat-btn, #btn-all').forEach(b => b.classList.toggle('cat-btn-active', b.innerText === cat));
             filterProducts();
         }
 
@@ -268,16 +220,14 @@
                 const q = document.getElementById('searchInput').value.toLowerCase().trim();
                 const items = document.querySelectorAll('.product-item');
                 const sections = document.querySelectorAll('.category-section');
-
                 items.forEach(item => {
-                    const matchKat = (currentCategory === "SEMUA" || item.getAttribute('data-kat') === currentCategory);
-                    const matchSearch = (q === "" || item.getAttribute('data-nama').includes(q));
-                    item.style.display = (matchKat && matchSearch) ? "block" : "none";
+                    const mK = (currentCategory === "SEMUA" || item.getAttribute('data-kat') === currentCategory);
+                    const mS = (q === "" || item.getAttribute('data-nama').includes(q));
+                    item.style.display = (mK && mS) ? "block" : "none";
                 });
-
                 sections.forEach(sec => {
-                    const visible = sec.querySelectorAll('.product-item[style="display: block;"]').length;
-                    sec.style.display = visible > 0 ? "block" : "none";
+                    const vis = sec.querySelectorAll('.product-item[style="display: block;"]').length;
+                    sec.style.display = vis > 0 ? "block" : "none";
                 });
             }, 100);
         }
@@ -294,7 +244,8 @@
                 const list = document.getElementById('cart-list'); list.innerHTML = "";
                 for(let k in cart) {
                     const p = k.match(/(.*) \((.*)\)/);
-                    list.innerHTML += `<div class="p-2 border-b"><p class="text-[10px] font-bold uppercase mb-1">${p[1]}</p><div id="sum-${getSafeId(p[1], p[2])}">${renderBtn(p[1], p[2], cart[k].harga, cart[k].warna)}</div></div>`;
+                    const tid = getSafeId(p[1], p[2]);
+                    list.innerHTML += `<div class="item-keranjang p-3 border-b bg-white"><p class="text-[10px] font-black uppercase mb-2 text-gray-500">${p[1]}</p><div id="sum-${tid}">${renderBtn(p[1], p[2], cart[k].harga, cart[k].warna, cart[k].konv)}</div></div>`;
                 }
             }
         }
@@ -305,7 +256,7 @@
             let total = 0, p = `*ORDER TOKO DAMAI*\n👤 Nama: *${name.toUpperCase()}*\n\n`;
             for (let k in cart) {
                 let sub = cart[k].qty * cart[k].harga;
-                p += `✅ *${k}*\n   ${cart[k].qty} x Rp ${formatRupiah(cart[k].harga)} = *Rp ${formatRupiah(sub)}*\n`;
+                p += `✅ *${k}* ${cart[k].konv ? '('+cart[k].konv+')' : ''}\n   ${cart[k].qty} x Rp ${formatRupiah(cart[k].harga)} = *Rp ${formatRupiah(sub)}*\n`;
                 total += sub;
             }
             p += `\n💰 *TOTAL: Rp ${formatRupiah(total)}*`;
@@ -313,10 +264,7 @@
             if (note) p += `\n\n📝 Note: _${note}_`;
             window.open(`https://wa.me/6285815022210?text=${encodeURIComponent(p)}`);
         }
-
         loadData();
     </script>
 </body>
 </html>
-
-
