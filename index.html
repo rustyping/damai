@@ -80,24 +80,23 @@
                 let catSet = new Set();
                 
                 productsData = rows.slice(1).map(row => {
-                    // Split dengan koma, bersihkan tanda kutip
                     const cols = row.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
                     
                     const nama = cols[2] || "";
-                    const lowerNama = nama.toLowerCase();
+                    const lowerNama = nama.toLowerCase().trim();
 
-                    // FILTER SAMPAH
+                    // FILTER SAMPAH LEBIH KETAT
                     if (
                         nama === "" || 
-                        nama === "NAMA BARANG" || 
+                        lowerNama === "nama barang" || // Menghapus baris judul tabel
                         lowerNama.includes("xxx") || 
                         lowerNama.includes("___") || 
-                        lowerNama.includes("ongkos kirim")
+                        lowerNama.includes("ongkos kirim") ||
+                        lowerNama.includes("nama_barang")
                     ) return null;
                     
                     catSet.add(cols[4] || "UMUM");
 
-                    // Mapping Kolom: Satuan G(6),H(7),I(8) | Harga Jual T(19),W(22),Z(25)
                     return { 
                         nama: nama, 
                         kategori: cols[4] || "UMUM", 
@@ -279,3 +278,4 @@
     </script>
 </body>
 </html>
+
