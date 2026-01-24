@@ -9,24 +9,23 @@
     <style>
         body { 
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
+            background: linear-gradient(135deg, #ffffff 0%, #f0f4f8 100%);
             background-attachment: fixed;
         }
         .category-header { 
-            position: sticky; top: 185px; 
-            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(8px);
-            z-index: 10; padding: 12px 0; font-weight: 900; color: #065f46; 
-            border-bottom: 2px solid #10b981; text-transform: uppercase; font-size: 0.8rem; 
+            position: sticky; top: 185px; background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px); z-index: 10; padding: 12px 0; 
+            font-weight: 900; color: #065f46; border-bottom: 2px solid #10b981; 
+            text-transform: uppercase; font-size: 0.8rem;
         }
-        .category-scroll::-webkit-scrollbar { display: none; }
         .cat-btn { 
             white-space: nowrap; padding: 10px 20px; border-radius: 12px; 
             font-size: 11px; font-weight: 800; text-transform: uppercase; 
             background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2);
         }
-        .cat-btn-active { background: #fb923c !important; border-color: #fb923c !important; box-shadow: 0 8px 15px rgba(251, 146, 60, 0.3); }
-        .product-card { background: #ffffff; border: 1px solid #e2e8f0; }
-        .product-name { color: #000000; font-weight: 800; text-transform: uppercase; }
+        .cat-btn-active { background: #fb923c !important; border-color: #fb923c !important; box-shadow: 0 10px 15px -3px rgba(251, 146, 60, 0.4); }
+        .product-card { background: #ffffff; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+        .product-name { color: #0f172a; font-weight: 800; text-transform: uppercase; }
         .sticky-all { position: sticky; left: 0; z-index: 20; background: #075E54; padding-right: 12px; }
     </style>
 </head>
@@ -34,23 +33,22 @@
 
     <header class="bg-[#075E54] text-white p-5 sticky top-0 z-50 shadow-2xl">
         <div class="flex justify-between items-center mb-4">
-            <h1 class="text-2xl font-black italic tracking-tighter uppercase">Toko Damai</h1>
-            <div id="status" class="text-[10px] bg-black/30 px-3 py-1.5 rounded-lg font-black text-white">Memuat...</div>
+            <h1 class="text-2xl font-black italic tracking-tighter">TOKO DAMAI</h1>
+            <div id="status" class="text-[10px] bg-black/30 px-3 py-1.5 rounded-lg font-black uppercase italic border border-white/10">Memuat...</div>
         </div>
-        <input type="text" id="searchInput" oninput="filterProducts()" placeholder="Cari nama barang..." 
-               class="w-full p-4 rounded-xl text-gray-900 font-bold outline-none border-none text-sm mb-4">
+        <input type="text" id="searchInput" oninput="filterProducts()" placeholder="Cari barang..." class="w-full p-4 rounded-xl text-gray-900 font-bold outline-none mb-4 shadow-inner">
         <div class="flex items-center overflow-hidden">
             <div class="sticky-all"><button id="btn-all" onclick="filterByCategory('SEMUA')" class="cat-btn cat-btn-active">SEMUA</button></div>
-            <div id="category-bar" class="flex overflow-x-auto category-scroll gap-2 py-2"></div>
+            <div id="category-bar" class="flex overflow-x-auto gap-2 py-2"></div>
         </div>
     </header>
 
     <main id="katalog" class="p-4 max-w-xl mx-auto space-y-8"></main>
 
-    <button id="float-cart" onclick="toggleCart()" class="fixed bottom-8 right-6 bg-orange-600 text-white px-7 py-5 rounded-2xl shadow-2xl z-50 hidden font-black flex items-center gap-3 transition-all active:scale-95">
+    <button id="float-cart" onclick="toggleCart()" class="fixed bottom-8 right-6 bg-orange-600 text-white px-7 py-5 rounded-2xl shadow-2xl z-50 hidden font-black border-2 border-white/20 flex items-center gap-3">
         <i class="fas fa-shopping-basket text-xl"></i>
         <div class="text-left leading-none">
-            <p class="text-[10px] opacity-80 uppercase">Total (<span id="cart-total">0</span>)</p>
+            <p class="text-[10px] opacity-80 uppercase">Total Order (<span id="cart-total">0</span>)</p>
             <p class="text-lg">Rp <span id="cart-price">0</span></p>
         </div>
     </button>
@@ -59,20 +57,17 @@
         <div class="w-full bg-white rounded-t-[3rem] p-8 shadow-2xl max-h-[92vh] overflow-y-auto">
             <div class="max-w-xl mx-auto">
                 <div class="flex justify-between items-center mb-8">
-                    <h3 class="font-black text-2xl text-slate-800 uppercase">Ringkasan</h3>
-                    <button onclick="toggleCart()" class="text-slate-300"><i class="fas fa-times-circle text-3xl"></i></button>
+                    <h3 class="font-black text-2xl text-slate-800">RINGKASAN ORDER</h3>
+                    <button onclick="toggleCart()"><i class="fas fa-times-circle text-3xl text-slate-300"></i></button>
                 </div>
                 <div id="cart-list" class="space-y-4 mb-8"></div>
                 <div class="bg-slate-50 p-6 rounded-3xl mb-8 flex justify-between items-center border border-slate-100">
-                    <span class="font-bold text-slate-500 uppercase text-xs">Total Bayar</span>
+                    <span class="font-bold text-slate-500 uppercase text-xs">Total</span>
                     <span class="font-black text-2xl text-emerald-700">Rp <span id="summary-price">0</span></span>
                 </div>
-                <div class="space-y-4 mb-8">
-                    <input type="text" id="custName" placeholder="NAMA ANDA..." class="w-full p-5 border-2 rounded-2xl font-black bg-slate-50 text-center uppercase outline-none focus:border-emerald-500">
-                    <textarea id="orderNote" rows="2" placeholder="CATATAN..." class="w-full p-5 border-2 rounded-2xl font-bold bg-slate-50 text-sm outline-none resize-none"></textarea>
-                </div>
-                <button onclick="sendToWhatsApp()" class="w-full bg-[#25D366] text-white font-black py-5 rounded-2xl flex justify-center items-center gap-3 uppercase shadow-xl text-lg">
-                    <i class="fab fa-whatsapp text-3xl"></i> KIRIM PESANAN
+                <input type="text" id="custName" placeholder="NAMA ANDA..." class="w-full p-5 border-2 rounded-2xl font-black bg-slate-50 text-center uppercase mb-4 outline-none">
+                <button onclick="sendToWhatsApp()" class="w-full bg-[#25D366] text-white font-black py-5 rounded-2xl flex justify-center items-center gap-3 shadow-xl">
+                    <i class="fab fa-whatsapp text-3xl"></i> KIRIM KE WA
                 </button>
             </div>
         </div>
@@ -80,7 +75,7 @@
 
     <script>
         const githubUrl = "https://raw.githubusercontent.com/rustyping/damai/main/listDamaiFull.csv?v=" + Date.now();
-        let productsData = [], categories = [], cart = {}, currentCategory = "SEMUA", searchTimeout;
+        let productsData = [], categories = [], cart = {}, currentCategory = "SEMUA";
 
         async function loadData() {
             try {
@@ -92,28 +87,16 @@
                 productsData = rows.slice(1).map(row => {
                     const cols = row.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
                     const nama = cols[2] || "";
-                    const lowerNama = nama.toLowerCase().trim();
-
-                    if (nama === "" || lowerNama === "nama barang" || lowerNama.includes("xxx") || lowerNama.includes("___") || lowerNama.includes("ongkos kirim")) return null;
+                    if (nama === "" || nama.toLowerCase().includes("nama barang")) return null;
                     
                     catSet.add(cols[4] || "UMUM");
 
-                    // Fungsi pembantu untuk format Satuan (Detail Isi)
-                    const formatSatuan = (sat, det) => {
-                        if (!sat && !det) return "";
-                        if (sat && det) return `${sat} (${det})`;
-                        return sat || det;
-                    };
-
                     return { 
-                        nama: nama, 
-                        kategori: cols[4] || "UMUM", 
-                        s1: formatSatuan(cols[6], cols[10]), 
-                        s2: formatSatuan(cols[7], cols[11]), 
-                        s3: formatSatuan(cols[8], cols[12]), 
-                        h1: parseInt(cols[19]) || 0, 
-                        h2: parseInt(cols[22]) || 0, 
-                        h3: parseInt(cols[25]) || 0 
+                        nama: nama, kategori: cols[4] || "UMUM", 
+                        s1: cols[6], s2: cols[7], s3: cols[8],
+                        // Menambahkan Satuan per Unit (Isi)
+                        i1: cols[13] || "1", i2: cols[14] || "1", i3: cols[15] || "1",
+                        h1: parseInt(cols[19]) || 0, h2: parseInt(cols[22]) || 0, h3: parseInt(cols[25]) || 0 
                     };
                 }).filter(Boolean);
 
@@ -121,7 +104,7 @@
                 renderCategoryBar();
                 renderKatalog(productsData);
                 document.getElementById('status').innerText = productsData.length + " PRODUK";
-            } catch (e) { document.getElementById('status').innerText = "ERROR"; }
+            } catch (e) { console.error(e); }
         }
 
         function formatRupiah(n) { return new Intl.NumberFormat('id-ID').format(n); }
@@ -145,11 +128,11 @@
                 grouped[kat].forEach(p => {
                     section += `
                     <div class="product-item product-card p-5 rounded-3xl" data-nama="${p.nama.toLowerCase()}" data-kat="${p.kategori}">
-                        <p class="product-name text-base mb-4 italic tracking-tight">${p.nama}</p>
+                        <p class="product-name text-base mb-4 tracking-tight">${p.nama}</p>
                         <div class="grid gap-3">
-                            ${p.h1 > 0 ? `<div id="box-${getSafeId(p.nama, p.s1)}">${renderBtn(p.nama, p.s1, p.h1, 'emerald')}</div>` : ''}
-                            ${p.s2 && p.h2 > 0 ? `<div id="box-${getSafeId(p.nama, p.s2)}">${renderBtn(p.nama, p.s2, p.h2, 'orange')}</div>` : ''}
-                            ${p.s3 && p.h3 > 0 ? `<div id="box-${getSafeId(p.nama, p.s3)}">${renderBtn(p.nama, p.s3, p.h3, 'blue')}</div>` : ''}
+                            ${p.s1 && p.h1 > 0 ? `<div id="box-${getSafeId(p.nama, p.s1)}">${renderBtn(p.nama, p.s1, p.h1, 'emerald', p.i1)}</div>` : ''}
+                            ${p.s2 && p.h2 > 0 ? `<div id="box-${getSafeId(p.nama, p.s2)}">${renderBtn(p.nama, p.s2, p.h2, 'orange', p.i2)}</div>` : ''}
+                            ${p.s3 && p.h3 > 0 ? `<div id="box-${getSafeId(p.nama, p.s3)}">${renderBtn(p.nama, p.s3, p.h3, 'blue', p.i3)}</div>` : ''}
                         </div>
                     </div>`;
                 });
@@ -157,60 +140,54 @@
             }
         }
 
-        function renderBtn(nama, satuan, harga, warna) {
-            const key = `${nama} (${satuan})`;
-            const qty = cart[key]?.qty || 0;
+        function renderBtn(nama, satuan, harga, warna, isi) {
+            const qty = cart[`${nama} (${satuan})`]?.qty || 0;
             const esc = nama.replace(/'/g, "\\'");
-            const wCls = { emerald: 'emerald', orange: 'orange', blue: 'blue' }[warna];
             
+            // Format tampilan: PCS (1) atau DOS (20)
+            const labelSatuan = `${satuan} (${isi})`;
+
             if (qty === 0) {
-                return `<div class="flex items-center justify-between bg-${wCls}-50 rounded-2xl border border-${wCls}-100 overflow-hidden group">
+                return `<div class="flex items-center justify-between bg-${warna}-50 rounded-2xl border border-${warna}-100 overflow-hidden">
                     <div class="pl-4 py-2">
-                        <p class="text-[10px] font-black text-${wCls}-700 uppercase italic mb-0.5">${satuan}</p>
+                        <p class="text-[10px] font-black text-${warna}-700 uppercase italic mb-0.5">${labelSatuan}</p>
                         <p class="text-sm font-black text-slate-700">Rp ${formatRupiah(harga)}</p>
                     </div>
-                    <button onclick="updateCart('${esc}', '${satuan}', ${harga}, '${warna}', 1)" class="bg-${wCls}-600 text-white px-6 py-4 text-xs font-black uppercase transition-all hover:bg-${wCls}-700">+ BELI</button>
+                    <button onclick="updateCart('${esc}', '${satuan}', ${harga}, '${warna}', 1, '${isi}')" class="bg-${warna}-600 text-white px-6 py-4 text-xs font-black uppercase">+ BELI</button>
                 </div>`;
             } else {
-                return `<div class="flex items-center justify-between bg-${wCls}-600 text-white rounded-2xl border-2 border-${wCls}-700 shadow-lg overflow-hidden scale-[1.02]">
+                return `<div class="flex items-center justify-between bg-${warna}-600 text-white rounded-2xl border-2 border-${warna}-700 shadow-lg overflow-hidden">
                     <div class="pl-4 py-2">
-                        <p class="text-[10px] font-black uppercase italic text-white/80">${satuan}</p>
+                        <p class="text-[10px] font-black uppercase italic text-white/80">${labelSatuan}</p>
                         <p class="text-sm font-black">Rp ${formatRupiah(harga)}</p>
                     </div>
-                    <div class="flex items-center bg-black/20 h-full">
-                        <button onclick="updateCart('${esc}', '${satuan}', ${harga}, '${warna}', -1)" class="w-12 h-12 font-black text-xl flex items-center justify-center hover:bg-black/10">-</button>
-                        
-                        <div class="flex flex-col items-center justify-center px-2 min-w-[40px]">
-                            <input type="number" value="${qty}" 
-                                   onchange="manualInput('${esc}', '${satuan}', ${harga}, '${warna}', this.value)" 
-                                   class="w-full bg-transparent text-center font-black text-base text-white outline-none border-none p-0">
-                        </div>
-
-                        <button onclick="updateCart('${esc}', '${satuan}', ${harga}, '${warna}', 1)" class="w-12 h-12 font-black text-xl flex items-center justify-center hover:bg-black/10">+</button>
+                    <div class="flex items-center bg-black/10">
+                        <button onclick="updateCart('${esc}', '${satuan}', ${harga}, '${warna}', -1, '${isi}')" class="w-12 h-12 font-black text-xl">-</button>
+                        <span class="w-8 text-center font-black text-base">${qty}</span>
+                        <button onclick="updateCart('${esc}', '${satuan}', ${harga}, '${warna}', 1, '${isi}')" class="w-12 h-12 font-black text-xl">+</button>
                     </div>
                 </div>`;
             }
         }
 
-        function updateCart(nama, satuan, harga, warna, delta) {
+        function updateCart(nama, satuan, harga, warna, delta, isi) {
             const key = `${nama} (${satuan})`;
-            if (!cart[key]) cart[key] = { qty: 0, harga: harga, warna: warna };
+            if (!cart[key]) cart[key] = { qty: 0, harga: harga, warna: warna, isi: isi };
             cart[key].qty += delta;
             const q = cart[key].qty;
             if (q <= 0) delete cart[key];
+            
             const tid = getSafeId(nama, satuan);
-            const html = renderBtn(nama, satuan, harga, warna);
-            const elK = document.getElementById(`box-${tid}`); if(elK) elK.innerHTML = html;
-            const elS = document.getElementById(`sum-${tid}`);
-            if(elS) { if(q <= 0) elS.closest('.cart-row').remove(); else elS.innerHTML = html; }
+            const html = renderBtn(nama, satuan, harga, warna, isi);
+            
+            if(document.getElementById(`box-${tid}`)) document.getElementById(`box-${tid}`).innerHTML = html;
+            
+            const elSum = document.getElementById(`sum-${tid}`);
+            if(elSum) {
+                if(q <= 0) elSum.closest('.cart-row').remove();
+                else elSum.innerHTML = html;
+            }
             updateTotals();
-        }
-
-        function manualInput(n, s, h, w, v) {
-            const val = parseInt(v);
-            if (isNaN(val) || val <= 0) delete cart[`${n} (${s})`]; 
-            else cart[`${n} (${s})`] = { qty: val, harga: h, warna: w };
-            updateCart(n, s, h, w, 0);
         }
 
         function updateTotals() {
@@ -230,19 +207,16 @@
         }
 
         function filterProducts() {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                const q = document.getElementById('searchInput').value.toLowerCase().trim();
-                document.querySelectorAll('.product-item').forEach(item => {
-                    const mK = (currentCategory === "SEMUA" || item.dataset.kat === currentCategory);
-                    const mS = (q === "" || item.dataset.nama.includes(q));
-                    item.style.display = (mK && mS) ? "block" : "none";
-                });
-                document.querySelectorAll('.category-section').forEach(s => {
-                    const v = s.querySelectorAll('.product-item[style="display: block;"]').length;
-                    s.style.display = v > 0 ? "block" : "none";
-                });
-            }, 100);
+            const q = document.getElementById('searchInput').value.toLowerCase().trim();
+            document.querySelectorAll('.product-item').forEach(item => {
+                const mK = (currentCategory === "SEMUA" || item.dataset.kat === currentCategory);
+                const mS = (q === "" || item.dataset.nama.includes(q));
+                item.style.display = (mK && mS) ? "block" : "none";
+            });
+            document.querySelectorAll('.category-section').forEach(s => {
+                const v = s.querySelectorAll('.product-item[style="display: block;"]').length;
+                s.style.display = v > 0 ? "block" : "none";
+            });
         }
 
         function renderCategoryBar() {
@@ -254,44 +228,28 @@
             const m = document.getElementById('cart-footer');
             m.classList.toggle('hidden');
             if(!m.classList.contains('hidden')) {
-                const l = document.getElementById('cart-list'); 
-                l.innerHTML = "";
+                const l = document.getElementById('cart-list'); l.innerHTML = "";
                 for(let k in cart) {
-                    // Logika baru: Memisahkan Nama dan Satuan dengan lebih aman
-                    const lastOpenBrace = k.lastIndexOf(" (");
-                    const namaBarang = k.substring(0, lastOpenBrace);
-                    const satuanLengkap = k.substring(lastOpenBrace + 2, k.length - 1);
-                    
-                    l.innerHTML += `
-                    <div class="cart-row bg-white p-4 rounded-3xl border border-slate-100 shadow-sm">
-                        <p class="text-[11px] font-black text-slate-400 uppercase mb-3 tracking-wider italic">
-                            ${namaBarang}
-                        </p>
-                        <div id="sum-${getSafeId(namaBarang, satuanLengkap)}">
-                            ${renderBtn(namaBarang, satuanLengkap, cart[k].harga, cart[k].warna)}
-                        </div>
-                    </div>`;
+                    const match = k.match(/(.*) \((.*)\)/);
+                    l.innerHTML += `<div class="cart-row bg-white p-4 rounded-3xl border border-slate-100 mb-2"><p class="text-[10px] font-black text-slate-400 uppercase mb-2">${match[1]}</p><div id="sum-${getSafeId(match[1], match[2])}">${renderBtn(match[1], match[2], cart[k].harga, cart[k].warna, cart[k].isi)}</div></div>`;
                 }
             }
         }
 
         function sendToWhatsApp() {
             const name = document.getElementById('custName').value.trim();
-            if (!name) return alert("MOHON ISI NAMA!");
+            if (!name) return alert("ISI NAMA!");
             let total = 0, p = `*ORDER TOKO DAMAI*\n👤 Nama: *${name.toUpperCase()}*\n\n`;
             for (let k in cart) {
                 let sub = cart[k].qty * cart[k].harga;
-                p += `✅ *${k}*\n   ${cart[k].qty} x Rp ${formatRupiah(cart[k].harga)} = *Rp ${formatRupiah(sub)}*\n`;
+                p += `✅ *${k}* (isi ${cart[k].isi})\n   ${cart[k].qty} x Rp ${formatRupiah(cart[k].harga)} = *Rp ${formatRupiah(sub)}*\n`;
                 total += sub;
             }
             p += `\n💰 *TOTAL: Rp ${formatRupiah(total)}*`;
-            const n = document.getElementById('orderNote').value.trim();
-            if (n) p += `\n\n📝 Note: _${n}_`;
             window.open(`https://wa.me/6285815022210?text=${encodeURIComponent(p)}`);
         }
+
         loadData();
     </script>
 </body>
 </html>
-
-
