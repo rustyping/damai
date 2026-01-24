@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Katalog Toko Damai v1.2.1</title>
+    <title>Katalog Toko Damai v1.3</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -12,7 +12,6 @@
             background: linear-gradient(135deg, #ffffff 0%, #f0f4f8 100%);
             background-attachment: fixed;
         }
-        /* Progress Bar Scroll */
         #scroll-progress {
             position: fixed; top: 0; left: 0; width: 0%; height: 4px;
             background: #fb923c; z-index: 100; transition: width 0.1s;
@@ -34,7 +33,6 @@
         .product-card { background: #ffffff; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
         .product-name { color: #0f172a; font-weight: 800; text-transform: uppercase; }
         .sticky-all { position: sticky; left: 0; z-index: 20; background: #075E54; padding-right: 12px; }
-        input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     </style>
 </head>
 <body class="pb-40 text-gray-900">
@@ -55,7 +53,7 @@
 
     <main id="katalog" class="p-4 max-w-xl mx-auto space-y-8"></main>
 
-    <button id="float-cart" onclick="toggleCart()" class="fixed bottom-8 right-6 bg-orange-600 text-white px-7 py-5 rounded-2xl shadow-2xl z-50 hidden font-black border-2 border-white/20 flex items-center gap-3 active:scale-95">
+    <button id="float-cart" onclick="toggleCart()" class="fixed bottom-8 right-6 bg-orange-600 text-white px-7 py-5 rounded-2xl shadow-2xl z-50 hidden font-black border-2 border-white/20 flex items-center gap-3 active:scale-95 transition-all">
         <i class="fas fa-shopping-basket text-xl"></i>
         <div class="text-left leading-none">
             <p class="text-[10px] opacity-80 uppercase">Total Order (<span id="cart-total">0</span>)</p>
@@ -66,33 +64,30 @@
     <div id="cart-footer" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden flex items-end">
         <div class="w-full bg-white rounded-t-[3rem] p-8 shadow-2xl max-h-[92vh] overflow-y-auto">
             <div class="max-w-xl mx-auto">
-                <div class="flex justify-between items-center mb-8">
-                    <h3 class="font-black text-2xl text-slate-800">RINGKASAN ORDER</h3>
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="font-black text-2xl text-slate-800 tracking-tight">RINGKASAN</h3>
                     <button onclick="toggleCart()"><i class="fas fa-times-circle text-3xl text-slate-300"></i></button>
                 </div>
                 
-                <div id="cart-list" class="space-y-4 mb-8"></div>
+                <div id="cart-list" class="divide-y divide-slate-100 mb-6"></div>
                 
-                <div class="bg-slate-50 p-6 rounded-3xl mb-4 flex justify-between items-center border border-slate-100">
-                    <span class="font-bold text-slate-500 uppercase text-xs">Total</span>
-                    <span class="font-black text-2xl text-emerald-700">Rp <span id="summary-price">0</span></span>
+                <div class="bg-slate-900 text-white p-6 rounded-3xl mb-4 flex justify-between items-center shadow-lg">
+                    <span class="font-bold uppercase text-xs tracking-widest text-white/60">Total Bayar</span>
+                    <span class="font-black text-2xl">Rp <span id="summary-price">0</span></span>
                 </div>
 
                 <div class="bg-amber-50 border border-amber-200 rounded-2xl p-5 mb-8">
-                    <p class="text-[10px] font-black text-amber-800 uppercase tracking-widest mb-3 flex items-center gap-2">
-                        <i class="fas fa-info-circle"></i> Syarat Gratis Ongkir
-                    </p>
-                    <ul class="text-[11px] font-bold text-amber-900/80 space-y-1.5 leading-tight">
-                        <li class="flex gap-2"><span>1.</span><span>Minimal pembelian Rp 500.000</span></li>
-                        <li class="flex gap-2"><span>2.</span><span>Wajib membeli minimal 5 jenis produk berbeda</span></li>
-                        <li class="flex gap-2"><span>3.</span><span>Tepung, Gula, dan Beras tidak termasuk hitungan</span></li>
-                        <li class="flex gap-2"><span>4.</span><span>Berlaku sesuai area & kurir yang ditentukan</span></li>
+                    <p class="text-[10px] font-black text-amber-800 uppercase mb-2">Syarat Gratis Ongkir:</p>
+                    <ul class="text-[10px] font-bold text-amber-900/70 space-y-1">
+                        <li>• Minimal Rp 500.000 & 5 Jenis Produk</li>
+                        <li>• Tidak termasuk Tepung, Gula, Beras</li>
+                        <li>• Sesuai area & kurir yang ditentukan</li>
                     </ul>
                 </div>
 
-                <input type="text" id="custName" placeholder="NAMA ANDA..." class="w-full p-5 border-2 rounded-2xl font-black bg-slate-50 text-center uppercase mb-4 outline-none focus:border-emerald-500 transition-all">
-                <button onclick="sendToWhatsApp()" class="w-full bg-[#25D366] text-white font-black py-5 rounded-2xl flex justify-center items-center gap-3 shadow-xl uppercase active:scale-95 transition-all text-lg">
-                    <i class="fab fa-whatsapp text-3xl"></i> KIRIM KE WA
+                <input type="text" id="custName" placeholder="TULIS NAMA ANDA..." class="w-full p-5 border-2 rounded-2xl font-black bg-slate-50 text-center uppercase mb-4 outline-none border-slate-200">
+                <button onclick="sendToWhatsApp()" class="w-full bg-[#25D366] text-white font-black py-5 rounded-2xl flex justify-center items-center gap-3 shadow-xl uppercase text-lg">
+                    <i class="fab fa-whatsapp text-3xl"></i> KIRIM KE WHATSAPP
                 </button>
             </div>
         </div>
@@ -100,9 +95,8 @@
 
     <script>
         const githubUrl = "https://raw.githubusercontent.com/rustyping/damai/main/listDamaiFull.csv?v=" + Date.now();
-        let productsData = [], categories = [], cart = {}, currentCategory = "SEMUA", searchTimeout;
+        let productsData = [], cart = {}, currentCategory = "SEMUA", searchTimeout;
 
-        // Script untuk Slider Progress Bar
         window.onscroll = function() {
             let winScroll = document.body.scrollTop || document.documentElement.scrollTop;
             let height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
@@ -120,16 +114,7 @@
                 productsData = rows.slice(1).map(row => {
                     const cols = row.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
                     const nama = cols[2] || "";
-                    const lowerNama = nama.toLowerCase();
-
-                    if (!nama || 
-                        lowerNama.includes("nama barang") || 
-                        lowerNama.includes("xxx") || 
-                        lowerNama.includes("___") || 
-                        lowerNama.includes("ongkos kirim")) {
-                        return null;
-                    }
-                    
+                    if (!nama || nama.toLowerCase().includes("nama barang") || nama.includes("XXX") || nama.includes("___") || nama.toLowerCase().includes("ongkos kirim")) return null;
                     catSet.add(cols[4] || "UMUM");
                     return { 
                         nama: nama, kategori: cols[4] || "UMUM", 
@@ -139,8 +124,8 @@
                     };
                 }).filter(Boolean);
 
-                categories = Array.from(catSet).sort();
-                renderCategoryBar();
+                const b = document.getElementById('category-bar');
+                Array.from(catSet).sort().forEach(c => b.innerHTML += `<button onclick="filterByCategory('${c}')" class="cat-btn">${c}</button>`);
                 renderKatalog(productsData);
                 document.getElementById('status').innerText = productsData.length + " PRODUK";
             } catch (e) { console.error(e); }
@@ -153,19 +138,19 @@
             return 'p_' + Math.abs(hash);
         }
 
-        function renderBtn(nama, satuan, harga, warna, detail = "1") {
+        function renderBtn(nama, satuan, harga, warna, detail) {
             const qty = cart[`${nama} (${satuan})`]?.qty || 0;
             const esc = nama.replace(/'/g, "\\'");
-            const labelSatuan = `${satuan} (${detail})`;
+            const label = `${satuan} (${detail})`;
 
             if (qty === 0) {
                 return `<div class="flex items-center justify-between bg-${warna}-50 rounded-2xl border border-${warna}-100 overflow-hidden">
-                    <div class="pl-4 py-2"><p class="text-[10px] font-black text-${warna}-700 uppercase italic mb-0.5">${labelSatuan}</p><p class="text-sm font-black text-slate-700">Rp ${formatRupiah(harga)}</p></div>
-                    <button onclick="updateCart('${esc}', '${satuan}', ${harga}, '${warna}', 1, '${detail}')" class="bg-${warna}-600 text-white px-6 py-4 text-xs font-black uppercase">+ BELI</button>
+                    <div class="pl-4 py-2"><p class="text-[10px] font-black text-${warna}-700 uppercase italic mb-0.5">${label}</p><p class="text-sm font-black text-slate-700">Rp ${formatRupiah(harga)}</p></div>
+                    <button onclick="updateCart('${esc}', '${satuan}', ${harga}, '${warna}', 1, '${detail}')" class="bg-${warna}-600 text-white px-6 py-4 text-xs font-black">+ BELI</button>
                 </div>`;
             } else {
                 return `<div class="flex items-center justify-between bg-${warna}-600 text-white rounded-2xl border-2 border-${warna}-700 shadow-lg overflow-hidden">
-                    <div class="pl-4 py-2"><p class="text-[10px] font-black uppercase italic text-white/80">${labelSatuan}</p><p class="text-sm font-black">Rp ${formatRupiah(harga)}</p></div>
+                    <div class="pl-4 py-2"><p class="text-[10px] font-black uppercase italic text-white/80">${label}</p><p class="text-sm font-black">Rp ${formatRupiah(harga)}</p></div>
                     <div class="flex items-center bg-black/10">
                         <button onclick="updateCart('${esc}', '${satuan}', ${harga}, '${warna}', -1, '${detail}')" class="w-12 h-12 font-black text-xl">-</button>
                         <span class="w-10 text-center font-black">${qty}</span>
@@ -177,22 +162,16 @@
 
         function updateCart(nama, satuan, harga, warna, delta, detail) {
             const key = `${nama} (${satuan})`;
-            if (!cart[key]) cart[key] = { qty: 0, harga: harga, warna: warna, detail: detail };
+            if (!cart[key]) cart[key] = { qty: 0, harga: harga, warna: warna, detail: detail, namaAsli: nama, satuanAsli: satuan };
             cart[key].qty += delta;
-            const q = cart[key].qty;
-            if (q <= 0) delete cart[key];
+            if (cart[key].qty <= 0) delete cart[key];
             
             const tid = getSafeId(nama, satuan);
-            const html = renderBtn(nama, satuan, harga, warna, detail);
+            const elKatalog = document.getElementById(`box-${tid}`);
+            if(elKatalog) elKatalog.innerHTML = renderBtn(nama, satuan, harga, warna, detail);
             
-            if(document.getElementById(`box-${tid}`)) document.getElementById(`box-${tid}`).innerHTML = html;
-            
-            const elSum = document.getElementById(`sum-${tid}`);
-            if(elSum) {
-                if(q <= 0) elSum.closest('.cart-row').remove();
-                else elSum.innerHTML = html;
-            }
             updateTotals();
+            if(!document.getElementById('cart-footer').classList.contains('hidden')) renderCartList();
         }
 
         function updateTotals() {
@@ -202,6 +181,26 @@
             document.getElementById('cart-price').innerText = formatRupiah(tPrice);
             document.getElementById('summary-price').innerText = formatRupiah(tPrice);
             document.getElementById('float-cart').style.display = tQty > 0 ? 'flex' : 'none';
+        }
+
+        function renderCartList() {
+            const l = document.getElementById('cart-list');
+            l.innerHTML = "";
+            for(let k in cart) {
+                const item = cart[k];
+                l.innerHTML += `
+                <div class="py-4 flex justify-between items-center">
+                    <div class="flex-1 pr-4">
+                        <p class="text-lg font-black text-slate-800 leading-tight uppercase">${item.namaAsli}</p>
+                        <p class="text-xs font-bold text-slate-500 italic">${item.satuanAsli} (${item.detail}) @ Rp ${formatRupiah(item.harga)}</p>
+                    </div>
+                    <div class="flex items-center bg-slate-100 rounded-xl p-1">
+                        <button onclick="updateCart('${item.namaAsli.replace(/'/g, "\\'")}', '${item.satuanAsli}', ${item.harga}, '${item.warna}', -1, '${item.detail}')" class="w-8 h-8 font-black">-</button>
+                        <span class="w-8 text-center font-black text-sm">${item.qty}</span>
+                        <button onclick="updateCart('${item.namaAsli.replace(/'/g, "\\'")}', '${item.satuanAsli}', ${item.harga}, '${item.warna}', 1, '${item.detail}')" class="w-8 h-8 font-black text-emerald-600">+</button>
+                    </div>
+                </div>`;
+            }
         }
 
         function renderKatalog(data) {
@@ -253,30 +252,19 @@
             }, 100);
         }
 
-        function renderCategoryBar() {
-            const b = document.getElementById('category-bar');
-            categories.forEach(c => b.innerHTML += `<button onclick="filterByCategory('${c}')" class="cat-btn">${c}</button>`);
-        }
-
         function toggleCart() { 
             const m = document.getElementById('cart-footer');
             m.classList.toggle('hidden');
-            if(!m.classList.contains('hidden')) {
-                const l = document.getElementById('cart-list'); l.innerHTML = "";
-                for(let k in cart) {
-                    const match = k.match(/(.*) \((.*)\)/);
-                    l.innerHTML += `<div class="cart-row bg-white p-4 rounded-3xl border border-slate-100 mb-2"><p class="text-[10px] font-black text-slate-400 uppercase mb-2">${match[1]}</p><div id="sum-${getSafeId(match[1], match[2])}">${renderBtn(match[1], match[2], cart[k].harga, cart[k].warna, cart[k].detail)}</div></div>`;
-                }
-            }
+            if(!m.classList.contains('hidden')) renderCartList();
         }
 
         function sendToWhatsApp() {
             const name = document.getElementById('custName').value.trim();
-            if (!name) return alert("ISI NAMA!");
+            if (!name) return alert("MOHON ISI NAMA ANDA!");
             let total = 0, p = `*ORDER TOKO DAMAI*\n👤 Nama: *${name.toUpperCase()}*\n\n`;
             for (let k in cart) {
                 let sub = cart[k].qty * cart[k].harga;
-                p += `✅ *${k}* (${cart[k].detail})\n   ${cart[k].qty} x Rp ${formatRupiah(cart[k].harga)} = *Rp ${formatRupiah(sub)}*\n`;
+                p += `✅ *${cart[k].namaAsli}*\n   ${cart[k].qty} ${cart[k].satuanAsli} (${cart[k].detail}) = *Rp ${formatRupiah(sub)}*\n`;
                 total += sub;
             }
             p += `\n💰 *TOTAL: Rp ${formatRupiah(total)}*`;
