@@ -82,6 +82,7 @@
                     const nama = cols[2] || "";
                     const lowerNama = nama.toLowerCase().trim();
 
+                    // Filter Baris Sampah
                     if (nama === "" || lowerNama === "nama barang" || lowerNama.includes("xxx") || lowerNama.includes("___") || lowerNama.includes("ongkos kirim")) return null;
                     
                     catSet.add(cols[4] || "UMUM");
@@ -90,9 +91,9 @@
                         nama: nama, 
                         kategori: cols[4] || "UMUM", 
                         s1: cols[6] || "", s2: cols[7] || "", s3: cols[8] || "",
-                        // Konversi: L(11), M(12), N(13)
-                        k1: cols[11] || "", k2: cols[12] || "", k3: cols[13] || "",
-                        // Harga: T(19), W(22), Z(25)
+                        // KONVERSI: K(10), L(11), M(12)
+                        k1: cols[10] || "", k2: cols[11] || "", k3: cols[12] || "",
+                        // HARGA: T(19), W(22), Z(25)
                         h1: parseInt(cols[19]) || 0, h2: parseInt(cols[22]) || 0, h3: parseInt(cols[25]) || 0 
                     };
                 }).filter(Boolean);
@@ -268,3 +269,4 @@
     </script>
 </body>
 </html>
+
