@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Katalog Toko Damai v1.4</title>
+    <title>Katalog Toko Damai v1.5</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -16,9 +16,7 @@
             position: fixed; top: 0; left: 0; width: 0%; height: 4px;
             background: #fb923c; z-index: 100; transition: width 0.1s;
         }
-        /* Header Adjustment untuk teks alamat */
         .header-bg { background: #075E54; color: white; }
-        
         .category-header { 
             position: sticky; top: 220px; background: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(10px); z-index: 10; padding: 12px 0; 
@@ -55,9 +53,7 @@
                 Belanja mudah | Belanja hemat | Gratis Ongkir
             </p>
         </div>
-        
         <input type="text" id="searchInput" oninput="filterProducts()" placeholder="Cari nama barang..." class="w-full p-4 rounded-xl text-gray-900 font-bold outline-none mb-4 shadow-inner">
-        
         <div class="flex items-center overflow-hidden">
             <div class="sticky-all"><button id="btn-all" onclick="filterByCategory('SEMUA')" class="cat-btn cat-btn-active">SEMUA</button></div>
             <div id="category-bar" class="flex overflow-x-auto category-scroll gap-2 py-2"></div>
@@ -89,11 +85,15 @@
                     <span class="font-black text-2xl text-emerald-400">Rp <span id="summary-price">0</span></span>
                 </div>
 
-                <div class="bg-amber-50 border border-amber-200 rounded-2xl p-5 mb-8 text-center">
-                    <p class="text-[10px] font-black text-amber-800 uppercase mb-2">Syarat Gratis Ongkir:</p>
-                    <p class="text-[10px] font-bold text-amber-900/70 leading-relaxed italic">
+                <div class="bg-amber-50 border border-amber-200 rounded-2xl p-5 mb-8">
+                    <p class="text-[10px] font-black text-amber-800 uppercase mb-2 text-center">Syarat Gratis Ongkir:</p>
+                    <p class="text-[10px] font-bold text-amber-900/70 leading-relaxed italic text-center mb-3">
                         Min. Rp 500.000 & 5 Jenis Barang (Kecuali Tepung, Gula, Beras)<br>
                         Berlaku sesuai area & kurir yang ditentukan.
+                    </p>
+                    <hr class="border-amber-200 mb-2">
+                    <p class="text-[9px] font-bold text-slate-500 leading-tight italic text-center">
+                        *harga di atas adalah perkiraan apabila terdapat perbedaan harga, maka akan mengikuti harga terbaru di sistem pusat
                     </p>
                 </div>
 
@@ -177,11 +177,9 @@
             if (!cart[key]) cart[key] = { qty: 0, harga: harga, warna: warna, detail: detail, namaAsli: nama, satuanAsli: satuan };
             cart[key].qty += delta;
             if (cart[key].qty <= 0) delete cart[key];
-            
             const tid = getSafeId(nama, satuan);
             const elKatalog = document.getElementById(`box-${tid}`);
             if(elKatalog) elKatalog.innerHTML = renderBtn(nama, satuan, harga, warna, detail);
-            
             updateTotals();
             if(!document.getElementById('cart-footer').classList.contains('hidden')) renderCartList();
         }
@@ -279,7 +277,7 @@
                 p += `✅ *${cart[k].namaAsli}*\n   ${cart[k].qty} ${cart[k].satuanAsli} (${cart[k].detail}) = *Rp ${formatRupiah(sub)}*\n`;
                 total += sub;
             }
-            p += `\n💰 *TOTAL: Rp ${formatRupiah(total)}*`;
+            p += `\n💰 *TOTAL: Rp ${formatRupiah(total)}*\n\n_Catatan: Harga dapat berubah sewaktu-waktu mengikuti sistem pusat._`;
             window.open(`https://wa.me/6285815022210?text=${encodeURIComponent(p)}`);
         }
 
