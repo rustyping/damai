@@ -12,8 +12,7 @@
         .category-scroll::-webkit-scrollbar { display: none; }
         .cat-btn { white-space: nowrap; padding: 8px 16px; border-radius: 999px; font-size: 10px; font-weight: 900; text-transform: uppercase; border: 1px solid rgba(255,255,255,0.3); color: white; cursor: pointer; transition: all 0.2s; }
         .cat-btn-active { background-color: #f97316 !important; border-color: #f97316 !important; transform: scale(1.05); }
-        .product-card { transition: transform 0.1s; }
-        .product-card:hover { border-color: #cbd5e1; }
+        .sticky-all { position: sticky; left: 0; z-index: 20; background: #075E54; padding-right: 10px; box-shadow: 10px 0 15px -10px rgba(0,0,0,0.5); }
     </style>
 </head>
 <body class="bg-gray-50 pb-40 text-gray-800">
@@ -23,9 +22,9 @@
             <h1 class="text-xl font-bold italic">TOKO DAMAI 🛒</h1>
             <div id="status" class="text-[10px] bg-white/20 px-3 py-1 rounded-full font-black uppercase tracking-widest text-white italic">Memuat...</div>
         </div>
-        <input type="text" id="searchInput" oninput="filterProducts()" placeholder="Cari nama barang..." class="w-full p-4 rounded-2xl text-gray-800 outline-none border-none text-sm shadow-inner mb-3 focus:ring-2 focus:ring-orange-500">
-        <div class="flex items-center overflow-hidden">
-            <div class="bg-[#075E54] z-20 pr-3 shadow-[10px_0_15px_-10px_rgba(0,0,0,0.5)]">
+        <input type="text" id="searchInput" oninput="filterProducts()" placeholder="Cari nama barang..." class="w-full p-4 rounded-2xl text-gray-800 outline-none border-none text-sm shadow-inner mb-3">
+        <div class="flex items-center overflow-hidden relative">
+            <div class="sticky-all">
                 <button id="btn-all" onclick="filterByCategory('SEMUA')" class="cat-btn cat-btn-active">SEMUA</button>
             </div>
             <div id="category-bar" class="flex overflow-x-auto category-scroll gap-2 py-1"></div>
@@ -35,80 +34,100 @@
     <main id="katalog" class="p-4 max-w-xl mx-auto space-y-6"></main>
 
     <button id="float-cart" onclick="toggleCart()" class="fixed bottom-8 right-6 bg-orange-500 text-white px-6 py-4 rounded-full shadow-2xl z-50 hidden font-black border-4 border-white flex items-center gap-2 transition-transform active:scale-95">
-        🛒 (<span id="cart-total">0</span>) PESANAN
+        🛒 (<span id="cart-total">0</span>) Rp <span id="cart-price">0</span>
     </button>
 
     <div id="cart-footer" class="fixed inset-0 bg-black/50 z-[100] hidden flex items-end">
         <div class="w-full bg-white rounded-t-[40px] p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
             <div class="max-w-xl mx-auto text-center">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="font-black text-lg uppercase tracking-tight text-gray-800">Ringkasan Order</h3>
+                <div class="flex justify-between items-center mb-6 text-gray-800">
+                    <h3 class="font-black text-lg uppercase tracking-tight">Ringkasan Order</h3>
                     <button onclick="toggleCart()"><i class="fas fa-times-circle text-2xl text-gray-300"></i></button>
                 </div>
                 <div id="cart-list" class="max-h-60 overflow-y-auto mb-4 space-y-3 text-left"></div>
-                <div class="space-y-3 mb-6">
-                    <input type="text" id="custName" placeholder="TULIS NAMA ANDA..." class="w-full p-4 border rounded-2xl font-black bg-gray-50 text-center uppercase outline-none focus:border-green-500 shadow-sm border-gray-200">
-                    <textarea id="orderNote" rows="2" placeholder="CATATAN TAMBAHAN..." class="w-full p-4 border rounded-2xl font-bold bg-gray-50 text-[12px] outline-none focus:border-green-500 shadow-sm resize-none border-gray-200"></textarea>
+                
+                <div class="bg-gray-100 p-4 rounded-2xl mb-6 flex justify-between items-center">
+                    <span class="font-bold text-gray-600 uppercase text-xs">Estimasi Total:</span>
+                    <span class="font-black text-xl text-green-700">Rp <span id="summary-price">0</span></span>
                 </div>
-                <button onclick="sendToWhatsApp()" class="w-full bg-[#25D366] text-white font-black py-4 rounded-2xl flex justify-center items-center gap-2 uppercase shadow-lg active:scale-95 transition-all">
-                    <i class="fab fa-whatsapp text-2xl"></i> KIRIM KE WA
+
+                <div class="space-y-3 mb-6">
+                    <input type="text" id="custName" placeholder="TULIS NAMA ANDA..." class="w-full p-4 border rounded-2xl font-black bg-gray-50 text-center uppercase outline-none focus:border-green-500 border-gray-200 shadow-sm">
+                    <textarea id="orderNote" rows="2" placeholder="CATATAN TAMBAHAN..." class="w-full p-4 border rounded-2xl font-bold bg-gray-50 text-[12px] outline-none focus:border-green-500 resize-none border-gray-200 shadow-sm"></textarea>
+                </div>
+                <button onclick="sendToWhatsApp()" class="w-full bg-[#25D366] text-white font-black py-4 rounded-2xl flex justify-center items-center gap-2 uppercase shadow-lg active:scale-95">
+                    <i class="fab fa-whatsapp text-2xl"></i> KIRIM KE WHATSAPP
                 </button>
             </div>
         </div>
     </div>
 
     <script>
-        const githubUrl = "https://raw.githubusercontent.com/rustyping/damai/main/listDamai.csv?v=" + Date.now();
+        const githubUrl = "https://raw.githubusercontent.com/rustyping/damai/main/listDamaiFull.csv?v=" + Date.now();
         let productsData = [];
         let categories = [];
         let cart = {};
         let currentCategory = "SEMUA";
 
         async function loadData() {
-            try {
-                const response = await fetch(githubUrl);
-                const csvText = await response.text();
-                const rows = csvText.split(/\r?\n/).filter(row => row.trim() !== "");
-                let catSet = new Set();
-                
-                productsData = rows.slice(1).map(row => {
-                    const cols = row.split(',').map(c => c.trim().replace(/"/g, ''));
-                    if(cols.length >= 9) {
-                        const nama = cols[2] || "";
-                        const kategori = cols[4] || "UMUM";
-                        if(nama === "" || nama === "ONGKOS KIRIM" || nama.includes("____") || nama.toLowerCase().includes("xxx")) return null;
-                        catSet.add(kategori);
-                        return { nama, kategori, s1: cols[6], s3: cols[8] };
-                    }
-                    return null;
-                }).filter(Boolean);
+    try {
+        const response = await fetch(githubUrl);
+        const csvText = await response.text();
+        const rows = csvText.split(/\r?\n/).filter(row => row.trim() !== "");
+        let catSet = new Set();
+        
+        productsData = rows.slice(1).map(row => {
+            // Split dengan koma, bersihkan tanda kutip
+            const cols = row.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+            
+            const nama = cols[2] || "";
 
-                categories = Array.from(catSet).sort();
-                renderCategoryBar();
-                filterProducts();
-                document.getElementById('status').innerText = productsData.length + " PRODUK";
-            } catch (e) { console.error(e); }
+            // FILTER SAMPAH: Menghapus baris tak terpakai
+            const lowerNama = nama.toLowerCase();
+            if (
+                nama === "" || 
+                nama === "NAMA BARANG" || 
+                lowerNama.includes("xxx") || 
+                lowerNama.includes("___") || 
+                lowerNama.includes("ongkos kirim")
+            ) {
+                return null;
+            }
+            
+            const kategori = cols[4] || "UMUM";
+            catSet.add(kategori);
+
+            // PEMETAAN KOLOM BERDASARKAN PROMPT TERBARU:
+            // Satuan: G(6), H(7), I(8)
+            // Harga Jual: T(19), W(22), Z(25)
+            return { 
+                nama: nama, 
+                kategori: kategori, 
+                s1: cols[6] || "", 
+                s2: cols[7] || "", 
+                s3: cols[8] || "", 
+                h1: parseInt(cols[19]) || 0, 
+                h2: parseInt(cols[22]) || 0, 
+                h3: parseInt(cols[25]) || 0 
+            };
+        }).filter(Boolean);
+
+        categories = Array.from(catSet).sort();
+        renderCategoryBar();
+        filterProducts();
+        
+        document.getElementById('status').innerText = productsData.length + " PRODUK";
+    } catch (e) { 
+        console.error("Gagal load data:", e);
+        document.getElementById('status').innerText = "DATA ERROR";
+    }
+}
+        function formatRupiah(angka) {
+            return new Intl.NumberFormat('id-ID').format(angka);
         }
 
-        function renderCategoryBar() {
-            const bar = document.getElementById('category-bar');
-            categories.forEach(cat => {
-                bar.innerHTML += `<button onclick="filterByCategory('${cat}')" class="cat-btn bg-white/10 whitespace-nowrap">${cat}</button>`;
-            });
-        }
-
-        function filterByCategory(cat) {
-            document.getElementById('searchInput').value = "";
-            currentCategory = cat;
-            document.querySelectorAll('.cat-btn, #btn-all').forEach(btn => {
-                btn.classList.toggle('cat-btn-active', btn.innerText === cat);
-            });
-            filterProducts();
-        }
-
-        // PERBAIKAN: Gunakan pemisah unik agar Chrome Desktop tidak bingung
         function getSafeId(nama, satuan) {
-            const seed = nama.toLowerCase() + "|" + satuan.toLowerCase();
+            const seed = nama.toLowerCase() + "|" + (satuan || 'none').toLowerCase();
             let hash = 0;
             for (let i = 0; i < seed.length; i++) {
                 hash = ((hash << 5) - hash) + seed.charCodeAt(i);
@@ -133,8 +152,9 @@
                     <div class="product-card bg-white p-3 rounded-2xl shadow-sm border border-gray-100 flex flex-col gap-2">
                         <p class="font-bold text-gray-800 text-[13px] uppercase leading-tight">${p.nama}</p>
                         <div class="flex flex-col gap-2">
-                            ${(p.s1 && p.s1 !== '___') ? `<div id="box-${getSafeId(p.nama, p.s1)}">${renderBtn(p.nama, p.s1, 'emerald')}</div>` : ''}
-                            ${(p.s3 && p.s3 !== '___') ? `<div id="box-${getSafeId(p.nama, p.s3)}">${renderBtn(p.nama, p.s3, 'blue')}</div>` : ''}
+                            ${(p.s1 && p.s1 !== '___') ? `<div id="box-${getSafeId(p.nama, p.s1)}">${renderBtn(p.nama, p.s1, p.h1, 'emerald')}</div>` : ''}
+                            ${(p.s2 && p.s2 !== '___') ? `<div id="box-${getSafeId(p.nama, p.s2)}">${renderBtn(p.nama, p.s2, p.h2, 'orange')}</div>` : ''}
+                            ${(p.s3 && p.s3 !== '___') ? `<div id="box-${getSafeId(p.nama, p.s3)}">${renderBtn(p.nama, p.s3, p.h3, 'blue')}</div>` : ''}
                         </div>
                     </div>`;
                 });
@@ -142,56 +162,87 @@
             }
         }
 
-        function renderBtn(nama, satuan, warna) {
+        function renderBtn(nama, satuan, harga, warna) {
             const key = `${nama} (${satuan})`;
-            const qty = cart[key] || 0;
+            const qty = cart[key]?.qty || 0;
             const escNama = nama.replace(/'/g, "\\'");
             
             if (qty === 0) {
                 return `<div class="flex items-center justify-between bg-${warna}-50 rounded-xl border border-${warna}-100 overflow-hidden">
-                    <span class="pl-3 text-[10px] font-black text-${warna}-700 uppercase italic">${satuan}</span>
-                    <button onclick="updateCart('${escNama}', '${satuan}', '${warna}', 1)" class="bg-${warna}-600 text-white px-4 py-2 text-[10px] font-black uppercase hover:bg-${warna}-700">+ BELI</button>
+                    <div class="flex flex-col pl-3 py-1">
+                        <span class="text-[9px] font-black text-${warna}-700 uppercase italic leading-none mb-1">${satuan}</span>
+                        <span class="text-[11px] font-bold text-gray-500 leading-none">Rp ${formatRupiah(harga)}</span>
+                    </div>
+                    <button onclick="updateCart('${escNama}', '${satuan}', ${harga}, '${warna}', 1)" class="bg-${warna}-600 text-white px-4 py-3 text-[10px] font-black uppercase hover:opacity-90 transition-opacity">+ BELI</button>
                 </div>`;
             } else {
                 return `<div class="flex items-center justify-between bg-${warna}-600 text-white rounded-xl border-2 border-${warna}-700 overflow-hidden shadow-sm">
-                    <span class="pl-3 text-[10px] font-black uppercase italic text-white">${satuan}</span>
+                    <div class="flex flex-col pl-3 py-1">
+                        <span class="text-[9px] font-black uppercase italic leading-none mb-1 text-white/80">${satuan}</span>
+                        <span class="text-[11px] font-bold leading-none">Rp ${formatRupiah(harga)}</span>
+                    </div>
                     <div class="flex items-center bg-white/20">
-                        <button onclick="updateCart('${escNama}', '${satuan}', '${warna}', -1)" class="w-9 h-9 font-bold text-xl active:bg-black/20">-</button>
-                        <input type="number" value="${qty}" onchange="manualInput('${escNama}', '${satuan}', '${warna}', this.value)" 
-                               class="w-10 bg-transparent text-center font-black text-sm outline-none border-none p-0 text-white pointer-events-auto">
-                        <button onclick="updateCart('${escNama}', '${satuan}', '${warna}', 1)" class="w-9 h-9 font-bold text-xl active:bg-black/20">+</button>
+                        <button onclick="updateCart('${escNama}', '${satuan}', ${harga}, '${warna}', -1)" class="w-10 h-10 font-bold text-xl active:bg-black/20">-</button>
+                        <input type="number" value="${qty}" onchange="manualInput('${escNama}', '${satuan}', ${harga}, '${warna}', this.value)" 
+                               class="w-10 bg-transparent text-center font-black text-sm outline-none border-none p-0 text-white">
+                        <button onclick="updateCart('${escNama}', '${satuan}', ${harga}, '${warna}', 1)" class="w-10 h-10 font-bold text-xl active:bg-black/20">+</button>
                     </div>
                 </div>`;
             }
         }
 
-        function updateCart(nama, satuan, warna, delta) {
+        function updateCart(nama, satuan, harga, warna, delta) {
             const key = `${nama} (${satuan})`;
-            cart[key] = (cart[key] || 0) + delta;
-            if (cart[key] <= 0) delete cart[key];
+            if (!cart[key]) cart[key] = { qty: 0, harga: harga };
+            cart[key].qty += delta;
             
-            // Re-render spesifik ID untuk katalog
-            const targetKatalog = document.getElementById(`box-${getSafeId(nama, satuan)}`);
-            if(targetKatalog) targetKatalog.innerHTML = renderBtn(nama, satuan, warna);
+            if (cart[key].qty <= 0) delete cart[key];
             
-            // Re-render spesifik ID untuk ringkasan (modal)
-            const targetSummary = document.getElementById(`sum-${getSafeId(nama, satuan)}`);
-            if(targetSummary) targetSummary.innerHTML = renderBtn(nama, satuan, 'green');
+            const tid = getSafeId(nama, satuan);
+            const targetKatalog = document.getElementById(`box-${tid}`);
+            if(targetKatalog) targetKatalog.innerHTML = renderBtn(nama, satuan, harga, warna);
+            
+            const targetSummary = document.getElementById(`sum-${tid}`);
+            if(targetSummary) targetSummary.innerHTML = renderBtn(nama, satuan, harga, 'green');
 
-            updateTotalOnly();
+            updateTotals();
         }
 
-        function manualInput(nama, satuan, warna, val) {
+        function manualInput(nama, satuan, harga, warna, val) {
             const n = parseInt(val);
             const key = `${nama} (${satuan})`;
-            if (isNaN(n) || n <= 0) delete cart[key]; else cart[key] = n;
-            updateCart(nama, satuan, warna, 0);
+            if (isNaN(n) || n <= 0) delete cart[key]; 
+            else cart[key] = { qty: n, harga: harga };
+            updateCart(nama, satuan, harga, warna, 0);
         }
 
-        function updateTotalOnly() {
-            const count = Object.values(cart).reduce((a, b) => a + b, 0);
-            document.getElementById('cart-total').innerText = count;
-            document.getElementById('float-cart').style.display = count > 0 ? 'block' : 'none';
+        function updateTotals() {
+            let totalQty = 0;
+            let totalPrice = 0;
+            for (let key in cart) {
+                totalQty += cart[key].qty;
+                totalPrice += (cart[key].qty * cart[key].harga);
+            }
+            document.getElementById('cart-total').innerText = totalQty;
+            document.getElementById('cart-price').innerText = formatRupiah(totalPrice);
+            document.getElementById('summary-price').innerText = formatRupiah(totalPrice);
+            document.getElementById('float-cart').style.display = totalQty > 0 ? 'block' : 'none';
+        }
+
+        function renderCategoryBar() {
+            const bar = document.getElementById('category-bar');
+            categories.forEach(cat => {
+                bar.innerHTML += `<button onclick="filterByCategory('${cat}')" class="cat-btn bg-white/10 whitespace-nowrap">${cat}</button>`;
+            });
+        }
+
+        function filterByCategory(cat) {
+            document.getElementById('searchInput').value = "";
+            currentCategory = cat;
+            document.querySelectorAll('.cat-btn, #btn-all').forEach(btn => {
+                btn.classList.toggle('cat-btn-active', btn.innerText === cat);
+            });
+            filterProducts();
         }
 
         function updateSummary() {
@@ -205,7 +256,7 @@
                     const nama = parts[1], satuan = parts[2];
                     list.innerHTML += `<div class="bg-gray-50 p-3 rounded-2xl border border-gray-100">
                         <p class="text-[11px] font-bold text-gray-700 uppercase mb-2 leading-tight">${nama}</p>
-                        <div id="sum-${getSafeId(nama, satuan)}">${renderBtn(nama, satuan, 'green')}</div>
+                        <div id="sum-${getSafeId(nama, satuan)}">${renderBtn(nama, satuan, cart[key].harga, 'green')}</div>
                     </div>`;
                 }
             });
@@ -228,10 +279,18 @@
         function sendToWhatsApp() {
             const name = document.getElementById('custName').value;
             const note = document.getElementById('orderNote').value;
-            if (!name) return alert("MOHON ISI NAMA!");
+            if (!name) return alert("MOHON ISI NAMA ANDA!");
+            
+            let totalHarga = 0;
             let p = `*ORDER TOKO DAMAI*\n👤 Nama: *${name.toUpperCase()}*\n\n`;
-            for (let k in cart) p += `✅ ${k} : *${cart[k]}*\n`;
-            if (note.trim()) p += `\n📝 Catatan: _${note}_`;
+            for (let k in cart) {
+                let subTotal = cart[k].qty * cart[k].harga;
+                p += `✅ *${k}*\n   ${cart[k].qty} x Rp ${formatRupiah(cart[k].harga)} = *Rp ${formatRupiah(subTotal)}*\n`;
+                totalHarga += subTotal;
+            }
+            p += `\n💰 *TOTAL ESTIMASI: Rp ${formatRupiah(totalHarga)}*`;
+            if (note.trim()) p += `\n\n📝 Catatan: _${note}_`;
+            
             window.open(`https://wa.me/6285815022210?text=${encodeURIComponent(p)}`);
         }
 
