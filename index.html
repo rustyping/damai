@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Katalog Toko Damai v1.3</title>
+    <title>Katalog Toko Damai v1.4</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -16,8 +16,11 @@
             position: fixed; top: 0; left: 0; width: 0%; height: 4px;
             background: #fb923c; z-index: 100; transition: width 0.1s;
         }
+        /* Header Adjustment untuk teks alamat */
+        .header-bg { background: #075E54; color: white; }
+        
         .category-header { 
-            position: sticky; top: 185px; background: rgba(255, 255, 255, 0.9);
+            position: sticky; top: 220px; background: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(10px); z-index: 10; padding: 12px 0; 
             font-weight: 900; color: #065f46; border-bottom: 2px solid #10b981; 
             text-transform: uppercase; font-size: 0.8rem;
@@ -39,12 +42,22 @@
 
     <div id="scroll-progress"></div>
 
-    <header class="bg-[#075E54] text-white p-5 sticky top-0 z-50 shadow-2xl">
-        <div class="flex justify-between items-center mb-4">
-            <h1 class="text-2xl font-black italic tracking-tighter">TOKO DAMAI</h1>
-            <div id="status" class="text-[10px] bg-black/30 px-3 py-1.5 rounded-lg font-black uppercase italic border border-white/10">Memuat...</div>
+    <header class="header-bg p-5 sticky top-0 z-50 shadow-2xl">
+        <div class="mb-4">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h1 class="text-3xl font-black italic tracking-tighter leading-none">TOKO DAMAI</h1>
+                    <p class="text-[11px] font-bold opacity-90 mt-1">Jl. Kol Sugiono 61, Malang</p>
+                </div>
+                <div id="status" class="text-[9px] bg-black/20 px-2 py-1 rounded-md font-black uppercase border border-white/10">Memuat...</div>
+            </div>
+            <p class="text-[10px] font-black uppercase tracking-widest mt-2 text-emerald-300">
+                Belanja mudah | Belanja hemat | Gratis Ongkir
+            </p>
         </div>
+        
         <input type="text" id="searchInput" oninput="filterProducts()" placeholder="Cari nama barang..." class="w-full p-4 rounded-xl text-gray-900 font-bold outline-none mb-4 shadow-inner">
+        
         <div class="flex items-center overflow-hidden">
             <div class="sticky-all"><button id="btn-all" onclick="filterByCategory('SEMUA')" class="cat-btn cat-btn-active">SEMUA</button></div>
             <div id="category-bar" class="flex overflow-x-auto category-scroll gap-2 py-2"></div>
@@ -65,7 +78,7 @@
         <div class="w-full bg-white rounded-t-[3rem] p-8 shadow-2xl max-h-[92vh] overflow-y-auto">
             <div class="max-w-xl mx-auto">
                 <div class="flex justify-between items-center mb-6">
-                    <h3 class="font-black text-2xl text-slate-800 tracking-tight">RINGKASAN</h3>
+                    <h3 class="font-black text-2xl text-slate-800 tracking-tight italic">RINGKASAN ORDER</h3>
                     <button onclick="toggleCart()"><i class="fas fa-times-circle text-3xl text-slate-300"></i></button>
                 </div>
                 
@@ -73,20 +86,19 @@
                 
                 <div class="bg-slate-900 text-white p-6 rounded-3xl mb-4 flex justify-between items-center shadow-lg">
                     <span class="font-bold uppercase text-xs tracking-widest text-white/60">Total Bayar</span>
-                    <span class="font-black text-2xl">Rp <span id="summary-price">0</span></span>
+                    <span class="font-black text-2xl text-emerald-400">Rp <span id="summary-price">0</span></span>
                 </div>
 
-                <div class="bg-amber-50 border border-amber-200 rounded-2xl p-5 mb-8">
+                <div class="bg-amber-50 border border-amber-200 rounded-2xl p-5 mb-8 text-center">
                     <p class="text-[10px] font-black text-amber-800 uppercase mb-2">Syarat Gratis Ongkir:</p>
-                    <ul class="text-[10px] font-bold text-amber-900/70 space-y-1">
-                        <li>• Minimal Rp 500.000 & 5 Jenis Produk</li>
-                        <li>• Tidak termasuk Tepung, Gula, Beras</li>
-                        <li>• Sesuai area & kurir yang ditentukan</li>
-                    </ul>
+                    <p class="text-[10px] font-bold text-amber-900/70 leading-relaxed italic">
+                        Min. Rp 500.000 & 5 Jenis Barang (Kecuali Tepung, Gula, Beras)<br>
+                        Berlaku sesuai area & kurir yang ditentukan.
+                    </p>
                 </div>
 
-                <input type="text" id="custName" placeholder="TULIS NAMA ANDA..." class="w-full p-5 border-2 rounded-2xl font-black bg-slate-50 text-center uppercase mb-4 outline-none border-slate-200">
-                <button onclick="sendToWhatsApp()" class="w-full bg-[#25D366] text-white font-black py-5 rounded-2xl flex justify-center items-center gap-3 shadow-xl uppercase text-lg">
+                <input type="text" id="custName" placeholder="TULIS NAMA ANDA..." class="w-full p-5 border-2 rounded-2xl font-black bg-slate-50 text-center uppercase mb-4 outline-none border-slate-200 focus:border-emerald-500 transition-all">
+                <button onclick="sendToWhatsApp()" class="w-full bg-[#25D366] text-white font-black py-5 rounded-2xl flex justify-center items-center gap-3 shadow-xl uppercase text-lg active:scale-95 transition-all">
                     <i class="fab fa-whatsapp text-3xl"></i> KIRIM KE WHATSAPP
                 </button>
             </div>
@@ -127,7 +139,7 @@
                 const b = document.getElementById('category-bar');
                 Array.from(catSet).sort().forEach(c => b.innerHTML += `<button onclick="filterByCategory('${c}')" class="cat-btn">${c}</button>`);
                 renderKatalog(productsData);
-                document.getElementById('status').innerText = productsData.length + " PRODUK";
+                document.getElementById('status').innerText = productsData.length + " ITEM";
             } catch (e) { console.error(e); }
         }
 
@@ -146,7 +158,7 @@
             if (qty === 0) {
                 return `<div class="flex items-center justify-between bg-${warna}-50 rounded-2xl border border-${warna}-100 overflow-hidden">
                     <div class="pl-4 py-2"><p class="text-[10px] font-black text-${warna}-700 uppercase italic mb-0.5">${label}</p><p class="text-sm font-black text-slate-700">Rp ${formatRupiah(harga)}</p></div>
-                    <button onclick="updateCart('${esc}', '${satuan}', ${harga}, '${warna}', 1, '${detail}')" class="bg-${warna}-600 text-white px-6 py-4 text-xs font-black">+ BELI</button>
+                    <button onclick="updateCart('${esc}', '${satuan}', ${harga}, '${warna}', 1, '${detail}')" class="bg-${warna}-600 text-white px-6 py-4 text-xs font-black uppercase">+ BELI</button>
                 </div>`;
             } else {
                 return `<div class="flex items-center justify-between bg-${warna}-600 text-white rounded-2xl border-2 border-${warna}-700 shadow-lg overflow-hidden">
@@ -192,7 +204,7 @@
                 <div class="py-4 flex justify-between items-center">
                     <div class="flex-1 pr-4">
                         <p class="text-lg font-black text-slate-800 leading-tight uppercase">${item.namaAsli}</p>
-                        <p class="text-xs font-bold text-slate-500 italic">${item.satuanAsli} (${item.detail}) @ Rp ${formatRupiah(item.harga)}</p>
+                        <p class="text-xs font-bold text-slate-500 italic uppercase">${item.satuanAsli} (${item.detail}) @ ${formatRupiah(item.harga)}</p>
                     </div>
                     <div class="flex items-center bg-slate-100 rounded-xl p-1">
                         <button onclick="updateCart('${item.namaAsli.replace(/'/g, "\\'")}', '${item.satuanAsli}', ${item.harga}, '${item.warna}', -1, '${item.detail}')" class="w-8 h-8 font-black">-</button>
