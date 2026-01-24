@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Katalog Toko Damai</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .category-header { position: sticky; top: 185px; background: #f8fafc; z-index: 10; padding: 10px 0; font-weight: 900; color: #15803d; border-bottom: 2px solid #e2e8f0; text-transform: uppercase; font-size: 0.75rem; }
+        .product-card { border: 1px solid #f1f5f9; }
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        
+        /* Navigasi Kategori */
+        .category-container { position: relative; display: flex; align-items: center; background: rgba(255,255,255,0.05); rounded: 12px; }
+        .sticky-all { position: sticky; left: 0; z-index: 20; background: #075E54; padding-right: 10px; box-shadow: 10px 0 15px -10px rgba(0,0,0,0.5); }
+        .category-scroll { display: flex; overflow-x: auto; gap: 8px; scroll-behavior: smooth; padding: 5px 0; }
+        .category-scroll::-webkit-scrollbar { display: none; }
+        .category-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        .cat-btn { white-space: nowrap; padding: 8px 16px; border-radius: 999px; font-size: 10px; font-weight: 900; text-transform: uppercase; border: 1px solid rgba(255,255,255,0.3); color: white; transition: all 0.2s; }
+        .cat-btn-active { background-color: #f97316 !important; border-color: #f97316 !important; color: white !important; scale: 1.05; }
+    </style>
+</head>
+<body class="bg-gray-50 pb-40 text-gray-800">
+
+    <header class="bg-[#075E54] text-white p-4 sticky top-0 z-50 shadow-xl">
+        <div class="flex justify-between items-center mb-3">
+            <h1 class="text-xl font-bold italic">TOKO DAMAI 🛒</h1>
+            <div id="status" class="text-[10px] bg-white/20 px-3 py-1 rounded-full font-black uppercase tracking-widest text-white">GitHub Data</div>
+        </div>
+        
+        <input type="text" id="searchInput" oninput="filterProducts()" placeholder="Cari nama barang..." class="w-full p-4 rounded-2xl text-gray-800 outline-none border-none text-sm shadow-inner mb-3 focus:ring-2 focus:ring-orange-500">
+        
+        <div class="category-container">
+            <div class="sticky-all">
+                <button id="btn-all" onclick="filterByCategory('SEMUA')" class="cat-btn cat-btn-active">SEMUA</button>
+            </div>
+            <div id="category-bar" class="category-scroll">
+                </div>
+        </div>
+    </header>
+
+    <main id="katalog" class="p-4 max-w-xl mx-auto space-y-6">
+        <div id="loading-view" class="text-center py-20 text-gray-400 font-bold">
+            <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-green-600 mx-auto mb-4"></div>
+            MEMPROSES DATA...
+        </div>
+    </main>
+
+    <button id="float-cart" onclick="toggleCart()" class="fixed bottom-8 right-6 bg-orange-500 text-white px-6 py-4 rounded-full shadow-2xl z-50 hidden font-black border-4 border-white flex items-center gap-2 transition-transform active:scale-95">
+        🛒 (<span id="cart-total">0</span>) PESANAN
+    </button>
+
+    <div id="cart-footer" class="fixed inset-0 bg-black/50 z-[100] hidden flex items-end">
+        <div class="w-full bg-white rounded-t-[40px] p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div class="max-w-xl mx-auto text-center">
+                <div class="flex justify-between items-center mb-6 text-gray-800">
+                    <h3 class="font-black text-lg uppercase tracking-tighter">Ringkasan Order</h3>
+                    <button onclick="toggleCart()"><i class="fas fa-times-circle text-2xl text-gray-300"></i></button>
+                </div>
+                <div id="cart-list" class="max-h-60 overflow-y-auto mb-4 space-y-3 text-left"></div>
+                <div class="space-y-3 mb-6">
+                    <input type="text" id="custName" placeholder="TULIS NAMA ANDA..." class="w-full p-4 border rounded-2xl font-black bg-gray-50 text-center uppercase outline-none focus:border-green-500 shadow-sm">
+                    <textarea id="orderNote" rows="2" placeholder="CATATAN TAMBAHAN (MISAL: KIRIM SORE, ATAU TITIP BARANG LAIN...)" class="w-full p-4 border rounded-2xl font-bold bg-gray-50 text-sm outline-none focus:border-green-500 shadow-sm resize-none"></textarea>
+                </div>
+                <button onclick="sendToWhatsApp()" class="w-full bg-[#25D366] text-white font-black py-4 rounded-2xl flex justify-center items-center gap-2 uppercase shadow-lg active:scale-95">
+                    <i class="fab fa-whatsapp text-2xl"></i> KIRIM KE WA
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const githubUrl = "https://raw.githubusercontent.com/rustyping/damai/main/listDamai.csv?v=" + Date.now();
+        let productsData = [];
+        let categories = [];
+        let cart = {};
+        let currentCategory = "SEMUA";
+
+        async function loadData() {
+            try {
+                const response = await fetch(githubUrl);
+                const csvText = await response.text();
+                const rows = csvText.split(/\r?\n/).filter(row => row.trim() !== "");
+                productsData = [];
+                let catSet = new Set();
+                rows.slice(1).forEach(row => {
+                    const cols = row.split(',').map(c => c.trim().replace(/"/g, ''));
+                    if(cols.length >= 9) {
+                        const nama = cols[2], kategori = cols[4] || "UMUM", s1 = cols[6], s3 = cols[8];
+                        if(nama && !nama.includes("___") && !nama.toLowerCase().includes("xxx") && nama !== "ONGKOS KIRIM") {
+                            productsData.push({ nama, kategori, s1, s3 });
+                            catSet.add(kategori);
+                        }
+                    }
+                });
+                categories = Array.from(catSet).sort();
+                renderCategoryBar();
+                renderKatalog(productsData);
+                document.getElementById('loading-view').classList.add('hidden');
+                document.getElementById('status').innerText = productsData.length + " ITEM";
+            } catch (e) { document.getElementById('loading-view').innerHTML = "Gagal memuat data."; }
+        }
+
+        function renderCategoryBar() {
+            const bar = document.getElementById('category-bar');
+            categories.forEach(cat => {
+                bar.innerHTML += `<button onclick="filterByCategory('${cat}')" class="cat-btn bg-white/10">${cat}</button>`;
+            });
+        }
+
+        function filterByCategory(cat) {
+            currentCategory = cat;
+            document.querySelectorAll('.cat-btn, #btn-all').forEach(btn => {
+                btn.classList.remove('cat-btn-active');
+                if(btn.innerText === cat) btn.classList.add('cat-btn-active');
+            });
+            filterProducts();
+        }
+
+        function getSafeId(nama, satuan) { return btoa(nama + satuan).replace(/=/g, '').substring(0,16); }
+
+        function renderKatalog(data) {
+            const katalog = document.getElementById('katalog');
+            katalog.innerHTML = "";
+            const grouped = data.reduce((acc, obj) => {
+                const key = obj.kategori;
+                if (!acc[key]) acc[key] = [];
+                acc[key].push(obj);
+                return acc;
+            }, {});
+            for (let kat in grouped) {
+                let section = `<div><h2 class="category-header">${kat}</h2><div class="grid gap-2 mt-2">`;
+                grouped[kat].forEach(p => {
+                    section += `
+                    <div class="product-card bg-white p-3 rounded-2xl shadow-sm border border-gray-100 flex flex-col gap-2">
+                        <p class="font-bold text-gray-800 text-[13px] uppercase leading-tight">${p.nama}</p>
+                        <div class="flex flex-col gap-2">
+                            ${p.s1 && p.s1 !== '___' ? `<div id="btn-main-${getSafeId(p.nama, p.s1)}">${renderBtn(p.nama, p.s1, 'emerald')}</div>` : ''}
+                            ${p.s3 && p.s3 !== '___' ? `<div id="btn-main-${getSafeId(p.nama, p.s3)}">${renderBtn(p.nama, p.s3, 'blue')}</div>` : ''}
+                        </div>
+                    </div>`;
+                });
+                section += `</div></div>`;
+                katalog.innerHTML += section;
+            }
+        }
+
+        function renderBtn(nama, satuan, warna) {
+            const key = `${nama} (${satuan})`;
+            const qty = cart[key] || 0;
+            if (qty === 0) {
+                return `<div class="flex items-center justify-between bg-${warna}-50 rounded-xl border border-${warna}-100 overflow-hidden">
+                    <span class="pl-3 text-[10px] font-black text-${warna}-700 uppercase">${satuan}</span>
+                    <button onclick="updateCart('${nama}', '${satuan}', '${warna}', 1)" class="bg-${warna}-600 text-white px-4 py-2 text-[10px] font-black uppercase">+ BELI</button>
+                </div>`;
+            } else {
+                return `<div class="flex items-center justify-between bg-${warna}-600 text-white rounded-xl border-2 border-${warna}-700 overflow-hidden shadow-sm">
+                    <span class="pl-3 text-[10px] font-black uppercase">${satuan}</span>
+                    <div class="flex items-center bg-white/20">
+                        <button onclick="updateCart('${nama}', '${satuan}', '${warna}', -1)" class="w-8 h-8 font-bold text-xl">-</button>
+                        <input type="number" value="${qty}" onchange="manualInput('${nama}', '${satuan}', '${warna}', this.value)" 
+                               class="w-10 bg-transparent text-center font-black text-sm outline-none border-none p-0 text-white" onfocus="this.select()">
+                        <button onclick="updateCart('${nama}', '${satuan}', '${warna}', 1)" class="w-8 h-8 font-bold text-xl">+</button>
+                    </div>
+                </div>`;
+            }
+        }
+
+        function updateCart(nama, satuan, warna, delta) {
+            const key = `${nama} (${satuan})`;
+            cart[key] = (cart[key] || 0) + delta;
+            if (cart[key] <= 0) delete cart[key];
+            syncUI(nama, satuan, warna);
+        }
+
+        function manualInput(nama, satuan, warna, val) {
+            const key = `${nama} (${satuan})`;
+            let n = parseInt(val);
+            if (isNaN(n) || n <= 0) delete cart[key]; else cart[key] = n;
+            syncUI(nama, satuan, warna);
+        }
+
+        function syncUI(nama, satuan, warna) {
+            const safeId = getSafeId(nama, satuan);
+            const containerMain = document.getElementById(`btn-main-${safeId}`);
+            if(containerMain) containerMain.innerHTML = renderBtn(nama, satuan, warna);
+            updateSummary();
+        }
+
+        function updateSummary() {
+            const list = document.getElementById('cart-list');
+            const totalSpan = document.getElementById('cart-total');
+            const floatBtn = document.getElementById('float-cart');
+            list.innerHTML = "";
+            let count = 0;
+            const keys = Object.keys(cart);
+            if(keys.length === 0) list.innerHTML = "<p class='text-center text-gray-400 py-4 italic text-sm font-bold'>Keranjang masih kosong</p>";
+            keys.forEach(key => {
+                count += cart[key];
+                const match = key.match(/(.*) \((.*)\)/);
+                const nama = match[1], satuan = match[2];
+                list.innerHTML += `<div class="bg-gray-50 p-3 rounded-2xl border border-gray-100"><p class="text-[11px] font-bold text-gray-700 uppercase mb-2 leading-tight">${nama}</p><div>${renderBtn(nama, satuan, 'green')}</div></div>`;
+            });
+            totalSpan.innerText = count;
+            floatBtn.style.display = count > 0 ? 'block' : 'none';
+        }
+
+        function toggleCart() { document.getElementById('cart-footer').classList.toggle('hidden'); }
+
+        function filterProducts() {
+            const q = document.getElementById('searchInput').value.toLowerCase();
+            let filtered = productsData;
+            if (currentCategory !== "SEMUA") filtered = filtered.filter(p => p.kategori === currentCategory);
+            if (q) filtered = filtered.filter(p => p.nama.toLowerCase().includes(q) || p.kategori.toLowerCase().includes(q));
+            renderKatalog(filtered);
+        }
+
+        function sendToWhatsApp() {
+            const name = document.getElementById('custName').value;
+            const note = document.getElementById('orderNote').value;
+            if (!name) return alert("MOHON TULIS NAMA ANDA!");
+            let pesan = `*ORDER TOKO DAMAI*\n👤 Nama: *${name.toUpperCase()}*\n\n`;
+            for (let key in cart) { pesan += `✅ ${key} : *${cart[key]}*\n`; }
+            if (note.trim() !== "") pesan += `\n📝 *Catatan Tambahan:*\n_${note}_`;
+            window.open(`https://wa.me/6285815022210?text=${encodeURIComponent(pesan)}`);
+        }
+
+        loadData();
+    </script>
+</body>
+</html>
