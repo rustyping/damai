@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         .category-header { position: sticky; top: 185px; background: #f8fafc; z-index: 10; padding: 10px 0; font-weight: 900; color: #15803d; border-bottom: 2px solid #e2e8f0; text-transform: uppercase; font-size: 0.75rem; }
-        .product-card { border: 1px solid #f1f5f9; }
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         .category-container { position: relative; display: flex; align-items: center; background: rgba(255,255,255,0.05); }
         .sticky-all { position: sticky; left: 0; z-index: 20; background: #075E54; padding-right: 10px; box-shadow: 10px 0 15px -10px rgba(0,0,0,0.5); }
@@ -41,7 +40,7 @@
     <div id="cart-footer" class="fixed inset-0 bg-black/50 z-[100] hidden flex items-end">
         <div class="w-full bg-white rounded-t-[40px] p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
             <div class="max-w-xl mx-auto text-center">
-                <div class="flex justify-between items-center mb-6 text-gray-800">
+                <div class="flex justify-between items-center mb-6">
                     <h3 class="font-black text-lg uppercase">Ringkasan Order</h3>
                     <button onclick="toggleCart()"><i class="fas fa-times-circle text-2xl text-gray-300"></i></button>
                 </div>
@@ -79,7 +78,7 @@
                 }).filter(Boolean);
                 categories = Array.from(catSet).sort();
                 renderCategoryBar();
-                renderKatalog(productsData);
+                filterProducts();
                 document.getElementById('status').innerText = productsData.length + " PRODUK";
             } catch (e) { console.error(e); }
         }
@@ -100,9 +99,15 @@
             filterProducts();
         }
 
-        // PERBAIKAN BUG: ID Unik menggunakan base64 dari Nama + Satuan
+        // Fungsi ID Unik yang lebih kuat
         function getSafeId(nama, satuan) {
-            return btoa(unescape(encodeURIComponent(nama + satuan))).replace(/[^a-zA-Z0-9]/g, '').substring(0, 20);
+            let str = nama + satuan;
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                hash = ((hash << 5) - hash) + str.charCodeAt(i);
+                hash |= 0;
+            }
+            return 'id' + Math.abs(hash);
         }
 
         function renderKatalog(data) {
@@ -114,6 +119,7 @@
                 acc[key].push(obj);
                 return acc;
             }, {});
+
             for (let kat in grouped) {
                 let section = `<div><h2 class="category-header">${kat}</h2><div class="grid gap-2 mt-2">`;
                 grouped[kat].forEach(p => {
@@ -121,8 +127,8 @@
                     <div class="product-card bg-white p-3 rounded-2xl shadow-sm border border-gray-100 flex flex-col gap-2">
                         <p class="font-bold text-gray-800 text-[13px] uppercase leading-tight">${p.nama}</p>
                         <div class="flex flex-col gap-2">
-                            ${p.s1 && p.s1 !== '___' ? `<div id="btn-main-${getSafeId(p.nama, p.s1)}">${renderBtn(p.nama, p.s1, 'emerald')}</div>` : ''}
-                            ${p.s3 && p.s3 !== '___' ? `<div id="btn-main-${getSafeId(p.nama, p.s3)}">${renderBtn(p.nama, p.s3, 'blue')}</div>` : ''}
+                            ${p.s1 && p.s1 !== '___' ? `<div id="cont-${getSafeId(p.nama, p.s1)}">${renderBtn(p.nama, p.s1, 'emerald')}</div>` : ''}
+                            ${p.s3 && p.s3 !== '___' ? `<div id="cont-${getSafeId(p.nama, p.s3)}">${renderBtn(p.nama, p.s3, 'blue')}</div>` : ''}
                         </div>
                     </div>`;
                 });
@@ -133,20 +139,21 @@
         function renderBtn(nama, satuan, warna) {
             const key = `${nama} (${satuan})`;
             const qty = cart[key] || 0;
-            const safeId = getSafeId(nama, satuan);
+            const escNama = nama.replace(/'/g, "\\'");
+            
             if (qty === 0) {
                 return `<div class="flex items-center justify-between bg-${warna}-50 rounded-xl border border-${warna}-100 overflow-hidden">
                     <span class="pl-3 text-[10px] font-black text-${warna}-700 uppercase italic">${satuan}</span>
-                    <button onclick="updateCart('${nama.replace(/'/g, "\\'")}', '${satuan}', '${warna}', 1)" class="bg-${warna}-600 text-white px-4 py-2 text-[10px] font-black">+ BELI</button>
+                    <button onclick="updateCart('${escNama}', '${satuan}', '${warna}', 1)" class="bg-${warna}-600 text-white px-4 py-2 text-[10px] font-black uppercase">+ BELI</button>
                 </div>`;
             } else {
                 return `<div class="flex items-center justify-between bg-${warna}-600 text-white rounded-xl border-2 border-${warna}-700 overflow-hidden shadow-sm">
                     <span class="pl-3 text-[10px] font-black uppercase italic">${satuan}</span>
                     <div class="flex items-center bg-white/20">
-                        <button onclick="updateCart('${nama.replace(/'/g, "\\'")}', '${satuan}', '${warna}', -1)" class="w-9 h-9 font-bold text-xl">-</button>
-                        <input type="number" value="${qty}" onchange="manualInput('${nama.replace(/'/g, "\\'")}', '${satuan}', '${warna}', this.value)" 
+                        <button onclick="updateCart('${escNama}', '${satuan}', '${warna}', -1)" class="w-9 h-9 font-bold text-xl active:bg-black/20">-</button>
+                        <input type="number" value="${qty}" onchange="manualInput('${escNama}', '${satuan}', '${warna}', this.value)" 
                                class="w-10 bg-transparent text-center font-black text-sm outline-none border-none p-0 text-white" onfocus="this.select()">
-                        <button onclick="updateCart('${nama.replace(/'/g, "\\'")}', '${satuan}', '${warna}', 1)" class="w-9 h-9 font-bold text-xl">+</button>
+                        <button onclick="updateCart('${escNama}', '${satuan}', '${warna}', 1)" class="w-9 h-9 font-bold text-xl active:bg-black/20">+</button>
                     </div>
                 </div>`;
             }
@@ -156,26 +163,23 @@
             const key = `${nama} (${satuan})`;
             cart[key] = (cart[key] || 0) + delta;
             if (cart[key] <= 0) delete cart[key];
-            syncUI(nama, satuan, warna);
+            
+            // Re-render tombol di katalog
+            const contKatalog = document.getElementById(`cont-${getSafeId(nama, satuan)}`);
+            if(contKatalog) contKatalog.innerHTML = renderBtn(nama, satuan, warna);
+            
+            // Re-render tombol di ringkasan jika terbuka
+            const contSummary = document.getElementById(`sum-${getSafeId(nama, satuan)}`);
+            if(contSummary) contSummary.innerHTML = renderBtn(nama, satuan, 'green');
+
+            updateTotalOnly();
         }
 
         function manualInput(nama, satuan, warna, val) {
             const key = `${nama} (${satuan})`;
             let n = parseInt(val);
             if (isNaN(n) || n <= 0) delete cart[key]; else cart[key] = n;
-            syncUI(nama, satuan, warna);
-        }
-
-        function syncUI(nama, satuan, warna) {
-            const safeId = getSafeId(nama, satuan);
-            const containerMain = document.getElementById(`btn-main-${safeId}`);
-            if(containerMain) containerMain.innerHTML = renderBtn(nama, satuan, warna);
-            
-            // Juga update di ringkasan jika modal sedang terbuka
-            const containerSummary = document.getElementById(`btn-summary-${safeId}`);
-            if(containerSummary) containerSummary.innerHTML = renderBtn(nama, satuan, 'green');
-            
-            updateTotalOnly();
+            updateCart(nama, satuan, warna, 0); // Trigger update UI
         }
 
         function updateTotalOnly() {
@@ -193,7 +197,7 @@
                 const match = key.match(/(.*) \((.*)\)/);
                 const nama = match[1], satuan = match[2];
                 list.innerHTML += `<div class="bg-gray-50 p-3 rounded-2xl border border-gray-100"><p class="text-[11px] font-bold text-gray-700 uppercase mb-2 leading-tight">${nama}</p>
-                <div id="btn-summary-${getSafeId(nama, satuan)}">${renderBtn(nama, satuan, 'green')}</div></div>`;
+                <div id="sum-${getSafeId(nama, satuan)}">${renderBtn(nama, satuan, 'green')}</div></div>`;
             });
             updateTotalOnly();
         }
