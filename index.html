@@ -90,7 +90,16 @@
                 productsData = rows.slice(1).map(row => {
                     const cols = row.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
                     const nama = cols[2] || "";
-                    if (!nama || nama.toLowerCase().includes("nama barang")) return null;
+                    const lowerNama = nama.toLowerCase();
+
+                    // FILTER: Hilangkan baris kosong, xxx, ___, dan ongkos kirim
+                    if (!nama || 
+                        lowerNama.includes("nama barang") || 
+                        lowerNama.includes("xxx") || 
+                        lowerNama.includes("___") || 
+                        lowerNama.includes("ongkos kirim")) {
+                        return null;
+                    }
                     
                     catSet.add(cols[4] || "UMUM");
                     return { 
