@@ -242,10 +242,23 @@
             const m = document.getElementById('cart-footer');
             m.classList.toggle('hidden');
             if(!m.classList.contains('hidden')) {
-                const l = document.getElementById('cart-list'); l.innerHTML = "";
+                const l = document.getElementById('cart-list'); 
+                l.innerHTML = "";
                 for(let k in cart) {
-                    const match = k.match(/(.*) \((.*)\)/);
-                    l.innerHTML += `<div class="cart-row bg-white p-4 rounded-3xl border border-slate-100 shadow-sm"><p class="text-[11px] font-black text-slate-400 uppercase mb-3 tracking-wider italic">${match[1]}</p><div id="sum-${getSafeId(match[1], match[2])}">${renderBtn(match[1], match[2], cart[k].harga, cart[k].warna)}</div></div>`;
+                    // Logika baru: Memisahkan Nama dan Satuan dengan lebih aman
+                    const lastOpenBrace = k.lastIndexOf(" (");
+                    const namaBarang = k.substring(0, lastOpenBrace);
+                    const satuanLengkap = k.substring(lastOpenBrace + 2, k.length - 1);
+                    
+                    l.innerHTML += `
+                    <div class="cart-row bg-white p-4 rounded-3xl border border-slate-100 shadow-sm">
+                        <p class="text-[11px] font-black text-slate-400 uppercase mb-3 tracking-wider italic">
+                            ${namaBarang}
+                        </p>
+                        <div id="sum-${getSafeId(namaBarang, satuanLengkap)}">
+                            ${renderBtn(namaBarang, satuanLengkap, cart[k].harga, cart[k].warna)}
+                        </div>
+                    </div>`;
                 }
             }
         }
@@ -268,3 +281,4 @@
     </script>
 </body>
 </html>
+
