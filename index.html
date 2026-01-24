@@ -13,7 +13,7 @@
         .sticky-all { position: sticky; left: 0; z-index: 20; background: #075E54; padding-right: 10px; box-shadow: 10px 0 15px -10px rgba(0,0,0,0.5); }
         .category-scroll { display: flex; overflow-x: auto; gap: 8px; scroll-behavior: smooth; padding: 5px 0; }
         .category-scroll::-webkit-scrollbar { display: none; }
-        .cat-btn { white-space: nowrap; padding: 8px 16px; border-radius: 999px; font-size: 10px; font-weight: 900; text-transform: uppercase; border: 1px solid rgba(255,255,255,0.3); color: white; }
+        .cat-btn { white-space: nowrap; padding: 8px 16px; border-radius: 999px; font-size: 10px; font-weight: 900; text-transform: uppercase; border: 1px solid rgba(255,255,255,0.3); color: white; cursor: pointer; }
         .cat-btn-active { background-color: #f97316 !important; border-color: #f97316 !important; transform: scale(1.05); }
     </style>
 </head>
@@ -41,7 +41,7 @@
         <div class="w-full bg-white rounded-t-[40px] p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
             <div class="max-w-xl mx-auto text-center">
                 <div class="flex justify-between items-center mb-6">
-                    <h3 class="font-black text-lg uppercase">Ringkasan Order</h3>
+                    <h3 class="font-black text-lg uppercase tracking-tight">Ringkasan Order</h3>
                     <button onclick="toggleCart()"><i class="fas fa-times-circle text-2xl text-gray-300"></i></button>
                 </div>
                 <div id="cart-list" class="max-h-60 overflow-y-auto mb-4 space-y-3 text-left"></div>
@@ -49,7 +49,7 @@
                     <input type="text" id="custName" placeholder="TULIS NAMA ANDA..." class="w-full p-4 border rounded-2xl font-black bg-gray-50 text-center uppercase outline-none focus:border-green-500 shadow-sm border-gray-200">
                     <textarea id="orderNote" rows="2" placeholder="CATATAN TAMBAHAN..." class="w-full p-4 border rounded-2xl font-bold bg-gray-50 text-[12px] outline-none focus:border-green-500 shadow-sm resize-none border-gray-200"></textarea>
                 </div>
-                <button onclick="sendToWhatsApp()" class="w-full bg-[#25D366] text-white font-black py-4 rounded-2xl flex justify-center items-center gap-2 uppercase shadow-lg">
+                <button onclick="sendToWhatsApp()" class="w-full bg-[#25D366] text-white font-black py-4 rounded-2xl flex justify-center items-center gap-2 uppercase shadow-lg transition-transform active:scale-95">
                     <i class="fab fa-whatsapp text-2xl"></i> KIRIM KE WA
                 </button>
             </div>
@@ -69,18 +69,32 @@
                 const csvText = await response.text();
                 const rows = csvText.split(/\r?\n/).filter(row => row.trim() !== "");
                 let catSet = new Set();
+                
                 productsData = rows.slice(1).map(row => {
                     const cols = row.split(',').map(c => c.trim().replace(/"/g, ''));
-                    if(cols.length >= 9 && cols[2] && !cols[2].includes("___")) {
-                        catSet.add(cols[4] || "UMUM");
-                        return { nama: cols[2], kategori: cols[4] || "UMUM", s1: cols[6], s3: cols[8] };
+                    if(cols.length >= 9) {
+                        const nama = cols[2] || "";
+                        const kategori = cols[4] || "UMUM";
+                        
+                        // FILTER: Abaikan Ongkir, ____, dan xxx
+                        if(
+                            nama === "" || 
+                            nama === "ONGKOS KIRIM" || 
+                            nama.includes("____") || 
+                            nama.toLowerCase().includes("xxx")
+                        ) return null;
+
+                        catSet.add(kategori);
+                        return { nama, kategori, s1: cols[6], s3: cols[8] };
                     }
+                    return null;
                 }).filter(Boolean);
+
                 categories = Array.from(catSet).sort();
                 renderCategoryBar();
                 filterProducts();
                 document.getElementById('status').innerText = productsData.length + " PRODUK";
-            } catch (e) { console.error(e); }
+            } catch (e) { console.error("Error loading data:", e); }
         }
 
         function renderCategoryBar() {
@@ -99,36 +113,37 @@
             filterProducts();
         }
 
-        // Fungsi ID Unik yang lebih kuat
+        // Pengaman ID untuk Desktop Chrome agar tidak tertukar
         function getSafeId(nama, satuan) {
-            let str = nama + satuan;
+            const cleanStr = (nama + satuan).replace(/[^a-zA-Z0-9]/g, '');
             let hash = 0;
-            for (let i = 0; i < str.length; i++) {
-                hash = ((hash << 5) - hash) + str.charCodeAt(i);
+            for (let i = 0; i < cleanStr.length; i++) {
+                hash = ((hash << 5) - hash) + cleanStr.charCodeAt(i);
                 hash |= 0;
             }
-            return 'id' + Math.abs(hash);
+            return 'p' + Math.abs(hash);
         }
 
         function renderKatalog(data) {
             const katalog = document.getElementById('katalog');
             katalog.innerHTML = "";
             const grouped = data.reduce((acc, obj) => {
-                const key = obj.kategori;
-                if (!acc[key]) acc[key] = [];
-                acc[key].push(obj);
+                if (!acc[obj.kategori]) acc[obj.kategori] = [];
+                acc[obj.kategori].push(obj);
                 return acc;
             }, {});
 
             for (let kat in grouped) {
                 let section = `<div><h2 class="category-header">${kat}</h2><div class="grid gap-2 mt-2">`;
                 grouped[kat].forEach(p => {
+                    const id1 = getSafeId(p.nama, p.s1);
+                    const id3 = getSafeId(p.nama, p.s3);
                     section += `
                     <div class="product-card bg-white p-3 rounded-2xl shadow-sm border border-gray-100 flex flex-col gap-2">
                         <p class="font-bold text-gray-800 text-[13px] uppercase leading-tight">${p.nama}</p>
                         <div class="flex flex-col gap-2">
-                            ${p.s1 && p.s1 !== '___' ? `<div id="cont-${getSafeId(p.nama, p.s1)}">${renderBtn(p.nama, p.s1, 'emerald')}</div>` : ''}
-                            ${p.s3 && p.s3 !== '___' ? `<div id="cont-${getSafeId(p.nama, p.s3)}">${renderBtn(p.nama, p.s3, 'blue')}</div>` : ''}
+                            ${(p.s1 && p.s1 !== '___') ? `<div id="cont-${id1}">${renderBtn(p.nama, p.s1, 'emerald')}</div>` : ''}
+                            ${(p.s3 && p.s3 !== '___') ? `<div id="cont-${id3}">${renderBtn(p.nama, p.s3, 'blue')}</div>` : ''}
                         </div>
                     </div>`;
                 });
@@ -150,10 +165,10 @@
                 return `<div class="flex items-center justify-between bg-${warna}-600 text-white rounded-xl border-2 border-${warna}-700 overflow-hidden shadow-sm">
                     <span class="pl-3 text-[10px] font-black uppercase italic">${satuan}</span>
                     <div class="flex items-center bg-white/20">
-                        <button onclick="updateCart('${escNama}', '${satuan}', '${warna}', -1)" class="w-9 h-9 font-bold text-xl active:bg-black/20">-</button>
+                        <button onclick="updateCart('${escNama}', '${satuan}', '${warna}', -1)" class="w-9 h-9 font-bold text-xl">-</button>
                         <input type="number" value="${qty}" onchange="manualInput('${escNama}', '${satuan}', '${warna}', this.value)" 
-                               class="w-10 bg-transparent text-center font-black text-sm outline-none border-none p-0 text-white" onfocus="this.select()">
-                        <button onclick="updateCart('${escNama}', '${satuan}', '${warna}', 1)" class="w-9 h-9 font-bold text-xl active:bg-black/20">+</button>
+                               class="w-10 bg-transparent text-center font-black text-sm outline-none border-none p-0 text-white">
+                        <button onclick="updateCart('${escNama}', '${satuan}', '${warna}', 1)" class="w-9 h-9 font-bold text-xl">+</button>
                     </div>
                 </div>`;
             }
@@ -164,22 +179,22 @@
             cart[key] = (cart[key] || 0) + delta;
             if (cart[key] <= 0) delete cart[key];
             
-            // Re-render tombol di katalog
-            const contKatalog = document.getElementById(`cont-${getSafeId(nama, satuan)}`);
-            if(contKatalog) contKatalog.innerHTML = renderBtn(nama, satuan, warna);
+            // Sync UI Katalog
+            const cKat = document.getElementById(`cont-${getSafeId(nama, satuan)}`);
+            if(cKat) cKat.innerHTML = renderBtn(nama, satuan, warna);
             
-            // Re-render tombol di ringkasan jika terbuka
-            const contSummary = document.getElementById(`sum-${getSafeId(nama, satuan)}`);
-            if(contSummary) contSummary.innerHTML = renderBtn(nama, satuan, 'green');
+            // Sync UI Ringkasan
+            const cSum = document.getElementById(`sum-${getSafeId(nama, satuan)}`);
+            if(cSum) cSum.innerHTML = renderBtn(nama, satuan, 'green');
 
             updateTotalOnly();
         }
 
         function manualInput(nama, satuan, warna, val) {
+            const n = parseInt(val);
             const key = `${nama} (${satuan})`;
-            let n = parseInt(val);
             if (isNaN(n) || n <= 0) delete cart[key]; else cart[key] = n;
-            updateCart(nama, satuan, warna, 0); // Trigger update UI
+            updateCart(nama, satuan, warna, 0);
         }
 
         function updateTotalOnly() {
@@ -192,38 +207,41 @@
             const list = document.getElementById('cart-list');
             list.innerHTML = "";
             const keys = Object.keys(cart);
-            if(keys.length === 0) list.innerHTML = "<p class='text-center text-gray-400 py-6 italic text-sm font-bold'>Keranjang kosong</p>";
+            if(keys.length === 0) list.innerHTML = "<p class='text-center text-gray-400 py-6 italic font-bold'>Keranjang kosong</p>";
             keys.forEach(key => {
-                const match = key.match(/(.*) \((.*)\)/);
-                const nama = match[1], satuan = match[2];
-                list.innerHTML += `<div class="bg-gray-50 p-3 rounded-2xl border border-gray-100"><p class="text-[11px] font-bold text-gray-700 uppercase mb-2 leading-tight">${nama}</p>
-                <div id="sum-${getSafeId(nama, satuan)}">${renderBtn(nama, satuan, 'green')}</div></div>`;
+                const parts = key.match(/(.*) \((.*)\)/);
+                if(parts) {
+                    const nama = parts[1], satuan = parts[2];
+                    list.innerHTML += `<div class="bg-gray-50 p-3 rounded-2xl border border-gray-100">
+                        <p class="text-[11px] font-bold text-gray-700 uppercase mb-2 leading-tight">${nama}</p>
+                        <div id="sum-${getSafeId(nama, satuan)}">${renderBtn(nama, satuan, 'green')}</div>
+                    </div>`;
+                }
             });
-            updateTotalOnly();
         }
 
         function toggleCart() { 
-            const modal = document.getElementById('cart-footer');
-            modal.classList.toggle('hidden');
-            if(!modal.classList.contains('hidden')) updateSummary();
+            const m = document.getElementById('cart-footer');
+            m.classList.toggle('hidden');
+            if(!m.classList.contains('hidden')) updateSummary();
         }
 
         function filterProducts() {
             const q = document.getElementById('searchInput').value.toLowerCase();
-            let filtered = productsData;
-            if (currentCategory !== "SEMUA") filtered = filtered.filter(p => p.kategori === currentCategory);
-            if (q) filtered = filtered.filter(p => p.nama.toLowerCase().includes(q));
-            renderKatalog(filtered);
+            let f = productsData;
+            if (currentCategory !== "SEMUA") f = f.filter(p => p.kategori === currentCategory);
+            if (q) f = f.filter(p => p.nama.toLowerCase().includes(q));
+            renderKatalog(f);
         }
 
         function sendToWhatsApp() {
             const name = document.getElementById('custName').value;
             const note = document.getElementById('orderNote').value;
-            if (!name) return alert("TULIS NAMA ANDA!");
-            let pesan = `*ORDER TOKO DAMAI*\n👤 Nama: *${name.toUpperCase()}*\n\n`;
-            for (let key in cart) { pesan += `✅ ${key} : *${cart[key]}*\n`; }
-            if (note.trim() !== "") pesan += `\n📝 Catatan:\n_${note}_`;
-            window.open(`https://wa.me/6285815022210?text=${encodeURIComponent(pesan)}`);
+            if (!name) return alert("MOHON ISI NAMA!");
+            let p = `*ORDER TOKO DAMAI*\n👤 Nama: *${name.toUpperCase()}*\n\n`;
+            for (let k in cart) p += `✅ ${k} : *${cart[k]}*\n`;
+            if (note.trim()) p += `\n📝 Catatan: _${note}_`;
+            window.open(`https://wa.me/6285815022210?text=${encodeURIComponent(p)}`);
         }
 
         loadData();
