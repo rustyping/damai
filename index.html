@@ -131,19 +131,19 @@
                 const rows = csvText.split(/\r?\n/).filter(row => row.trim() !== "");
                 let catSet = new Set();
                 
-                productsData = rows.slice(1).map(row => {
+              productsData = rows.slice(1).map(row => {
                     const cols = row.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
                     const nama = cols[2] || "";
-                    const lowerNama = nama.toLowerCase();
-
-                    if (nama === "" || lowerNama === "nama barang" || lowerNama.includes("xxx") || lowerNama.includes("___") || lowerNama.includes("ongkos kirim")) return null;
+                    if (nama === "" || nama.toLowerCase().includes("nama barang")) return null;
                     
                     const kat = cols[4] || "UMUM";
                     catSet.add(kat);
 
                     return { 
                         nama: nama, kategori: kat, 
-                        s1: cols[6] || "", s2: cols[7] || "", s3: cols[8] || "", 
+                        s1: cols[6] || "", s2: cols[7] || "", s3: cols[8] || "",
+                        // Ambil detail satuan dari kolom K, L, M
+                        d1: cols[10] || "1", d2: cols[11] || "1", d3: cols[12] || "1",
                         h1: parseInt(cols[19]) || 0, h2: parseInt(cols[22]) || 0, h3: parseInt(cols[25]) || 0 
                     };
                 }).filter(Boolean);
@@ -305,3 +305,4 @@
     </script>
 </body>
 </html>
+
