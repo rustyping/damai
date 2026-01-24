@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Katalog Toko Damai</title>
+    <title>Katalog Toko Damai v1.2</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -39,7 +39,7 @@
             <h1 class="text-2xl font-black italic tracking-tighter">TOKO DAMAI</h1>
             <div id="status" class="text-[10px] bg-black/30 px-3 py-1.5 rounded-lg font-black uppercase italic border border-white/10">Memuat...</div>
         </div>
-        <input type="text" id="searchInput" oninput="filterProducts()" placeholder="Cari barang..." class="w-full p-4 rounded-xl text-gray-900 font-bold outline-none mb-4 shadow-inner">
+        <input type="text" id="searchInput" oninput="filterProducts()" placeholder="Cari nama barang..." class="w-full p-4 rounded-xl text-gray-900 font-bold outline-none mb-4 shadow-inner">
         <div class="flex items-center overflow-hidden">
             <div class="sticky-all"><button id="btn-all" onclick="filterByCategory('SEMUA')" class="cat-btn cat-btn-active">SEMUA</button></div>
             <div id="category-bar" class="flex overflow-x-auto category-scroll gap-2 py-2"></div>
@@ -63,13 +63,28 @@
                     <h3 class="font-black text-2xl text-slate-800">RINGKASAN ORDER</h3>
                     <button onclick="toggleCart()"><i class="fas fa-times-circle text-3xl text-slate-300"></i></button>
                 </div>
+                
                 <div id="cart-list" class="space-y-4 mb-8"></div>
-                <div class="bg-slate-50 p-6 rounded-3xl mb-8 flex justify-between items-center border border-slate-100">
+                
+                <div class="bg-slate-50 p-6 rounded-3xl mb-4 flex justify-between items-center border border-slate-100">
                     <span class="font-bold text-slate-500 uppercase text-xs">Total</span>
                     <span class="font-black text-2xl text-emerald-700">Rp <span id="summary-price">0</span></span>
                 </div>
-                <input type="text" id="custName" placeholder="NAMA ANDA..." class="w-full p-5 border-2 rounded-2xl font-black bg-slate-50 text-center uppercase mb-4 outline-none">
-                <button onclick="sendToWhatsApp()" class="w-full bg-[#25D366] text-white font-black py-5 rounded-2xl flex justify-center items-center gap-3 shadow-xl uppercase">
+
+                <div class="bg-amber-50 border border-amber-200 rounded-2xl p-5 mb-8">
+                    <p class="text-[10px] font-black text-amber-800 uppercase tracking-widest mb-3 flex items-center gap-2">
+                        <i class="fas fa-info-circle"></i> Syarat Gratis Ongkir
+                    </p>
+                    <ul class="text-[11px] font-bold text-amber-900/80 space-y-1.5 leading-tight">
+                        <li class="flex gap-2"><span>1.</span><span>Minimal pembelian Rp 500.000</span></li>
+                        <li class="flex gap-2"><span>2.</span><span>Wajib membeli minimal 5 jenis produk berbeda</span></li>
+                        <li class="flex gap-2"><span>3.</span><span>Tepung, Gula, dan Beras tidak termasuk hitungan</span></li>
+                        <li class="flex gap-2"><span>4.</span><span>Berlaku sesuai area & kurir yang ditentukan</span></li>
+                    </ul>
+                </div>
+
+                <input type="text" id="custName" placeholder="NAMA ANDA..." class="w-full p-5 border-2 rounded-2xl font-black bg-slate-50 text-center uppercase mb-4 outline-none focus:border-emerald-500 transition-all">
+                <button onclick="sendToWhatsApp()" class="w-full bg-[#25D366] text-white font-black py-5 rounded-2xl flex justify-center items-center gap-3 shadow-xl uppercase active:scale-95 transition-all text-lg">
                     <i class="fab fa-whatsapp text-3xl"></i> KIRIM KE WA
                 </button>
             </div>
@@ -92,7 +107,6 @@
                     const nama = cols[2] || "";
                     const lowerNama = nama.toLowerCase();
 
-                    // FILTER: Hilangkan baris kosong, xxx, ___, dan ongkos kirim
                     if (!nama || 
                         lowerNama.includes("nama barang") || 
                         lowerNama.includes("xxx") || 
