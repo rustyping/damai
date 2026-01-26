@@ -12,6 +12,22 @@
             background: linear-gradient(135deg, #ffffff 0%, #f0f4f8 100%); 
             background-attachment: fixed; 
         }
+
+/* Tambahkan atau pastikan ini ada di bagian <style> */
+#katalog {
+    padding-top: 10px;
+    padding-bottom: 100px; /* Ruang agar tidak tertutup tombol keranjang */
+}
+
+.product-card {
+    transition: transform 0.2s ease;
+}
+
+.product-card:active {
+    transform: scale(0.98); /* Efek membal saat ditekan */
+}
+
+        
         #scroll-progress { 
             position: fixed; top: 0; left: 0; width: 0%; height: 4px; 
             background: #fb923c; z-index: 100; transition: width 0.1s; 
@@ -163,15 +179,19 @@
 
                 const b = document.getElementById('category-bar');
                 b.innerHTML = "";
+
+                // ... di dalam loadData ...
                 Array.from(catSet).sort().forEach(c => b.innerHTML += `<button onclick="filterByCategory('${c}')" class="cat-btn">${c}</button>`);
 
+                // Urutkan data secara global berdasarkan nama dari A-Z
+                productsData.sort((a, b) => a.nama.localeCompare(b.nama)); 
 
-// Di dalam loadData, ganti bagian renderKatalog(productsData) menjadi:
-productsData.sort((a, b) => a.nama.localeCompare(b.nama)); // Urutkan A-Z
-renderKatalog(productsData);
+                renderKatalog(productsData);
+                document.getElementById('status').innerText = productsData.length + " ITEM";
+
 
                 
-                document.getElementById('status').innerText = productsData.length + " ITEM";
+              
             } catch (e) { console.error(e); }
         }
 
@@ -297,20 +317,27 @@ renderKatalog(productsData);
         }
 
         function filterProducts() {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                const q = document.getElementById('searchInput').value.toLowerCase().trim();
-                document.querySelectorAll('.product-item').forEach(item => {
-                    const mK = (currentCategory === "SEMUA" || item.dataset.kat === currentCategory);
-                    const mS = (q === "" || item.dataset.nama.includes(q));
-                    item.style.display = (mK && mS) ? "block" : "none";
-                });
-                document.querySelectorAll('.category-section').forEach(s => {
-                    const v = s.querySelectorAll('.product-item[style="display: block;"]').length;
-                    s.style.display = v > 0 ? "block" : "none";
-                });
-            }, 100);
-        }
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        const q = document.getElementById('searchInput').value.toLowerCase().trim();
+        let visibleCount = 0;
+
+        document.querySelectorAll('.product-item').forEach(item => {
+            const matchCategory = (currentCategory === "SEMUA" || item.dataset.kat === currentCategory);
+            const matchSearch = (q === "" || item.dataset.nama.includes(q));
+            
+            if (matchCategory && matchSearch) {
+                item.style.display = "block";
+                visibleCount++;
+            } else {
+                item.style.display = "none";
+            }
+        });
+        
+        // Update status jumlah item yang tampil
+        document.getElementById('status').innerText = visibleCount + " ITEM";
+    }, 100);
+}}
 
         function toggleCart() { 
             const m = document.getElementById('cart-footer');
@@ -335,6 +362,7 @@ renderKatalog(productsData);
     </script>
 </body>
 </html>
+
 
 
 
