@@ -12,38 +12,6 @@
             background: linear-gradient(135deg, #ffffff 0%, #f0f4f8 100%); 
             background-attachment: fixed; 
         }
-        /* Sidebar Huruf */
-.alphabet-index {
-    position: fixed;
-    right: 5px;
-    top: 60%; /* Diturunkan agar tidak tertutup header */
-    transform: translateY(-50%);
-    display: flex;
-    flex-direction: column;
-    z-index: 100; /* Pastikan di atas elemen lain */
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(8px);
-    padding: 12px 6px;
-    border-radius: 20px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-    touch-action: none; /* Penting untuk fungsi slide/drag */
-    user-select: none;
-    border: 1px solid rgba(0,0,0,0.05);
-}
-.alphabet-index button {
-    font-size: 11px;
-    font-weight: 900;
-    color: #075E54;
-    padding: 3px 6px;
-    text-align: center;
-    transition: all 0.1s;
-}
-/* Efek saat huruf dilewati jari */
-.alphabet-index button.active-letter {
-    color: #fb923c;
-    transform: scale(1.5);
-}
-        
         #scroll-progress { 
             position: fixed; top: 0; left: 0; width: 0%; height: 4px; 
             background: #fb923c; z-index: 100; transition: width 0.1s; 
@@ -76,7 +44,6 @@
     </style>
 </head>
 <body class="pb-40 text-gray-900">
-    <div id="alphabet-sidebar" class="alphabet-index"></div>
 
     <div id="scroll-progress"></div>
 
@@ -295,114 +262,30 @@
         }
 
         function renderKatalog(data) {
-    const katalog = document.getElementById('katalog');
-    katalog.innerHTML = "";
-    
-    // Urutkan data berdasarkan nama untuk alphabet scroll
-    data.sort((a, b) => a.nama.localeCompare(b.nama));
+            const katalog = document.getElementById('katalog');
+            katalog.innerHTML = "";
+            const grouped = data.reduce((acc, obj) => {
+                if (!acc[obj.kategori]) acc[obj.kategori] = [];
+                acc[obj.kategori].push(obj);
+                return acc;
+            }, {});
 
-    const grouped = data.reduce((acc, obj) => {
-        if (!acc[obj.kategori]) acc[obj.kategori] = [];
-        acc[obj.kategori].push(obj);
-        return acc;
-    }, {});
-
-    let currentLetter = "";
-    let lettersExist = new Set();
-
-    for (let kat in grouped) {
-        let section = `<div class="category-section" data-kat="${kat}"><h2 class="category-header">${kat}</h2><div class="grid gap-4 mt-4">`;
-        grouped[kat].forEach(p => {
-            // Cek huruf pertama untuk ID lompatan
-            let firstChar = p.nama.charAt(0).toUpperCase();
-            let anchorId = "";
-            if (firstChar !== currentLetter && /[A-Z]/.test(firstChar)) {
-                currentLetter = firstChar;
-                anchorId = `id="anchor-${currentLetter}"`;
-                lettersExist.add(currentLetter);
+            for (let kat in grouped) {
+                let section = `<div class="category-section" data-kat="${kat}"><h2 class="category-header">${kat}</h2><div class="grid gap-4 mt-4">`;
+                grouped[kat].forEach(p => {
+                    section += `
+                    <div class="product-item product-card p-5 rounded-3xl" data-nama="${p.nama.toLowerCase()}" data-kat="${p.kategori}">
+                        <p class="product-name text-base mb-4 tracking-tight">${p.nama}</p>
+                        <div class="grid gap-3">
+                            ${p.s1 && p.h1 > 0 ? `<div id="box-${getSafeId(p.nama, p.s1)}">${renderBtn(p.nama, p.s1, p.h1, 'emerald', p.d1)}</div>` : ''}
+                            ${p.s2 && p.h2 > 0 ? `<div id="box-${getSafeId(p.nama, p.s2)}">${renderBtn(p.nama, p.s2, p.h2, 'orange', p.d2)}</div>` : ''}
+                            ${p.s3 && p.h3 > 0 ? `<div id="box-${getSafeId(p.nama, p.s3)}">${renderBtn(p.nama, p.s3, p.h3, 'blue', p.d3)}</div>` : ''}
+                        </div>
+                    </div>`;
+                });
+                katalog.innerHTML += section + `</div></div>`;
             }
-
-            section += `
-            <div ${anchorId} class="product-item product-card p-5 rounded-3xl" data-nama="${p.nama.toLowerCase()}" data-kat="${p.kategori}">
-                <p class="product-name text-base mb-4 tracking-tight">${p.nama}</p>
-                <div class="grid gap-3">
-                    ${p.s1 && p.h1 > 0 ? `<div id="box-${getSafeId(p.nama, p.s1)}">${renderBtn(p.nama, p.s1, p.h1, 'emerald', p.d1)}</div>` : ''}
-                    ${p.s2 && p.h2 > 0 ? `<div id="box-${getSafeId(p.nama, p.s2)}">${renderBtn(p.nama, p.s2, p.h2, 'orange', p.d2)}</div>` : ''}
-                    ${p.s3 && p.h3 > 0 ? `<div id="box-${getSafeId(p.nama, p.s3)}">${renderBtn(p.nama, p.s3, p.h3, 'blue', p.d3)}</div>` : ''}
-                </div>
-            </div>`;
-        });
-        katalog.innerHTML += section + `</div></div>`;
-    }
-    renderAlphabetSidebar(Array.from(lettersExist).sort());
-}
-
-// Fungsi Baru untuk membuat Sidebar Huruf
-function renderAlphabetSidebar(letters) {
-    const sidebar = document.getElementById('alphabet-sidebar');
-    sidebar.innerHTML = "";
-    
-    letters.forEach(l => {
-        // Tambahkan class 'letter-btn' untuk deteksi slide
-        sidebar.innerHTML += `<button class="letter-btn" data-letter="${l}" onclick="scrollToLetter('${l}')">${l}</button>`;
-    });
-
-    // Tambahkan Event Listener untuk fitur SLIDE (Sentuh & Geser)
-    sidebar.addEventListener('touchmove', function(e) {
-        e.preventDefault(); // Mencegah layar ikut scroll saat geser sidebar
-        const touch = e.touches[0];
-        // Deteksi elemen apa yang ada di bawah jari saat digeser
-        const target = document.elementFromPoint(touch.clientX, touch.clientY);
-        
-        if (target && target.classList.contains('letter-btn')) {
-            const letter = target.getAttribute('data-letter');
-            scrollToLetter(letter);
-            
-            // Efek visual kecil saat dilewati
-            document.querySelectorAll('.letter-btn').forEach(b => b.classList.remove('active-letter'));
-            target.classList.add('active-letter');
         }
-    }, { passive: false });
-
-    // Hapus efek aktif saat jari dilepas
-    sidebar.addEventListener('touchend', () => {
-        setTimeout(() => {
-            document.querySelectorAll('.letter-btn').forEach(b => b.classList.remove('active-letter'));
-        }, 300);
-    });
-}
-
-function scrollToLetter(l) {
-    const el = document.getElementById(`anchor-${l}`);
-    if (el) {
-        // Offset disesuaikan dengan tinggi header (230px)
-        const offset = 230; 
-        const elementPosition = el.getBoundingClientRect().top + window.pageYOffset;
-        const offsetPosition = elementPosition - offset;
-
-        window.scrollTo({
-            top: offsetPosition,
-            behavior: 'auto' // Gunakan 'auto' agar slide terasa responsif/cepat
-        });
-    }
-}
-
-// Fungsi Baru untuk melompat ke huruf
-function scrollToLetter(l) {
-    const el = document.getElementById(`anchor-${l}`);
-    if (el) {
-        const offset = 230; // Menyesuaikan tinggi header agar tidak tertutup
-        const bodyRect = document.body.getBoundingClientRect().top;
-        const elementRect = el.getBoundingClientRect().top;
-        const elementPosition = elementRect - bodyRect;
-        const offsetPosition = elementPosition - offset;
-
-        window.scrollTo({
-            top: offsetPosition,
-            behavior: 'smooth'
-        });
-    }
-}
 
         function filterByCategory(cat) {
             document.getElementById('searchInput').value = "";
@@ -451,7 +334,5 @@ function scrollToLetter(l) {
     </script>
 </body>
 </html>
-
-
 
 
