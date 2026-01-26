@@ -183,6 +183,16 @@
             updateTotals();
             if(!document.getElementById('cart-footer').classList.contains('hidden')) renderCartList();
         }
+        function editQty(nama, satuan, val, harga, warna, detail) {
+    const qty = parseInt(val);
+    if (isNaN(qty) || qty <= 0) {
+        // Jika input kosong atau 0, hapus dari keranjang
+        updateCart(nama, satuan, -cart[`${nama} (${satuan})`].qty, warna, 0, detail);
+    } else {
+        const delta = qty - (cart[`${nama} (${satuan})`]?.qty || 0);
+        updateCart(nama, satuan, harga, warna, delta, detail);
+    }
+}
 
         function updateTotals() {
             let tQty = 0, tPrice = 0;
@@ -194,24 +204,27 @@
         }
 
         function renderCartList() {
-            const l = document.getElementById('cart-list');
-            l.innerHTML = "";
-            for(let k in cart) {
-                const item = cart[k];
-                l.innerHTML += `
-                <div class="py-4 flex justify-between items-center">
-                    <div class="flex-1 pr-4">
-                        <p class="text-lg font-black text-slate-800 leading-tight uppercase">${item.namaAsli}</p>
-                        <p class="text-xs font-bold text-slate-500 italic uppercase">${item.satuanAsli} (${item.detail}) @ ${formatRupiah(item.harga)}</p>
-                    </div>
-                    <div class="flex items-center bg-slate-100 rounded-xl p-1">
-                        <button onclick="updateCart('${item.namaAsli.replace(/'/g, "\\'")}', '${item.satuanAsli}', ${item.harga}, '${item.warna}', -1, '${item.detail}')" class="w-8 h-8 font-black">-</button>
-                        <span class="w-8 text-center font-black text-sm">${item.qty}</span>
-                        <button onclick="updateCart('${item.namaAsli.replace(/'/g, "\\'")}', '${item.satuanAsli}', ${item.harga}, '${item.warna}', 1, '${item.detail}')" class="w-8 h-8 font-black text-emerald-600">+</button>
-                    </div>
-                </div>`;
-            }
-        }
+    const l = document.getElementById('cart-list');
+    l.innerHTML = "";
+    for(let k in cart) {
+        const item = cart[k];
+        const esc = item.namaAsli.replace(/'/g, "\\'");
+        l.innerHTML += `
+        <div class="py-4 flex justify-between items-center">
+            <div class="flex-1 pr-4">
+                <p class="text-lg font-black text-slate-800 leading-tight uppercase">${item.namaAsli}</p>
+                <p class="text-xs font-bold text-slate-500 italic uppercase">${item.satuanAsli} (${item.detail}) @ ${formatRupiah(item.harga)}</p>
+            </div>
+            <div class="flex items-center bg-slate-100 rounded-xl p-1 border border-slate-200">
+                <button onclick="updateCart('${esc}', '${item.satuanAsli}', ${item.harga}, '${item.warna}', -1, '${item.detail}')" class="w-8 h-8 font-black">-</button>
+                <input type="number" value="${item.qty}" 
+                    onchange="editQty('${esc}', '${item.satuanAsli}', this.value, ${item.harga}, '${item.warna}', '${item.detail}')"
+                    class="w-10 bg-transparent text-center font-black text-sm outline-none border-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                <button onclick="updateCart('${esc}', '${item.satuanAsli}', ${item.harga}, '${item.warna}', 1, '${item.detail}')" class="w-8 h-8 font-black text-emerald-600">+</button>
+            </div>
+        </div>`;
+    }
+}
 
         function renderKatalog(data) {
             const katalog = document.getElementById('katalog');
@@ -285,3 +298,4 @@
     </script>
 </body>
 </html>
+
