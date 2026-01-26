@@ -12,6 +12,29 @@
             background: linear-gradient(135deg, #ffffff 0%, #f0f4f8 100%); 
             background-attachment: fixed; 
         }
+        /* Sidebar Huruf */
+.alphabet-index {
+    position: fixed;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    z-index: 40;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(5px);
+    padding: 10px 4px;
+    border-radius: 20px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+.alphabet-index button {
+    font-size: 10px;
+    font-weight: 900;
+    color: #075E54;
+    padding: 2px 4px;
+    text-align: center;
+}
+        
         #scroll-progress { 
             position: fixed; top: 0; left: 0; width: 0%; height: 4px; 
             background: #fb923c; z-index: 100; transition: width 0.1s; 
@@ -44,6 +67,7 @@
     </style>
 </head>
 <body class="pb-40 text-gray-900">
+    <div id="alphabet-sidebar" class="alphabet-index"></div>
 
     <div id="scroll-progress"></div>
 
@@ -262,30 +286,73 @@
         }
 
         function renderKatalog(data) {
-            const katalog = document.getElementById('katalog');
-            katalog.innerHTML = "";
-            const grouped = data.reduce((acc, obj) => {
-                if (!acc[obj.kategori]) acc[obj.kategori] = [];
-                acc[obj.kategori].push(obj);
-                return acc;
-            }, {});
+    const katalog = document.getElementById('katalog');
+    katalog.innerHTML = "";
+    
+    // Urutkan data berdasarkan nama untuk alphabet scroll
+    data.sort((a, b) => a.nama.localeCompare(b.nama));
 
-            for (let kat in grouped) {
-                let section = `<div class="category-section" data-kat="${kat}"><h2 class="category-header">${kat}</h2><div class="grid gap-4 mt-4">`;
-                grouped[kat].forEach(p => {
-                    section += `
-                    <div class="product-item product-card p-5 rounded-3xl" data-nama="${p.nama.toLowerCase()}" data-kat="${p.kategori}">
-                        <p class="product-name text-base mb-4 tracking-tight">${p.nama}</p>
-                        <div class="grid gap-3">
-                            ${p.s1 && p.h1 > 0 ? `<div id="box-${getSafeId(p.nama, p.s1)}">${renderBtn(p.nama, p.s1, p.h1, 'emerald', p.d1)}</div>` : ''}
-                            ${p.s2 && p.h2 > 0 ? `<div id="box-${getSafeId(p.nama, p.s2)}">${renderBtn(p.nama, p.s2, p.h2, 'orange', p.d2)}</div>` : ''}
-                            ${p.s3 && p.h3 > 0 ? `<div id="box-${getSafeId(p.nama, p.s3)}">${renderBtn(p.nama, p.s3, p.h3, 'blue', p.d3)}</div>` : ''}
-                        </div>
-                    </div>`;
-                });
-                katalog.innerHTML += section + `</div></div>`;
+    const grouped = data.reduce((acc, obj) => {
+        if (!acc[obj.kategori]) acc[obj.kategori] = [];
+        acc[obj.kategori].push(obj);
+        return acc;
+    }, {});
+
+    let currentLetter = "";
+    let lettersExist = new Set();
+
+    for (let kat in grouped) {
+        let section = `<div class="category-section" data-kat="${kat}"><h2 class="category-header">${kat}</h2><div class="grid gap-4 mt-4">`;
+        grouped[kat].forEach(p => {
+            // Cek huruf pertama untuk ID lompatan
+            let firstChar = p.nama.charAt(0).toUpperCase();
+            let anchorId = "";
+            if (firstChar !== currentLetter && /[A-Z]/.test(firstChar)) {
+                currentLetter = firstChar;
+                anchorId = `id="anchor-${currentLetter}"`;
+                lettersExist.add(currentLetter);
             }
-        }
+
+            section += `
+            <div ${anchorId} class="product-item product-card p-5 rounded-3xl" data-nama="${p.nama.toLowerCase()}" data-kat="${p.kategori}">
+                <p class="product-name text-base mb-4 tracking-tight">${p.nama}</p>
+                <div class="grid gap-3">
+                    ${p.s1 && p.h1 > 0 ? `<div id="box-${getSafeId(p.nama, p.s1)}">${renderBtn(p.nama, p.s1, p.h1, 'emerald', p.d1)}</div>` : ''}
+                    ${p.s2 && p.h2 > 0 ? `<div id="box-${getSafeId(p.nama, p.s2)}">${renderBtn(p.nama, p.s2, p.h2, 'orange', p.d2)}</div>` : ''}
+                    ${p.s3 && p.h3 > 0 ? `<div id="box-${getSafeId(p.nama, p.s3)}">${renderBtn(p.nama, p.s3, p.h3, 'blue', p.d3)}</div>` : ''}
+                </div>
+            </div>`;
+        });
+        katalog.innerHTML += section + `</div></div>`;
+    }
+    renderAlphabetSidebar(Array.from(lettersExist).sort());
+}
+
+// Fungsi Baru untuk membuat Sidebar Huruf
+function renderAlphabetSidebar(letters) {
+    const sidebar = document.getElementById('alphabet-sidebar');
+    sidebar.innerHTML = "";
+    letters.forEach(l => {
+        sidebar.innerHTML += `<button onclick="scrollToLetter('${l}')">${l}</button>`;
+    });
+}
+
+// Fungsi Baru untuk melompat ke huruf
+function scrollToLetter(l) {
+    const el = document.getElementById(`anchor-${l}`);
+    if (el) {
+        const offset = 230; // Menyesuaikan tinggi header agar tidak tertutup
+        const bodyRect = document.body.getBoundingClientRect().top;
+        const elementRect = el.getBoundingClientRect().top;
+        const elementPosition = elementRect - bodyRect;
+        const offsetPosition = elementPosition - offset;
+
+        window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+        });
+    }
+}
 
         function filterByCategory(cat) {
             document.getElementById('searchInput').value = "";
@@ -334,4 +401,5 @@
     </script>
 </body>
 </html>
+
 
