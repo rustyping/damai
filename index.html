@@ -17,12 +17,11 @@
             background: #fb923c; z-index: 100; transition: width 0.1s; 
         }
         .header-bg { background: #075E54; color: white; }
-        .category-header { 
-            position: sticky; top: 220px; background: rgba(255, 255, 255, 0.9); 
-            backdrop-filter: blur(10px); z-index: 10; padding: 12px 0; 
-            font-weight: 900; color: #065f46; border-bottom: 2px solid #10b981; 
-            text-transform: uppercase; font-size: 0.8rem; 
-        }
+        /* Update CSS agar lebih minimalis */
+.category-header { display: none; } /* Sembunyikan header kategori */
+.product-card { 
+    margin-bottom: 0.75rem; /* Beri jarak antar kartu karena tidak ada sekat kategori */
+}
         .category-scroll::-webkit-scrollbar { display: none; }
         .cat-btn { 
             white-space: nowrap; padding: 10px 20px; border-radius: 12px; 
@@ -165,7 +164,13 @@
                 const b = document.getElementById('category-bar');
                 b.innerHTML = "";
                 Array.from(catSet).sort().forEach(c => b.innerHTML += `<button onclick="filterByCategory('${c}')" class="cat-btn">${c}</button>`);
-                renderKatalog(productsData);
+
+
+// Di dalam loadData, ganti bagian renderKatalog(productsData) menjadi:
+productsData.sort((a, b) => a.nama.localeCompare(b.nama)); // Urutkan A-Z
+renderKatalog(productsData);
+
+                
                 document.getElementById('status').innerText = productsData.length + " ITEM";
             } catch (e) { console.error(e); }
         }
@@ -262,30 +267,26 @@
         }
 
         function renderKatalog(data) {
-            const katalog = document.getElementById('katalog');
-            katalog.innerHTML = "";
-            const grouped = data.reduce((acc, obj) => {
-                if (!acc[obj.kategori]) acc[obj.kategori] = [];
-                acc[obj.kategori].push(obj);
-                return acc;
-            }, {});
-
-            for (let kat in grouped) {
-                let section = `<div class="category-section" data-kat="${kat}"><h2 class="category-header">${kat}</h2><div class="grid gap-4 mt-4">`;
-                grouped[kat].forEach(p => {
-                    section += `
-                    <div class="product-item product-card p-5 rounded-3xl" data-nama="${p.nama.toLowerCase()}" data-kat="${p.kategori}">
-                        <p class="product-name text-base mb-4 tracking-tight">${p.nama}</p>
-                        <div class="grid gap-3">
-                            ${p.s1 && p.h1 > 0 ? `<div id="box-${getSafeId(p.nama, p.s1)}">${renderBtn(p.nama, p.s1, p.h1, 'emerald', p.d1)}</div>` : ''}
-                            ${p.s2 && p.h2 > 0 ? `<div id="box-${getSafeId(p.nama, p.s2)}">${renderBtn(p.nama, p.s2, p.h2, 'orange', p.d2)}</div>` : ''}
-                            ${p.s3 && p.h3 > 0 ? `<div id="box-${getSafeId(p.nama, p.s3)}">${renderBtn(p.nama, p.s3, p.h3, 'blue', p.d3)}</div>` : ''}
-                        </div>
-                    </div>`;
-                });
-                katalog.innerHTML += section + `</div></div>`;
-            }
-        }
+    const katalog = document.getElementById('katalog');
+    katalog.innerHTML = "";
+    
+    // Buat satu container grid besar
+    let content = `<div class="grid gap-2">`;
+    
+    data.forEach(p => {
+        content += `
+        <div class="product-item product-card p-5 rounded-3xl" data-nama="${p.nama.toLowerCase()}" data-kat="${p.kategori}">
+            <p class="product-name text-base mb-4 tracking-tight">${p.nama}</p>
+            <div class="grid gap-3">
+                ${p.s1 && p.h1 > 0 ? `<div id="box-${getSafeId(p.nama, p.s1)}">${renderBtn(p.nama, p.s1, p.h1, 'emerald', p.d1)}</div>` : ''}
+                ${p.s2 && p.h2 > 0 ? `<div id="box-${getSafeId(p.nama, p.s2)}">${renderBtn(p.nama, p.s2, p.h2, 'orange', p.d2)}</div>` : ''}
+                ${p.s3 && p.h3 > 0 ? `<div id="box-${getSafeId(p.nama, p.s3)}">${renderBtn(p.nama, p.s3, p.h3, 'blue', p.d3)}</div>` : ''}
+            </div>
+        </div>`;
+    });
+    
+    katalog.innerHTML = content + `</div>`;
+}
 
         function filterByCategory(cat) {
             document.getElementById('searchInput').value = "";
@@ -334,5 +335,6 @@
     </script>
 </body>
 </html>
+
 
 
