@@ -18,25 +18,22 @@
         }
         /* Navigasi Huruf A-Z di samping kanan */
         .az-sidebar {
-    position: fixed;
-    right: 8px;
-    /* Kita gunakan top 220px agar aman dari header desktop yang tinggi */
-    top: 220px; 
-    display: flex;
-    flex-direction: column;
-    z-index: 40;
-    background: rgba(255, 255, 255, 0.9);
-    backdrop-filter: blur(8px);
-    padding: 10px 4px;
-    border-radius: 15px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    border: 1px solid rgba(0,0,0,0.1);
-    /* Agar jika huruf terlalu banyak bisa di-scroll internal */
-    max-height: calc(100vh - 250px);
-    overflow-y: auto;
-}
-/* Sembunyikan scrollbar internal sidebar */
-.az-sidebar::-webkit-scrollbar { display: none; }
+            position: fixed;
+            right: 8px;
+            top: 200px; /* Lebih turun agar tidak tertutup header */
+            display: flex;
+            flex-direction: column;
+            z-index: 40;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            padding: 12px 5px;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            max-height: 65vh; /* Batasi tinggi agar tidak keluar layar */
+            overflow-y: auto;
+        }
+        .az-sidebar::-webkit-scrollbar { display: none; } /* Sembunyikan scrollbar sidebar */
         
         .az-letter {
             font-size: 10px;
@@ -171,19 +168,22 @@
                     b.innerHTML += `<button onclick="filterByCategory('${c}')" class="cat-btn">${c}</button>`;
                 });
 
-                productsData.sort((a, b) => {
+                 productsData.sort((a, b) => {
                     const nameA = a.nama.toUpperCase();
                     const nameB = b.nama.toUpperCase();
                     
-                    const isNumA = /^[0-9]/.test(nameA);
-                    const isNumB = /^[0-9]/.test(nameB);
+                    // Cek apakah diawali huruf (A-Z)
+                    const startWithLetterA = /^[A-Z]/.test(nameA);
+                    const startWithLetterB = /^[A-Z]/.test(nameB);
                 
-                    // Jika satu angka dan satu huruf, huruf harus di atas (A < 0)
-                    if (isNumA && !isNumB) return 1;
-                    if (!isNumA && isNumB) return -1;
+                    // KONDISI 1: Jika A huruf tapi B simbol/angka -> A menang (naik ke atas)
+                    if (startWithLetterA && !startWithLetterB) return -1;
+                    
+                    // KONDISI 2: Jika A simbol/angka tapi B huruf -> B menang (naik ke atas)
+                    if (!startWithLetterA && startWithLetterB) return 1;
                 
-                    // Jika sesama huruf atau sesama angka, gunakan sortir standar
-                    return nameA.localeCompare(nameB, undefined, {numeric: true, sensitivity: 'base'});
+                    // KONDISI 3: Jika keduanya sesama huruf atau sesama simbol -> urutkan normal
+                    return nameA.localeCompare(nameB, 'id', { numeric: true, sensitivity: 'base' });
                 });
                 
                 renderKatalog(productsData);
@@ -211,24 +211,37 @@
         }
 
        function updateAZSidebar(data) {
-        const sidebar = document.getElementById('az-sidebar');
-        // Ambil karakter pertama unik
-        const rawLetters = [...new Set(data.map(p => p.nama[0].toUpperCase()))];
+            const sidebar = document.getElementById('az-sidebar');
+            if (!sidebar) return;
         
-        // Pisahkan huruf dan non-huruf
-        const letters = rawLetters.filter(l => /[A-Z]/.test(l)).sort();
-        const numbers = rawLetters.filter(l => !/[A-Z]/.test(l)).sort();
+            // Ambil semua karakter pertama yang unik
+            const firstChars = [...new Set(data.map(p => p.nama[0].toUpperCase()))];
+            
+            // Pisahkan mana yang murni huruf dan mana yang simbol/angka
+            const letters = firstChars.filter(c => /^[A-Z]/.test(c)).sort();
+            const others = firstChars.filter(c => !/^[A-Z]/.test(c));
         
-        sidebar.innerHTML = "";
+            sidebar.innerHTML = "";
+            
+            // 1. Render tombol huruf A sampai Z
+            letters.forEach(l => {
+                const btn = document.createElement('div');
+                btn.className = "az-letter";
+                btn.innerText = l;
+                btn.onclick = () => scrollToLetter(l);
+                sidebar.appendChild(btn);
+            });
         
-        // Tampilkan Huruf A-Z dulu
-        letters.forEach(letter => {
-            const btn = document.createElement('div');
-            btn.className = "az-letter";
-            btn.innerText = letter;
-            btn.onclick = () => scrollToLetter(letter);
-            sidebar.appendChild(btn);
-        });
+            // 2. Jika ada simbol atau angka, buatkan satu tombol "#" di paling bawah
+            if (others.length > 0) {
+                const specialBtn = document.createElement('div');
+                specialBtn.className = "az-letter";
+                specialBtn.innerText = "#";
+                // Saat diklik, cari item pertama yang bukan huruf
+                specialBtn.onclick = () => scrollToLetter("SPECIAL_CHAR"); 
+                sidebar.appendChild(specialBtn);
+            }
+        }
     
         // Jika ada angka, tampilkan simbol # di paling bawah
         if (numbers.length > 0) {
@@ -240,24 +253,35 @@
         }
     }
 
-function scrollToLetter(letter) {
-    // Cari item pertama yang namanya diawali huruf tersebut
-    const items = document.querySelectorAll('.product-item');
-    for (let item of items) {
-        if (item.style.display !== 'none' && item.dataset.nama.startsWith(letter.toLowerCase())) {
-            // Hitung posisi dengan offset header (sekitar 180px agar tidak tertutup header)
-            const headerOffset = 180;
-            const elementPosition = item.getBoundingClientRect().top;
-            const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-
-            window.scrollTo({
-                top: offsetPosition,
-                behavior: "smooth"
-            });
-            break;
+    function scrollToLetter(letter) {
+        const items = document.querySelectorAll('.product-item');
+        
+        for (let item of items) {
+            if (item.style.display !== 'none') {
+                const firstChar = item.dataset.nama[0].toUpperCase();
+                let isMatch = false;
+    
+                if (letter === "SPECIAL_CHAR") {
+                    // Cari yang BUKAN huruf A-Z
+                    isMatch = !/^[A-Z]/.test(firstChar);
+                } else {
+                    isMatch = (firstChar === letter);
+                }
+                
+                if (isMatch) {
+                    const headerOffset = 180; 
+                    const elementPosition = item.getBoundingClientRect().top;
+                    const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+    
+                    window.scrollTo({
+                        top: offsetPosition,
+                        behavior: "smooth"
+                    });
+                    break;
+                }
+            }
         }
     }
-}
 
         function filterProducts() {
             clearTimeout(searchTimeout);
@@ -407,5 +431,6 @@ updateAZSidebar(visibleData);
     </script>
 </body>
 </html>
+
 
 
