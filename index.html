@@ -60,7 +60,7 @@
                 Belanja mudah | Belanja hemat | Gratis Ongkir
             </p>
         </div>
-        <input type="text" id="searchInput" oninput="filterProducts()" placeholder="Cari nama barang..." class="w-full p-4 rounded-xl text-gray-900 font-bold outline-none mb-4 shadow-inner">
+        <input type="text" id="searchInput" oninput="filterProducts()" onfocus="resetToAll()" placeholder="Cari nama barang..." class="w-full p-4 rounded-xl text-gray-900 font-bold outline-none mb-4 shadow-inner">
         <div class="flex items-center overflow-hidden">
             <div class="sticky-all"><button id="btn-all" onclick="filterByCategory('SEMUA')" class="cat-btn cat-btn-active">SEMUA</button></div>
             <div id="category-bar" class="flex overflow-x-auto category-scroll gap-2 py-2"></div>
@@ -122,6 +122,18 @@
             let scrolled = (winScroll / height) * 100;
             document.getElementById("scroll-progress").style.width = scrolled + "%";
         };
+
+        function resetToAll() {
+    if (currentCategory !== "SEMUA") {
+        currentCategory = "SEMUA";
+        // Update visual tombol kategori agar highlight pindah ke "SEMUA"
+        document.querySelectorAll('.cat-btn, #btn-all').forEach(b => {
+            b.classList.toggle('cat-btn-active', b.innerText === "SEMUA");
+        });
+        // Jalankan filter agar semua barang dari semua kategori muncul kembali
+        filterProducts();
+    }
+}
 
         async function loadData() {
             try {
@@ -322,3 +334,4 @@
     </script>
 </body>
 </html>
+
