@@ -16,23 +16,32 @@
 .alphabet-index {
     position: fixed;
     right: 5px;
-    top: 50%;
+    top: 60%; /* Diturunkan agar tidak tertutup header */
     transform: translateY(-50%);
     display: flex;
     flex-direction: column;
-    z-index: 40;
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(5px);
-    padding: 10px 4px;
+    z-index: 100; /* Pastikan di atas elemen lain */
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(8px);
+    padding: 12px 6px;
     border-radius: 20px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    touch-action: none; /* Penting untuk fungsi slide/drag */
+    user-select: none;
+    border: 1px solid rgba(0,0,0,0.05);
 }
 .alphabet-index button {
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 900;
     color: #075E54;
-    padding: 2px 4px;
+    padding: 3px 6px;
     text-align: center;
+    transition: all 0.1s;
+}
+/* Efek saat huruf dilewati jari */
+.alphabet-index button.active-letter {
+    color: #fb923c;
+    transform: scale(1.5);
 }
         
         #scroll-progress { 
@@ -332,9 +341,50 @@
 function renderAlphabetSidebar(letters) {
     const sidebar = document.getElementById('alphabet-sidebar');
     sidebar.innerHTML = "";
+    
     letters.forEach(l => {
-        sidebar.innerHTML += `<button onclick="scrollToLetter('${l}')">${l}</button>`;
+        // Tambahkan class 'letter-btn' untuk deteksi slide
+        sidebar.innerHTML += `<button class="letter-btn" data-letter="${l}" onclick="scrollToLetter('${l}')">${l}</button>`;
     });
+
+    // Tambahkan Event Listener untuk fitur SLIDE (Sentuh & Geser)
+    sidebar.addEventListener('touchmove', function(e) {
+        e.preventDefault(); // Mencegah layar ikut scroll saat geser sidebar
+        const touch = e.touches[0];
+        // Deteksi elemen apa yang ada di bawah jari saat digeser
+        const target = document.elementFromPoint(touch.clientX, touch.clientY);
+        
+        if (target && target.classList.contains('letter-btn')) {
+            const letter = target.getAttribute('data-letter');
+            scrollToLetter(letter);
+            
+            // Efek visual kecil saat dilewati
+            document.querySelectorAll('.letter-btn').forEach(b => b.classList.remove('active-letter'));
+            target.classList.add('active-letter');
+        }
+    }, { passive: false });
+
+    // Hapus efek aktif saat jari dilepas
+    sidebar.addEventListener('touchend', () => {
+        setTimeout(() => {
+            document.querySelectorAll('.letter-btn').forEach(b => b.classList.remove('active-letter'));
+        }, 300);
+    });
+}
+
+function scrollToLetter(l) {
+    const el = document.getElementById(`anchor-${l}`);
+    if (el) {
+        // Offset disesuaikan dengan tinggi header (230px)
+        const offset = 230; 
+        const elementPosition = el.getBoundingClientRect().top + window.pageYOffset;
+        const offsetPosition = elementPosition - offset;
+
+        window.scrollTo({
+            top: offsetPosition,
+            behavior: 'auto' // Gunakan 'auto' agar slide terasa responsif/cepat
+        });
+    }
 }
 
 // Fungsi Baru untuk melompat ke huruf
@@ -401,5 +451,6 @@ function scrollToLetter(l) {
     </script>
 </body>
 </html>
+
 
 
