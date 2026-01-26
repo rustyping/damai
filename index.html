@@ -12,32 +12,20 @@
             background: linear-gradient(135deg, #ffffff 0%, #f0f4f8 100%); 
             background-attachment: fixed; 
         }
-
-/* Tambahkan atau pastikan ini ada di bagian <style> */
-#katalog {
-    padding-top: 10px;
-    padding-bottom: 100px; /* Ruang agar tidak tertutup tombol keranjang */
-}
-
-.product-card {
-    transition: transform 0.2s ease;
-}
-
-.product-card:active {
-    transform: scale(0.98); /* Efek membal saat ditekan */
-}
-
-        
         #scroll-progress { 
             position: fixed; top: 0; left: 0; width: 0%; height: 4px; 
             background: #fb923c; z-index: 100; transition: width 0.1s; 
         }
         .header-bg { background: #075E54; color: white; }
-        /* Update CSS agar lebih minimalis */
-.category-header { display: none; } /* Sembunyikan header kategori */
-.product-card { 
-    margin-bottom: 0.75rem; /* Beri jarak antar kartu karena tidak ada sekat kategori */
-}
+        .category-header { display: none; } 
+        #katalog { padding-top: 10px; padding-bottom: 120px; }
+        .product-card { 
+            background: #ffffff; border: 1px solid #e2e8f0; 
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            margin-bottom: 0.75rem;
+            transition: transform 0.2s ease;
+        }
+        .product-card:active { transform: scale(0.98); }
         .category-scroll::-webkit-scrollbar { display: none; }
         .cat-btn { 
             white-space: nowrap; padding: 10px 20px; border-radius: 12px; 
@@ -46,15 +34,10 @@
             transition: all 0.3s; 
         }
         .cat-btn-active { background: #fb923c !important; border-color: #fb923c !important; box-shadow: 0 10px 15px -3px rgba(251, 146, 60, 0.4); }
-        .product-card { background: #ffffff; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
         .product-name { color: #0f172a; font-weight: 800; text-transform: uppercase; }
         .sticky-all { position: sticky; left: 0; z-index: 20; background: #075E54; padding-right: 12px; }
-        
-        /* Menghilangkan panah pada input number agar tampilan bersih */
         input[type=number]::-webkit-inner-spin-button, 
-        input[type=number]::-webkit-outer-spin-button { 
-            -webkit-appearance: none; margin: 0; 
-        }
+        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number] { -moz-appearance: textfield; }
     </style>
 </head>
@@ -71,9 +54,6 @@
                 </div>
                 <div id="status" class="text-[9px] bg-black/20 px-2 py-1 rounded-md font-black uppercase border border-white/10">Memuat...</div>
             </div>
-            <p class="text-[10px] font-black uppercase tracking-widest mt-2 text-emerald-300">
-                Belanja mudah | Belanja hemat | Gratis Ongkir
-            </p>
         </div>
         <input type="text" id="searchInput" oninput="filterProducts()" onfocus="resetToAll()" placeholder="Cari nama barang..." class="w-full p-4 rounded-xl text-gray-900 font-bold outline-none mb-4 shadow-inner">
         <div class="flex items-center overflow-hidden">
@@ -82,7 +62,7 @@
         </div>
     </header>
 
-    <main id="katalog" class="p-4 max-w-xl mx-auto space-y-8"></main>
+    <main id="katalog" class="p-4 max-w-xl mx-auto"></main>
 
     <button id="float-cart" onclick="toggleCart()" class="fixed bottom-8 right-6 bg-orange-600 text-white px-7 py-5 rounded-2xl shadow-2xl z-50 hidden font-black border-2 border-white/20 flex items-center gap-3 active:scale-95 transition-all">
         <i class="fas fa-shopping-basket text-xl"></i>
@@ -99,26 +79,11 @@
                     <h3 class="font-black text-2xl text-slate-800 tracking-tight italic">RINGKASAN ORDER</h3>
                     <button onclick="toggleCart()"><i class="fas fa-times-circle text-3xl text-slate-300"></i></button>
                 </div>
-                
                 <div id="cart-list" class="divide-y divide-slate-100 mb-6"></div>
-                
                 <div class="bg-slate-900 text-white p-6 rounded-3xl mb-4 flex justify-between items-center shadow-lg">
                     <span class="font-bold uppercase text-xs tracking-widest text-white/60">Total Bayar</span>
                     <span class="font-black text-2xl text-emerald-400">Rp <span id="summary-price">0</span></span>
                 </div>
-
-                <div class="bg-amber-50 border border-amber-200 rounded-2xl p-5 mb-8">
-                    <p class="text-[10px] font-black text-amber-800 uppercase mb-2 text-center">Syarat Gratis Ongkir:</p>
-                    <p class="text-[10px] font-bold text-amber-900/70 leading-relaxed italic text-center mb-3">
-                        Min. Rp 500.000 & 5 Jenis Barang (Kecuali Tepung, Gula, Beras)<br>
-                        Berlaku sesuai area & kurir yang ditentukan.
-                    </p>
-                    <hr class="border-amber-200 mb-2">
-                    <p class="text-[9px] font-bold text-slate-500 leading-tight italic text-center">
-                        *harga di atas adalah perkiraan apabila terdapat perbedaan harga, maka akan mengikuti harga terbaru di sistem pusat
-                    </p>
-                </div>
-
                 <input type="text" id="custName" placeholder="TULIS NAMA ANDA..." class="w-full p-5 border-2 rounded-2xl font-black bg-slate-50 text-center uppercase mb-4 outline-none border-slate-200 focus:border-emerald-500 transition-all">
                 <button onclick="sendToWhatsApp()" class="w-full bg-[#25D366] text-white font-black py-5 rounded-2xl flex justify-center items-center gap-3 shadow-xl uppercase text-lg active:scale-95 transition-all">
                     <i class="fab fa-whatsapp text-3xl"></i> KIRIM KE WHATSAPP
@@ -138,18 +103,6 @@
             document.getElementById("scroll-progress").style.width = scrolled + "%";
         };
 
-        function resetToAll() {
-    if (currentCategory !== "SEMUA") {
-        currentCategory = "SEMUA";
-        // Update visual tombol kategori agar highlight pindah ke "SEMUA"
-        document.querySelectorAll('.cat-btn, #btn-all').forEach(b => {
-            b.classList.toggle('cat-btn-active', b.innerText === "SEMUA");
-        });
-        // Jalankan filter agar semua barang dari semua kategori muncul kembali
-        filterProducts();
-    }
-}
-
         async function loadData() {
             try {
                 const response = await fetch(githubUrl);
@@ -160,13 +113,8 @@
                 productsData = rows.slice(1).map(row => {
                     const cols = row.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
                     const nama = cols[2] || "";
-                    
-                    // Filter: Hilangkan baris kosong, header, unsur XXX, dan unsur ___
-                    if (!nama || 
-                        nama.toLowerCase().includes("nama barang") || 
-                        nama.toLowerCase().includes("xxx") || 
-                        nama.includes("___") || 
-                        nama.toLowerCase().includes("ongkos kirim")) return null;
+                    if (!nama || nama.toLowerCase().includes("nama barang") || nama.toLowerCase().includes("xxx") || 
+                        nama.includes("___") || nama.toLowerCase().includes("ongkos kirim")) return null;
 
                     catSet.add(cols[4] || "UMUM");
                     return { 
@@ -179,31 +127,55 @@
 
                 const b = document.getElementById('category-bar');
                 b.innerHTML = "";
+                Array.from(catSet).sort().forEach(c => {
+                    b.innerHTML += `<button onclick="filterByCategory('${c}')" class="cat-btn">${c}</button>`;
+                });
 
-                // ... di dalam loadData ...
-                Array.from(catSet).sort().forEach(c => b.innerHTML += `<button onclick="filterByCategory('${c}')" class="cat-btn">${c}</button>`);
-
-                // Urutkan data secara global berdasarkan nama dari A-Z
-                productsData.sort((a, b) => a.nama.localeCompare(b.nama)); 
-
+                productsData.sort((a, b) => a.nama.localeCompare(b.nama));
                 renderKatalog(productsData);
                 document.getElementById('status').innerText = productsData.length + " ITEM";
-
-
-                
-              
             } catch (e) { console.error(e); }
         }
 
-        function formatRupiah(n) { return new Intl.NumberFormat('id-ID').format(n); }
-        function getSafeId(n, s) { 
-            let hash = 0, seed = n + s;
-            for (let i = 0; i < seed.length; i++) hash = ((hash << 5) - hash) + seed.charCodeAt(i);
-            return 'p_' + Math.abs(hash);
+        function renderKatalog(data) {
+            const katalog = document.getElementById('katalog');
+            let content = `<div class="grid gap-1">`;
+            data.forEach(p => {
+                content += `
+                <div class="product-item product-card p-5 rounded-3xl" data-nama="${p.nama.toLowerCase()}" data-kat="${p.kategori}">
+                    <p class="product-name text-base mb-4 tracking-tight">${p.nama}</p>
+                    <div class="grid gap-3">
+                        ${p.s1 && p.h1 > 0 ? `<div id="box-${getSafeId(p.nama, p.s1)}">${renderBtn(p.nama, p.s1, p.h1, 'emerald', p.d1)}</div>` : ''}
+                        ${p.s2 && p.h2 > 0 ? `<div id="box-${getSafeId(p.nama, p.s2)}">${renderBtn(p.nama, p.s2, p.h2, 'orange', p.d2)}</div>` : ''}
+                        ${p.s3 && p.h3 > 0 ? `<div id="box-${getSafeId(p.nama, p.s3)}">${renderBtn(p.nama, p.s3, p.h3, 'blue', p.d3)}</div>` : ''}
+                    </div>
+                </div>`;
+            });
+            katalog.innerHTML = content + `</div>`;
+        }
+
+        function filterProducts() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                const q = document.getElementById('searchInput').value.toLowerCase().trim();
+                let visibleCount = 0;
+                document.querySelectorAll('.product-item').forEach(item => {
+                    const mK = (currentCategory === "SEMUA" || item.dataset.kat === currentCategory);
+                    const mS = (q === "" || item.dataset.nama.includes(q));
+                    if (mK && mS) {
+                        item.style.display = "block";
+                        visibleCount++;
+                    } else {
+                        item.style.display = "none";
+                    }
+                });
+                document.getElementById('status').innerText = visibleCount + " ITEM";
+            }, 100);
         }
 
         function renderBtn(nama, satuan, harga, warna, detail) {
-            const qty = cart[`${nama} (${satuan})`]?.qty || 0;
+            const key = `${nama} (${satuan})`;
+            const qty = cart[key]?.qty || 0;
             const esc = nama.replace(/'/g, "\\'");
             const label = `${satuan} (${detail})`;
 
@@ -217,9 +189,7 @@
                     <div class="pl-4 py-2"><p class="text-[10px] font-black uppercase italic text-white/80">${label}</p><p class="text-sm font-black">Rp ${formatRupiah(harga)}</p></div>
                     <div class="flex items-center bg-black/10">
                         <button onclick="updateCart('${esc}', '${satuan}', ${harga}, '${warna}', -1, '${detail}')" class="w-10 h-12 font-black text-xl">-</button>
-                        <input type="number" value="${qty}" 
-                            onchange="editQty('${esc}', '${satuan}', this.value, ${harga}, '${warna}', '${detail}')"
-                            class="w-10 bg-transparent text-center font-black text-sm outline-none border-none text-white">
+                        <input type="number" value="${qty}" onchange="editQty('${esc}', '${satuan}', this.value, ${harga}, '${warna}', '${detail}')" class="w-10 bg-transparent text-center font-black text-sm outline-none border-none text-white">
                         <button onclick="updateCart('${esc}', '${satuan}', ${harga}, '${warna}', 1, '${detail}')" class="w-10 h-12 font-black text-xl">+</button>
                     </div>
                 </div>`;
@@ -229,29 +199,15 @@
         function updateCart(nama, satuan, harga, warna, delta, detail) {
             const key = `${nama} (${satuan})`;
             if (!cart[key]) cart[key] = { qty: 0, harga: harga, warna: warna, detail: detail, namaAsli: nama, satuanAsli: satuan };
-            
             cart[key].qty += delta;
             if (cart[key].qty <= 0) delete cart[key];
             
-            // Refresh elemen di katalog
             const tid = getSafeId(nama, satuan);
-            const elKatalog = document.getElementById(`box-${tid}`);
-            if(elKatalog) elKatalog.innerHTML = renderBtn(nama, satuan, harga, warna, detail);
+            const el = document.getElementById(`box-${tid}`);
+            if(el) el.innerHTML = renderBtn(nama, satuan, harga, warna, detail);
             
             updateTotals();
             if(!document.getElementById('cart-footer').classList.contains('hidden')) renderCartList();
-        }
-
-        function editQty(nama, satuan, val, harga, warna, detail) {
-            const qty = parseInt(val);
-            const key = `${nama} (${satuan})`;
-            const currentQty = cart[key] ? cart[key].qty : 0;
-
-            if (isNaN(qty) || qty <= 0) {
-                updateCart(nama, satuan, harga, warna, -currentQty, detail);
-            } else {
-                updateCart(nama, satuan, harga, warna, qty - currentQty, detail);
-            }
         }
 
         function updateTotals() {
@@ -273,40 +229,16 @@
                 <div class="py-4 flex justify-between items-center">
                     <div class="flex-1 pr-4">
                         <p class="text-lg font-black text-slate-800 leading-tight uppercase">${item.namaAsli}</p>
-                        <p class="text-xs font-bold text-slate-500 italic uppercase">${item.satuanAsli} (${item.detail}) @ ${formatRupiah(item.harga)}</p>
+                        <p class="text-xs font-bold text-slate-500 italic uppercase">${item.satuanAsli} (${item.detail})</p>
                     </div>
                     <div class="flex items-center bg-slate-100 rounded-xl p-1 border border-slate-200">
                         <button onclick="updateCart('${esc}', '${item.satuanAsli}', ${item.harga}, '${item.warna}', -1, '${item.detail}')" class="w-8 h-8 font-black">-</button>
-                        <input type="number" value="${item.qty}" 
-                            onchange="editQty('${esc}', '${item.satuanAsli}', this.value, ${item.harga}, '${item.warna}', '${item.detail}')"
-                            class="w-10 bg-transparent text-center font-black text-sm outline-none border-none">
+                        <input type="number" value="${item.qty}" onchange="editQty('${esc}', '${item.satuanAsli}', this.value, ${item.harga}, '${item.warna}', '${item.detail}')" class="w-10 bg-transparent text-center font-black text-sm outline-none">
                         <button onclick="updateCart('${esc}', '${item.satuanAsli}', ${item.harga}, '${item.warna}', 1, '${item.detail}')" class="w-8 h-8 font-black text-emerald-600">+</button>
                     </div>
                 </div>`;
             }
         }
-
-        function renderKatalog(data) {
-    const katalog = document.getElementById('katalog');
-    katalog.innerHTML = "";
-    
-    // Buat satu container grid besar
-    let content = `<div class="grid gap-2">`;
-    
-    data.forEach(p => {
-        content += `
-        <div class="product-item product-card p-5 rounded-3xl" data-nama="${p.nama.toLowerCase()}" data-kat="${p.kategori}">
-            <p class="product-name text-base mb-4 tracking-tight">${p.nama}</p>
-            <div class="grid gap-3">
-                ${p.s1 && p.h1 > 0 ? `<div id="box-${getSafeId(p.nama, p.s1)}">${renderBtn(p.nama, p.s1, p.h1, 'emerald', p.d1)}</div>` : ''}
-                ${p.s2 && p.h2 > 0 ? `<div id="box-${getSafeId(p.nama, p.s2)}">${renderBtn(p.nama, p.s2, p.h2, 'orange', p.d2)}</div>` : ''}
-                ${p.s3 && p.h3 > 0 ? `<div id="box-${getSafeId(p.nama, p.s3)}">${renderBtn(p.nama, p.s3, p.h3, 'blue', p.d3)}</div>` : ''}
-            </div>
-        </div>`;
-    });
-    
-    katalog.innerHTML = content + `</div>`;
-}
 
         function filterByCategory(cat) {
             document.getElementById('searchInput').value = "";
@@ -316,28 +248,20 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        function filterProducts() {
-    clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(() => {
-        const q = document.getElementById('searchInput').value.toLowerCase().trim();
-        let visibleCount = 0;
-
-        document.querySelectorAll('.product-item').forEach(item => {
-            const matchCategory = (currentCategory === "SEMUA" || item.dataset.kat === currentCategory);
-            const matchSearch = (q === "" || item.dataset.nama.includes(q));
-            
-            if (matchCategory && matchSearch) {
-                item.style.display = "block";
-                visibleCount++;
-            } else {
-                item.style.display = "none";
+        function resetToAll() {
+            if (currentCategory !== "SEMUA") {
+                currentCategory = "SEMUA";
+                document.querySelectorAll('.cat-btn, #btn-all').forEach(b => b.classList.toggle('cat-btn-active', b.innerText === "SEMUA"));
+                filterProducts();
             }
-        });
-        
-        // Update status jumlah item yang tampil
-        document.getElementById('status').innerText = visibleCount + " ITEM";
-    }, 100);
-}}
+        }
+
+        function editQty(nama, satuan, val, harga, warna, detail) {
+            const qty = parseInt(val);
+            const key = `${nama} (${satuan})`;
+            const currentQty = cart[key] ? cart[key].qty : 0;
+            updateCart(nama, satuan, harga, warna, (isNaN(qty) || qty <= 0 ? -currentQty : qty - currentQty), detail);
+        }
 
         function toggleCart() { 
             const m = document.getElementById('cart-footer');
@@ -358,11 +282,14 @@
             window.open(`https://wa.me/6285815022210?text=${encodeURIComponent(p)}`);
         }
 
+        function formatRupiah(n) { return new Intl.NumberFormat('id-ID').format(n); }
+        function getSafeId(n, s) { 
+            let hash = 0, seed = n + s;
+            for (let i = 0; i < seed.length; i++) hash = ((hash << 5) - hash) + seed.charCodeAt(i);
+            return 'p_' + Math.abs(hash);
+        }
+
         loadData();
     </script>
 </body>
 </html>
-
-
-
-
