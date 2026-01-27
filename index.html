@@ -21,7 +21,7 @@
         .az-sidebar {
             position: fixed;
             right: 8px;
-            top: 220px; /* Diturunkan agar tidak tertutup header desktop */
+            top: 220px;
             display: flex;
             flex-direction: column;
             z-index: 40;
@@ -76,6 +76,26 @@
         input[type=number]::-webkit-inner-spin-button, 
         input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number] { -moz-appearance: textfield; }
+
+        /* Style Tambahan untuk PROMO */
+        @keyframes pulse-orange {
+            0% { box-shadow: 0 0 0 0 rgba(251, 146, 60, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(251, 146, 60, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(251, 146, 60, 0); }
+        }
+        .btn-promo {
+            animation: pulse-orange 2s infinite;
+            background: #fb923c;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: 900;
+            letter-spacing: 1px;
+        }
+        .promo-table { width: 100%; border-collapse: collapse; }
+        .promo-table th { background: #f8fafc; text-align: left; padding: 12px; border-bottom: 2px solid #e2e8f0; font-size: 11px; text-transform: uppercase; color: #64748b; }
+        .promo-table td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
     </style>
 </head>
 <body class="pb-40 text-gray-900">
@@ -85,9 +105,14 @@
     <header class="header-bg p-5 sticky top-0 z-50 shadow-2xl">
         <div class="mb-4">
             <div class="flex justify-between items-start">
-                <div>
-                    <h1 class="text-3xl font-black italic tracking-tighter leading-none">TOKO DAMAI</h1>
-                    <p class="text-[11px] font-bold opacity-90 mt-1">Jl. Kol Sugiono 61, Malang</p>
+                <div class="flex items-center gap-3">
+                    <div>
+                        <h1 class="text-3xl font-black italic tracking-tighter leading-none">TOKO DAMAI</h1>
+                        <p class="text-[11px] font-bold opacity-90 mt-1">Jl. Kol Sugiono 61, Malang</p>
+                    </div>
+                    <button onclick="showPromo()" class="btn-promo active:scale-90 transition-transform">
+                        <i class="fas fa-tag mr-1"></i> PROMO
+                    </button>
                 </div>
                 <div id="status" class="text-[9px] bg-black/20 px-2 py-1 rounded-md font-black uppercase border border-white/10">Memuat...</div>
             </div>
@@ -102,6 +127,21 @@
     <div id="az-sidebar" class="az-sidebar"></div>
 
     <main id="katalog" class="p-4 max-w-xl mx-auto"></main>
+
+    <div id="promo-modal" class="fixed inset-0 bg-black/70 backdrop-blur-md z-[110] hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-lg rounded-[2.5rem] overflow-hidden shadow-2xl">
+            <div class="bg-orange-500 p-6 text-white flex justify-between items-center">
+                <h3 class="font-black text-xl italic tracking-tighter"><i class="fas fa-fire-alt mr-2"></i>PROMO HARI INI</h3>
+                <button onclick="closePromo()" class="text-2xl font-bold bg-black/20 w-8 h-8 rounded-full flex items-center justify-center">&times;</button>
+            </div>
+            <div class="p-4 max-h-[60vh] overflow-y-auto" id="promo-content">
+                <p class="text-center py-10 text-gray-400 font-bold">Mengambil data promo...</p>
+            </div>
+            <div class="p-6 bg-gray-50 text-center">
+                <button onclick="closePromo()" class="w-full bg-slate-800 text-white py-4 rounded-2xl font-black text-sm uppercase tracking-widest shadow-lg active:scale-95 transition-all">TUTUP</button>
+            </div>
+        </div>
+    </div>
 
     <button id="float-cart" onclick="toggleCart()" class="fixed bottom-8 right-6 bg-orange-600 text-white px-7 py-5 rounded-2xl shadow-2xl z-50 hidden font-black border-2 border-white/20 flex items-center gap-3 active:scale-95 transition-all">
         <i class="fas fa-shopping-basket text-xl"></i>
@@ -133,6 +173,7 @@
 
     <script>
         const githubUrl = "https://raw.githubusercontent.com/rustyping/damai/main/listDamaiFull.csv?v=" + Date.now();
+        const promoUrl = "https://raw.githubusercontent.com/rustyping/damai/main/promo.csv?v=" + Date.now();
         let productsData = [], cart = {}, currentCategory = "SEMUA", searchTimeout;
 
         window.onscroll = function() {
@@ -141,6 +182,46 @@
             let scrolled = (winScroll / height) * 100;
             document.getElementById("scroll-progress").style.width = scrolled + "%";
         };
+
+        // Fungsi Baru: Pop-up Promo
+        async function showPromo() {
+            const modal = document.getElementById('promo-modal');
+            const content = document.getElementById('promo-content');
+            modal.classList.remove('hidden');
+            
+            try {
+                const response = await fetch(promoUrl);
+                const csvText = await response.text();
+                const rows = csvText.split(/\r?\n/).filter(row => row.trim() !== "");
+                
+                if (rows.length <= 1) {
+                    content.innerHTML = `<div class="text-center py-10"><p class="font-bold text-gray-400">Belum ada promo khusus hari ini.</p></div>`;
+                    return;
+                }
+
+                let html = `<table class="promo-table">
+                                <thead><tr><th>Produk Promo</th><th>Harga</th></tr></thead>
+                                <tbody>`;
+                
+                rows.slice(1).forEach(row => {
+                    const cols = row.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+                    if (cols[0]) {
+                        html += `<tr>
+                                    <td class="font-black text-slate-700 uppercase leading-tight">${cols[0]}</td>
+                                    <td><span class="bg-red-100 text-red-600 px-2 py-1 rounded-md font-black text-xs">Rp ${cols[1]}</span></td>
+                                 </tr>`;
+                    }
+                });
+                html += `</tbody></table>`;
+                content.innerHTML = html;
+            } catch (e) {
+                content.innerHTML = `<p class="text-center text-red-500 font-bold">Gagal memuat promo.</p>`;
+            }
+        }
+
+        function closePromo() {
+            document.getElementById('promo-modal').classList.add('hidden');
+        }
 
         async function loadData() {
             try {
@@ -164,13 +245,11 @@
                     };
                 }).filter(Boolean);
 
-                // SORTING: A-Z duluan, lalu Simbol/Angka
                 productsData.sort((a, b) => {
                     const nameA = a.nama.toUpperCase();
                     const nameB = b.nama.toUpperCase();
                     const isLetterA = /^[A-Z]/.test(nameA);
                     const isLetterB = /^[A-Z]/.test(nameB);
-
                     if (isLetterA && !isLetterB) return -1;
                     if (!isLetterA && isLetterB) return 1;
                     return nameA.localeCompare(nameB, 'id', { numeric: true });
@@ -208,11 +287,9 @@
         function updateAZSidebar(data) {
             const sidebar = document.getElementById('az-sidebar');
             if (!sidebar) return;
-
             const firstChars = [...new Set(data.map(p => p.nama[0].toUpperCase()))];
             const letters = firstChars.filter(c => /^[A-Z]/.test(c)).sort();
             const others = firstChars.filter(c => !/^[A-Z]/.test(c));
-
             sidebar.innerHTML = "";
             letters.forEach(l => {
                 const btn = document.createElement('div');
@@ -221,7 +298,6 @@
                 btn.onclick = () => scrollToLetter(l);
                 sidebar.appendChild(btn);
             });
-
             if (others.length > 0) {
                 const specialBtn = document.createElement('div');
                 specialBtn.className = "az-letter";
@@ -237,7 +313,6 @@
                 if (item.style.display !== 'none') {
                     const firstChar = item.dataset.nama[0].toUpperCase();
                     let isMatch = (letter === "SPECIAL_CHAR") ? !/^[A-Z]/.test(firstChar) : firstChar === letter;
-                    
                     if (isMatch) {
                         const headerOffset = 180; 
                         const elementPosition = item.getBoundingClientRect().top;
@@ -255,14 +330,12 @@
                 const q = document.getElementById('searchInput').value.toLowerCase().trim();
                 let visibleCount = 0;
                 let visibleData = [];
-
                 document.querySelectorAll('.product-item').forEach(item => {
                     const mK = (currentCategory === "SEMUA" || item.dataset.kat === currentCategory);
                     const mS = (q === "" || item.dataset.nama.includes(q));
                     if (mK && mS) {
                         item.style.display = "block";
                         visibleCount++;
-                        // Cari data asli untuk sidebar
                         const originalData = productsData.find(p => p.nama.toLowerCase() === item.dataset.nama);
                         if(originalData) visibleData.push(originalData);
                     } else {
@@ -279,7 +352,6 @@
             const qty = cart[key]?.qty || 0;
             const esc = nama.replace(/'/g, "\\'");
             const label = `${satuan} (${detail})`;
-
             if (qty === 0) {
                 return `<div class="flex items-center justify-between bg-${warna}-50 rounded-2xl border border-${warna}-100 overflow-hidden">
                     <div class="pl-4 py-2"><p class="text-[10px] font-black text-${warna}-700 uppercase italic mb-0.5">${label}</p><p class="text-sm font-black text-slate-700">Rp ${formatRupiah(harga)}</p></div>
@@ -302,11 +374,9 @@
             if (!cart[key]) cart[key] = { qty: 0, harga: harga, warna: warna, detail: detail, namaAsli: nama, satuanAsli: satuan };
             cart[key].qty += delta;
             if (cart[key].qty <= 0) delete cart[key];
-            
             const tid = getSafeId(nama, satuan);
             const el = document.getElementById(`box-${tid}`);
             if(el) el.innerHTML = renderBtn(nama, satuan, harga, warna, detail);
-            
             updateTotals();
             if(!document.getElementById('cart-footer').classList.contains('hidden')) renderCartList();
         }
