@@ -87,15 +87,16 @@
             animation: pulse-orange 2s infinite;
             background: #fb923c;
             color: white;
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 10px;
+            padding: 6px 14px;
+            border-radius: 10px;
+            font-size: 11px;
             font-weight: 900;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 15px rgba(251, 146, 60, 0.3);
         }
         .promo-table { width: 100%; border-collapse: collapse; }
-        .promo-table th { background: #f8fafc; text-align: left; padding: 12px; border-bottom: 2px solid #e2e8f0; font-size: 11px; text-transform: uppercase; color: #64748b; }
-        .promo-table td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
+        .promo-table th { background: #f8fafc; text-align: left; padding: 12px; border-bottom: 2px solid #e2e8f0; font-size: 10px; text-transform: uppercase; color: #64748b; font-weight: 800; }
+        .promo-table td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 13px; vertical-align: middle; }
     </style>
 </head>
 <body class="pb-40 text-gray-900">
@@ -104,17 +105,17 @@
 
     <header class="header-bg p-5 sticky top-0 z-50 shadow-2xl">
         <div class="mb-4">
-            <div class="flex justify-between items-start">
-                <div class="flex items-center gap-3">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center gap-4">
                     <div>
                         <h1 class="text-3xl font-black italic tracking-tighter leading-none">TOKO DAMAI</h1>
-                        <p class="text-[11px] font-bold opacity-90 mt-1">Jl. Kol Sugiono 61, Malang</p>
+                        <p class="text-[11px] font-bold opacity-90 mt-1 uppercase">Malang</p>
                     </div>
-                    <button onclick="showPromo()" class="btn-promo active:scale-90 transition-transform">
-                        <i class="fas fa-tag mr-1"></i> PROMO
+                    <button onclick="showPromo()" class="btn-promo active:scale-90 transition-transform flex items-center gap-2">
+                        <i class="fas fa-fire-alt animate-bounce"></i> PROMO
                     </button>
                 </div>
-                <div id="status" class="text-[9px] bg-black/20 px-2 py-1 rounded-md font-black uppercase border border-white/10">Memuat...</div>
+                <div id="status" class="text-[9px] bg-black/20 px-2 py-1 rounded-md font-black uppercase border border-white/10 tracking-widest">Memuat...</div>
             </div>
         </div>
         <input type="text" id="searchInput" oninput="filterProducts()" onfocus="resetToAll()" placeholder="Cari nama barang..." class="w-full p-4 rounded-xl text-gray-900 font-bold outline-none mb-4 shadow-inner">
@@ -128,17 +129,20 @@
 
     <main id="katalog" class="p-4 max-w-xl mx-auto"></main>
 
-    <div id="promo-modal" class="fixed inset-0 bg-black/70 backdrop-blur-md z-[110] hidden flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-lg rounded-[2.5rem] overflow-hidden shadow-2xl">
-            <div class="bg-orange-500 p-6 text-white flex justify-between items-center">
-                <h3 class="font-black text-xl italic tracking-tighter"><i class="fas fa-fire-alt mr-2"></i>PROMO HARI INI</h3>
-                <button onclick="closePromo()" class="text-2xl font-bold bg-black/20 w-8 h-8 rounded-full flex items-center justify-center">&times;</button>
+    <div id="promo-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-[110] hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-orange-400/20">
+            <div class="bg-gradient-to-r from-orange-500 to-red-500 p-6 text-white flex justify-between items-center">
+                <div>
+                    <h3 class="font-black text-xl italic tracking-tighter leading-none">PROMO SUPER</h3>
+                    <p class="text-[10px] font-bold opacity-80 mt-1 uppercase tracking-widest">Penawaran Terbatas</p>
+                </div>
+                <button onclick="closePromo()" class="text-2xl font-bold bg-white/20 w-10 h-10 rounded-full flex items-center justify-center hover:bg-white/40">&times;</button>
             </div>
-            <div class="p-4 max-h-[60vh] overflow-y-auto" id="promo-content">
+            <div class="p-2 max-h-[60vh] overflow-y-auto" id="promo-content">
                 <p class="text-center py-10 text-gray-400 font-bold">Mengambil data promo...</p>
             </div>
-            <div class="p-6 bg-gray-50 text-center">
-                <button onclick="closePromo()" class="w-full bg-slate-800 text-white py-4 rounded-2xl font-black text-sm uppercase tracking-widest shadow-lg active:scale-95 transition-all">TUTUP</button>
+            <div class="p-6 bg-gray-50 text-center border-t border-gray-100">
+                <button onclick="closePromo()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl active:scale-95 transition-all">SAYA MENGERTI</button>
             </div>
         </div>
     </div>
@@ -176,14 +180,7 @@
         const promoUrl = "https://raw.githubusercontent.com/rustyping/damai/main/promo.csv?v=" + Date.now();
         let productsData = [], cart = {}, currentCategory = "SEMUA", searchTimeout;
 
-        window.onscroll = function() {
-            let winScroll = document.body.scrollTop || document.documentElement.scrollTop;
-            let height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-            let scrolled = (winScroll / height) * 100;
-            document.getElementById("scroll-progress").style.width = scrolled + "%";
-        };
-
-        // Fungsi Baru: Pop-up Promo
+        // Fungsi Load & Tampilkan Promo
         async function showPromo() {
             const modal = document.getElementById('promo-modal');
             const content = document.getElementById('promo-content');
@@ -195,33 +192,52 @@
                 const rows = csvText.split(/\r?\n/).filter(row => row.trim() !== "");
                 
                 if (rows.length <= 1) {
-                    content.innerHTML = `<div class="text-center py-10"><p class="font-bold text-gray-400">Belum ada promo khusus hari ini.</p></div>`;
+                    content.innerHTML = `<div class="text-center py-10"><p class="font-bold text-gray-400 uppercase text-xs">Belum ada promo aktif saat ini.</p></div>`;
                     return;
                 }
 
                 let html = `<table class="promo-table">
-                                <thead><tr><th>Produk Promo</th><th>Harga</th></tr></thead>
+                                <thead>
+                                    <tr>
+                                        <th>Nama Barang</th>
+                                        <th>Harga Promo</th>
+                                    </tr>
+                                </thead>
                                 <tbody>`;
                 
                 rows.slice(1).forEach(row => {
                     const cols = row.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
-                    if (cols[0]) {
+                    // cols[1] = Nama Barang (Kolom 2)
+                    // cols[2] = Satuan (Kolom 3)
+                    // cols[3] = Harga (Kolom 4)
+                    if (cols[1]) {
                         html += `<tr>
-                                    <td class="font-black text-slate-700 uppercase leading-tight">${cols[0]}</td>
-                                    <td><span class="bg-red-100 text-red-600 px-2 py-1 rounded-md font-black text-xs">Rp ${cols[1]}</span></td>
+                                    <td class="font-bold text-slate-800 uppercase leading-tight">
+                                        ${cols[1]}
+                                        <div class="text-[9px] text-orange-500 font-black tracking-widest mt-1 underline decoration-dotted">${cols[2] || 'PCS'}</div>
+                                    </td>
+                                    <td><span class="bg-red-500 text-white px-3 py-1.5 rounded-lg font-black text-sm shadow-sm whitespace-nowrap">Rp ${cols[3] || '0'}</span></td>
                                  </tr>`;
                     }
                 });
                 html += `</tbody></table>`;
                 content.innerHTML = html;
             } catch (e) {
-                content.innerHTML = `<p class="text-center text-red-500 font-bold">Gagal memuat promo.</p>`;
+                content.innerHTML = `<p class="text-center text-red-500 font-bold p-10">Koneksi Error. Gagal memuat data.</p>`;
             }
         }
 
         function closePromo() {
             document.getElementById('promo-modal').classList.add('hidden');
         }
+
+        // Script asli Anda tetap berjalan di bawah ini
+        window.onscroll = function() {
+            let winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            let height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            let scrolled = (winScroll / height) * 100;
+            document.getElementById("scroll-progress").style.width = scrolled + "%";
+        };
 
         async function loadData() {
             try {
