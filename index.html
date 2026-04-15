@@ -491,9 +491,10 @@
         }
 
         // Fungsi untuk ambil tanggal saja saat awal buka web
-        async function fetchUpdateDate() {
+async function fetchUpdateDate() {
             try {
-                const response = await fetch(promoUrl);
+                // Tambahkan ?v= + Date.now() agar selalu ambil data terbaru (Anti-Cache)
+                const response = await fetch(promoUrl + "?v=" + Date.now()); 
                 const csvText = await response.text();
                 const rows = csvText.split(/\r?\n/).filter(row => row.trim() !== "");
                 if (rows.length > 0) {
