@@ -185,20 +185,19 @@
         const promoUrl = "https://raw.githubusercontent.com/rustyping/damai/main/promo.csv?v=" + Date.now();
         let productsData = [], cart = {}, currentCategory = "SEMUA", searchTimeout;
 
-        // Fungsi Load & Tampilkan Promo (DIPERBARUI)
+        // Fungsi Load & Tampilkan Promo (VERSI PERBAIKAN)
         async function showPromo() {
-            // Ambil Tanggal dari Baris 1 Kolom 1
-            const firstRow = rows[0].split(',');
-            dateBadge.innerText = firstRow[0].trim().replace(/^"|"$/g, '') || "Terbaru";
-            document.getElementById('header-update-date').innerText = "Update: " + dateBadge.innerText;
-            
             const modal = document.getElementById('promo-modal');
             const content = document.getElementById('promo-content');
             const dateBadge = document.getElementById('promo-date');
+            
+            // Munculkan modal dulu (loading state)
             modal.classList.remove('hidden');
+            content.innerHTML = `<p class="text-center py-10 text-gray-400 font-bold">Mengambil data promo...</p>`;
             
             try {
-                const response = await fetch(promoUrl);
+                // Tambahkan anti-cache juga di sini agar promo selalu fresh
+                const response = await fetch(promoUrl + "&t=" + Date.now());
                 const csvText = await response.text();
                 const rows = csvText.split(/\r?\n/).filter(row => row.trim() !== "");
                 
@@ -209,7 +208,11 @@
 
                 // Ambil Tanggal dari Baris 1 Kolom 1
                 const firstRow = rows[0].split(',');
-                dateBadge.innerText = firstRow[0].trim().replace(/^"|"$/g, '') || "Terbaru";
+                const tglPromo = firstRow[0].trim().replace(/^"|"$/g, '') || "Terbaru";
+                
+                // Update tanggal di modal dan di header sekaligus
+                dateBadge.innerText = tglPromo;
+                document.getElementById('header-update-date').innerText = "Update: " + tglPromo;
 
                 let html = `<table class="promo-table">
                                 <thead>
@@ -223,7 +226,6 @@
                 // Mulai looping dari Baris 2 (index 1)
                 rows.slice(1).forEach(row => {
                     const cols = row.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
-                    // cols[1] = Nama Barang, cols[2] = Satuan, cols[3] = Harga
                     if (cols[1]) {
                         html += `<tr>
                                     <td class="font-bold text-slate-800 uppercase leading-tight">
@@ -237,6 +239,7 @@
                 html += `</tbody></table>`;
                 content.innerHTML = html;
             } catch (e) {
+                console.error(e);
                 content.innerHTML = `<p class="text-center text-red-500 font-bold p-10">Koneksi Error. Gagal memuat data.</p>`;
             }
         }
