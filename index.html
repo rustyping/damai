@@ -109,9 +109,7 @@
                 <div class="flex items-center gap-4">
                     <div>
                         <h1 class="text-3xl font-black italic tracking-tighter leading-none">TOKO DAMAI</h1>
-                        <p class="text-[11px] font-bold opacity-90 mt-1 uppercase">
-                            Malang | <span id="header-update-date" class="italic opacity-80">Memuat tanggal...</span>
-                        </p>
+                        <p class="text-[11px] font-bold opacity-90 mt-1 uppercase">Malang</p>
                     </div>
                     <button onclick="showPromo()" class="btn-promo active:scale-90 transition-transform flex items-center gap-2">
                         <i class="fas fa-fire-alt animate-bounce"></i> PROMO
@@ -249,51 +247,10 @@
         };
 
         async function loadData() {
-    try {
-        // 1. AMBIL TANGGAL DARI FILE PROMO
-        try {
-            const promoRes = await fetch(promoUrl);
-            const promoText = await promoRes.text();
-            const promoRows = promoText.split(/\r?\n/).filter(r => r.trim() !== "");
-            if (promoRows.length > 0) {
-                // Ambil Kolom 1 Baris 1 dari promo.csv
-                const tgl = promoRows[0].split(',')[0].replace(/["']/g, "").trim();
-                const headerDateEl = document.getElementById('header-update-date');
-                if (tgl) {
-                    headerDateEl.innerText = "Update: " + tgl;
-                }
-            }
-        } catch (e) {
-            console.log("Gagal ambil tanggal promo, lanjut load data...");
-        }
-
-        // 2. AMBIL DATA PRODUK DARI GITHUB
-        const response = await fetch(githubUrl);
-        const csvText = await response.text();
-        const rows = csvText.split(/\r?\n/).filter(row => row.trim() !== "");
-        
-        let catSet = new Set();
-        
-        // Looping produk (mulai baris kedua/index 1)
-        productsData = rows.slice(1).map(row => {
-            const cols = row.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
-            const nama = cols[2] || "";
-            
-            // Filter baris kosong atau sampah
-            if (!nama || nama.toLowerCase().includes("nama barang") || 
-                nama.toLowerCase().includes("xxx") || nama.includes("___")) return null;
-
-            catSet.add(cols[4] || "UMUM");
-            return { 
-                nama: nama, kategori: cols[4] || "UMUM", 
-                s1: cols[6], s2: cols[7], s3: cols[8],
-                d1: cols[10] || "1", d2: cols[11] || "1", d3: cols[12] || "1",
-                h1: parseInt(cols[19]) || 0, h2: parseInt(cols[22]) || 0, h3: parseInt(cols[25]) || 0 
-            };
-        }).filter(Boolean);
-
-
-                
+            try {
+                const response = await fetch(githubUrl);
+                const csvText = await response.text();
+                const rows = csvText.split(/\r?\n/).filter(row => row.trim() !== "");
                 let catSet = new Set();
                 
                 productsData = rows.slice(1).map(row => {
