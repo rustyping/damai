@@ -255,12 +255,24 @@
                 const rows = csvText.split(/\r?\n/).filter(row => row.trim() !== "");
 
                 // --- TAMBAHKAN BAGIAN INI UNTUK UPDATE TANGGAL DI HEADER ---
-                        if (rows.length > 0) {
-                            const firstRow = rows[0].split(',');
-                            // Mengambil kolom 1 row 1, membersihkan tanda kutip jika ada
-                            const tanggalUpdate = firstRow[0].trim().replace(/^"|"$/g, '');
-                            document.getElementById('header-update-date').innerText = "Update: " + tanggalUpdate;
-                        }
+                       
+
+
+                        // --- PERBAIKAN LOGIKA PENGAMBILAN TANGGAL ---
+                if (rows.length > 0) {
+                    // Kita pecah baris pertama berdasarkan koma
+                    const firstRow = rows[0].split(',');
+                    // Kita ambil data pertama (Kolom 1), bersihkan spasi dan tanda kutip
+                    const tanggalUpdate = firstRow[0].replace(/["']/g, "").trim();
+                    
+                    // Masukkan ke header
+                    const headerDateEl = document.getElementById('header-update-date');
+                    if (tanggalUpdate && tanggalUpdate !== "") {
+                        headerDateEl.innerText = "Update: " + tanggalUpdate;
+                    } else {
+                        headerDateEl.innerText = "Update: Terbaru"; // Jaga-jaga jika kolom 1 kosong
+                    }
+                }
                  // ----------------------------------------------------------
 
 
