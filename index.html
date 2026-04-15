@@ -109,7 +109,9 @@
                 <div class="flex items-center gap-4">
                     <div>
                         <h1 class="text-3xl font-black italic tracking-tighter leading-none">TOKO DAMAI</h1>
-                        <p class="text-[11px] font-bold opacity-90 mt-1 uppercase">Malang | <span id="header-update-date"></span></p>
+                        <p class="text-[11px] font-bold opacity-90 mt-1 uppercase">
+                           Malang <span id="header-update-date" class="ml-2 border-l border-white/30 pl-2"></span>
+                        </p>
                     </div>
                     <button onclick="showPromo()" class="btn-promo active:scale-90 transition-transform flex items-center gap-2">
                         <i class="fas fa-fire-alt animate-bounce"></i> PROMO
@@ -488,7 +490,25 @@
             return 'p_' + Math.abs(hash);
         }
 
+        // Fungsi untuk ambil tanggal saja saat awal buka web
+        async function fetchUpdateDate() {
+            try {
+                const response = await fetch(promoUrl);
+                const csvText = await response.text();
+                const rows = csvText.split(/\r?\n/).filter(row => row.trim() !== "");
+                if (rows.length > 0) {
+                    const firstRow = rows[0].split(',');
+                    const tgl = firstRow[0].trim().replace(/^"|"$/g, '') || "Terbaru";
+                    document.getElementById('header-update-date').innerText = "Update: " + tgl;
+                }
+            } catch (e) {
+                console.log("Gagal ambil tanggal");
+            }
+        }
+
+        // Jalankan semua saat web dibuka
         loadData();
+        fetchUpdateDate(); 
     </script>
 </body>
 </html>
