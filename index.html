@@ -109,7 +109,7 @@
                 <div class="flex items-center gap-4">
                     <div>
                         <h1 class="text-3xl font-black italic tracking-tighter leading-none">TOKO DAMAI</h1>
-                        <p class="text-[11px] font-bold opacity-90 mt-1 uppercase">Malang</p>
+                        <p class="text-[11px] font-bold opacity-90 mt-1 uppercase">Malang | <span id="header-update-date"></span></p>
                     </div>
                     <button onclick="showPromo()" class="btn-promo active:scale-90 transition-transform flex items-center gap-2">
                         <i class="fas fa-fire-alt animate-bounce"></i> PROMO
@@ -185,6 +185,11 @@
 
         // Fungsi Load & Tampilkan Promo (DIPERBARUI)
         async function showPromo() {
+            // Ambil Tanggal dari Baris 1 Kolom 1
+            const firstRow = rows[0].split(',');
+            dateBadge.innerText = firstRow[0].trim().replace(/^"|"$/g, '') || "Terbaru";
+            document.getElementById('header-update-date').innerText = "Update: " + dateBadge.innerText;
+            
             const modal = document.getElementById('promo-modal');
             const content = document.getElementById('promo-content');
             const dateBadge = document.getElementById('promo-date');
