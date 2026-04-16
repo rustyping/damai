@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Katalog Toko Damai v1.7</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: linear-gradient(135deg, #ffffff 0%, #f0f4f8 100%); 
+            background-attachment: fixed; 
+        }
+        #scroll-progress { 
+            position: fixed; top: 0; left: 0; width: 0%; height: 4px; 
+            background: #fb923c; z-index: 100; transition: width 0.1s; 
+        }
+
+        /* Navigasi Huruf A-Z di samping kanan */
+        .az-sidebar {
+            position: fixed;
+            right: 8px;
+            top: 220px;
+            display: flex;
+            flex-direction: column;
+            z-index: 40;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            padding: 12px 5px;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            border: 1px solid rgba(0,0,0,0.05);
+            max-height: 65vh; 
+            overflow-y: auto;
+        }
+        .az-sidebar::-webkit-scrollbar { display: none; }
+        
+        .az-letter {
+            font-size: 10px;
+            font-weight: 900;
+            color: #075E54;
+            width: 24px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .az-letter:hover {
+            color: #fb923c;
+            transform: scale(1.3);
+        }
+
+        .header-bg { background: #075E54; color: white; }
+        #katalog { padding-top: 10px; padding-bottom: 120px; }
+        .product-card { 
+            background: #ffffff; border: 1px solid #e2e8f0; 
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            margin-bottom: 0.75rem;
+            transition: transform 0.2s ease;
+        }
+        .product-card:active { transform: scale(0.98); }
+        .category-scroll::-webkit-scrollbar { display: none; }
+        .cat-btn { 
+            white-space: nowrap; padding: 10px 20px; border-radius: 12px; 
+            font-size: 11px; font-weight: 800; text-transform: uppercase; 
+            background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); 
+            transition: all 0.3s; 
+        }
+        .cat-btn-active { background: #fb923c !important; border-color: #fb923c !important; box-shadow: 0 10px 15px -3px rgba(251, 146, 60, 0.4); }
+        .product-name { color: #0f172a; font-weight: 800; text-transform: uppercase; }
+        .sticky-all { position: sticky; left: 0; z-index: 20; background: #075E54; padding-right: 12px; }
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
+
+        /* Style Tambahan untuk PROMO */
+        @keyframes pulse-orange {
+            0% { box-shadow: 0 0 0 0 rgba(251, 146, 60, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(251, 146, 60, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(251, 146, 60, 0); }
+        }
+        .btn-promo {
+            animation: pulse-orange 2s infinite;
+            background: #fb923c;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 900;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 15px rgba(251, 146, 60, 0.3);
+        }
+        .promo-table { width: 100%; border-collapse: collapse; }
+        .promo-table th { background: #f8fafc; text-align: left; padding: 12px; border-bottom: 2px solid #e2e8f0; font-size: 10px; text-transform: uppercase; color: #64748b; font-weight: 800; }
+        .promo-table td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 13px; vertical-align: middle; }
+    </style>
+</head>
+<body class="pb-40 text-gray-900">
+
+    <div id="scroll-progress"></div>
+
+    <header class="header-bg p-5 sticky top-0 z-50 shadow-2xl">
+        <div class="mb-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center gap-4">
+                    <div>
+                        <h1 class="text-3xl font-black italic tracking-tighter leading-none">TOKO DAMAI</h1>
+                        <p class="text-[11px] font-bold opacity-90 mt-1 uppercase">
+                           Malang <span id="header-update-date" class="ml-2 border-l border-white/30 pl-2"></span>
+                        </p>
+                    </div>
+                    <button onclick="showPromo()" class="btn-promo active:scale-90 transition-transform flex items-center gap-2">
+                        <i class="fas fa-fire-alt animate-bounce"></i> PROMO
+                    </button>
+                </div>
+                <div id="status" class="text-[9px] bg-black/20 px-2 py-1 rounded-md font-black uppercase border border-white/10 tracking-widest">Memuat...</div>
+            </div>
+        </div>
+        <input type="text" id="searchInput" oninput="filterProducts()" onfocus="resetToAll()" placeholder="Cari nama barang..." class="w-full p-4 rounded-xl text-gray-900 font-bold outline-none mb-4 shadow-inner">
+        <div class="flex items-center overflow-hidden">
+            <div class="sticky-all"><button id="btn-all" onclick="filterByCategory('SEMUA')" class="cat-btn cat-btn-active">SEMUA</button></div>
+            <div id="category-bar" class="flex overflow-x-auto category-scroll gap-2 py-2"></div>
+        </div>
+    </header>
+
+    <div id="az-sidebar" class="az-sidebar"></div>
+
+    <main id="katalog" class="p-4 max-w-xl mx-auto"></main>
+
+    <div id="promo-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-[110] hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-orange-400/20">
+            <div class="bg-gradient-to-r from-orange-500 to-red-500 p-6 text-white flex justify-between items-center">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h3 class="font-black text-xl italic tracking-tighter leading-none">PROMO SUPER</h3>
+                        <span id="promo-date" class="bg-white/20 px-2 py-1 rounded text-[10px] font-black tracking-tight border border-white/30">...</span>
+                    </div>
+                    <p class="text-[10px] font-bold opacity-80 mt-1 uppercase tracking-widest">Penawaran Terbatas</p>
+                </div>
+                <button onclick="closePromo()" class="text-2xl font-bold bg-white/20 w-10 h-10 rounded-full flex items-center justify-center hover:bg-white/40">&times;</button>
+            </div>
+            <div class="p-2 max-h-[60vh] overflow-y-auto" id="promo-content">
+                <p class="text-center py-10 text-gray-400 font-bold">Mengambil data promo...</p>
+            </div>
+            <div class="p-6 bg-gray-50 text-center border-t border-gray-100">
+                <button onclick="closePromo()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl active:scale-95 transition-all">SAYA MENGERTI</button>
+            </div>
+        </div>
+    </div>
+
+    <button id="float-cart" onclick="toggleCart()" class="fixed bottom-8 right-6 bg-orange-600 text-white px-7 py-5 rounded-2xl shadow-2xl z-50 hidden font-black border-2 border-white/20 flex items-center gap-3 active:scale-95 transition-all">
+        <i class="fas fa-shopping-basket text-xl"></i>
+        <div class="text-left leading-none">
+            <p class="text-[10px] opacity-80 uppercase">Total Order (<span id="cart-total">0</span>)</p>
+            <p class="text-lg">Rp <span id="cart-price">0</span></p>
+        </div>
+    </button>
+
+    <div id="cart-footer" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden flex items-end">
+        <div class="w-full bg-white rounded-t-[3rem] p-8 shadow-2xl max-h-[92vh] overflow-y-auto">
+            <div class="max-w-xl mx-auto">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="font-black text-2xl text-slate-800 tracking-tight italic">RINGKASAN ORDER</h3>
+                    <button onclick="toggleCart()"><i class="fas fa-times-circle text-3xl text-slate-300"></i></button>
+                </div>
+                <div id="cart-list" class="divide-y divide-slate-100 mb-6"></div>
+                <div class="bg-slate-900 text-white p-6 rounded-3xl mb-4 flex justify-between items-center shadow-lg">
+                    <span class="font-bold uppercase text-xs tracking-widest text-white/60">Total Bayar</span>
+                    <span class="font-black text-2xl text-emerald-400">Rp <span id="summary-price">0</span></span>
+                </div>
+                <input type="text" id="custName" placeholder="TULIS NAMA ANDA..." class="w-full p-5 border-2 rounded-2xl font-black bg-slate-50 text-center uppercase mb-4 outline-none border-slate-200 focus:border-emerald-500 transition-all">
+                <button onclick="sendToWhatsApp()" class="w-full bg-[#25D366] text-white font-black py-5 rounded-2xl flex justify-center items-center gap-3 shadow-xl uppercase text-lg active:scale-95 transition-all">
+                    <i class="fab fa-whatsapp text-3xl"></i> KIRIM KE WHATSAPP
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const githubUrl = "https://raw.githubusercontent.com/rustyping/damai/main/listDamaiFull.csv?v=" + Date.now();
+        const promoUrl = "https://raw.githubusercontent.com/rustyping/damai/main/promo.csv?v=" + Date.now();
+        let productsData = [], cart = {}, currentCategory = "SEMUA", searchTimeout;
+
+        // Fungsi Load & Tampilkan Promo (VERSI PERBAIKAN)
+        async function showPromo() {
+            const modal = document.getElementById('promo-modal');
+            const content = document.getElementById('promo-content');
+            const dateBadge = document.getElementById('promo-date');
+            
+            // Munculkan modal dulu (loading state)
+            modal.classList.remove('hidden');
+            content.innerHTML = `<p class="text-center py-10 text-gray-400 font-bold">Mengambil data promo...</p>`;
+            
+            try {
+                // Tambahkan anti-cache juga di sini agar promo selalu fresh
+                const response = await fetch(promoUrl + "&t=" + Date.now());
+                const csvText = await response.text();
+                const rows = csvText.split(/\r?\n/).filter(row => row.trim() !== "");
+                
+                if (rows.length < 1) {
+                    content.innerHTML = `<div class="text-center py-10"><p class="font-bold text-gray-400 uppercase text-xs">Belum ada promo aktif saat ini.</p></div>`;
+                    return;
+                }
+
+                // Ambil Tanggal dari Baris 1 Kolom 1
+                const firstRow = rows[0].split(',');
+                const tglPromo = firstRow[0].trim().replace(/^"|"$/g, '') || "Terbaru";
+                
+                // Update tanggal di modal dan di header sekaligus
+                dateBadge.innerText = tglPromo;
+                document.getElementById('header-update-date').innerText = "Update: " + tglPromo;
+
+                let html = `<table class="promo-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nama Barang</th>
+                                        <th>Harga Promo</th>
+                                    </tr>
+                                </thead>
+                                <tbody>`;
+                
+                // Mulai looping dari Baris 2 (index 1)
+                rows.slice(1).forEach(row => {
+                    const cols = row.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+                    if (cols[1]) {
+                        html += `<tr>
+                                    <td class="font-bold text-slate-800 uppercase leading-tight">
+                                        ${cols[1]}
+                                        <div class="text-[9px] text-orange-500 font-black tracking-widest mt-1 underline decoration-dotted">${cols[2] || 'PCS'}</div>
+                                    </td>
+                                    <td><span class="bg-red-500 text-white px-3 py-1.5 rounded-lg font-black text-sm shadow-sm whitespace-nowrap">Rp ${cols[3] || '0'}</span></td>
+                                 </tr>`;
+                    }
+                });
+                html += `</tbody></table>`;
+                content.innerHTML = html;
+            } catch (e) {
+                console.error(e);
+                content.innerHTML = `<p class="text-center text-red-500 font-bold p-10">Koneksi Error. Gagal memuat data.</p>`;
+            }
+        }
+
+        function closePromo() {
+            document.getElementById('promo-modal').classList.add('hidden');
+        }
+
+        // Script Logika Utama (Sesuai aslinya)
+        window.onscroll = function() {
+            let winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            let height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            let scrolled = (winScroll / height) * 100;
+            document.getElementById("scroll-progress").style.width = scrolled + "%";
+        };
+
+        async function loadData() {
+            try {
+                const response = await fetch(githubUrl);
+                const csvText = await response.text();
+                const rows = csvText.split(/\r?\n/).filter(row => row.trim() !== "");
+                let catSet = new Set();
+                
+                productsData = rows.slice(1).map(row => {
+                    const cols = row.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+                    const nama = cols[2] || "";
+                    if (!nama || nama.toLowerCase().includes("nama barang") || nama.toLowerCase().includes("xxx") || 
+                        nama.includes("___") || nama.toLowerCase().includes("ongkos kirim")) return null;
+
+                    catSet.add(cols[4] || "UMUM");
+                    return { 
+                        nama: nama, kategori: cols[4] || "UMUM", 
+                        s1: cols[6], s2: cols[7], s3: cols[8],
+                        d1: cols[10] || "1", d2: cols[11] || "1", d3: cols[12] || "1",
+                        h1: parseInt(cols[19]) || 0, h2: parseInt(cols[22]) || 0, h3: parseInt(cols[25]) || 0 
+                    };
+                }).filter(Boolean);
+
+                productsData.sort((a, b) => {
+                    const nameA = a.nama.toUpperCase();
+                    const nameB = b.nama.toUpperCase();
+                    const isLetterA = /^[A-Z]/.test(nameA);
+                    const isLetterB = /^[A-Z]/.test(nameB);
+                    if (isLetterA && !isLetterB) return -1;
+                    if (!isLetterA && isLetterB) return 1;
+                    return nameA.localeCompare(nameB, 'id', { numeric: true });
+                });
+
+                const b = document.getElementById('category-bar');
+                b.innerHTML = "";
+                Array.from(catSet).sort().forEach(c => {
+                    b.innerHTML += `<button onclick="filterByCategory('${c}')" class="cat-btn">${c}</button>`;
+                });
+
+                renderKatalog(productsData);
+                document.getElementById('status').innerText = productsData.length + " ITEM";
+            } catch (e) { console.error(e); }
+        }
+
+        function renderKatalog(data) {
+            const katalog = document.getElementById('katalog');
+            let content = `<div class="grid gap-1">`;
+            data.forEach(p => {
+                content += `
+                <div class="product-item product-card p-5 rounded-3xl" data-nama="${p.nama.toLowerCase()}" data-kat="${p.kategori}">
+                    <p class="product-name text-base mb-4 tracking-tight">${p.nama}</p>
+                    <div class="grid gap-3">
+                        ${p.s1 && p.h1 > 0 ? `<div id="box-${getSafeId(p.nama, p.s1)}">${renderBtn(p.nama, p.s1, p.h1, 'emerald', p.d1)}</div>` : ''}
+                        ${p.s2 && p.h2 > 0 ? `<div id="box-${getSafeId(p.nama, p.s2)}">${renderBtn(p.nama, p.s2, p.h2, 'orange', p.d2)}</div>` : ''}
+                        ${p.s3 && p.h3 > 0 ? `<div id="box-${getSafeId(p.nama, p.s3)}">${renderBtn(p.nama, p.s3, p.h3, 'blue', p.d3)}</div>` : ''}
+                    </div>
+                </div>`;
+            });
+            katalog.innerHTML = content + `</div>`;
+            updateAZSidebar(data);
+        }
+
+        function updateAZSidebar(data) {
+            const sidebar = document.getElementById('az-sidebar');
+            if (!sidebar) return;
+            const firstChars = [...new Set(data.map(p => p.nama[0].toUpperCase()))];
+            const letters = firstChars.filter(c => /^[A-Z]/.test(c)).sort();
+            const others = firstChars.filter(c => !/^[A-Z]/.test(c));
+            sidebar.innerHTML = "";
+            letters.forEach(l => {
+                const btn = document.createElement('div');
+                btn.className = "az-letter";
+                btn.innerText = l;
+                btn.onclick = () => scrollToLetter(l);
+                sidebar.appendChild(btn);
+            });
+            if (others.length > 0) {
+                const specialBtn = document.createElement('div');
+                specialBtn.className = "az-letter";
+                specialBtn.innerText = "#";
+                specialBtn.onclick = () => scrollToLetter("SPECIAL_CHAR"); 
+                sidebar.appendChild(specialBtn);
+            }
+        }
+
+        function scrollToLetter(letter) {
+            const items = document.querySelectorAll('.product-item');
+            for (let item of items) {
+                if (item.style.display !== 'none') {
+                    const firstChar = item.dataset.nama[0].toUpperCase();
+                    let isMatch = (letter === "SPECIAL_CHAR") ? !/^[A-Z]/.test(firstChar) : firstChar === letter;
+                    if (isMatch) {
+                        const headerOffset = 180; 
+                        const elementPosition = item.getBoundingClientRect().top;
+                        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+                        window.scrollTo({ top: offsetPosition, behavior: "smooth" });
+                        break;
+                    }
+                }
+            }
+        }
+
+        function filterProducts() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                const q = document.getElementById('searchInput').value.toLowerCase().trim();
+                let visibleCount = 0;
+                let visibleData = [];
+                document.querySelectorAll('.product-item').forEach(item => {
+                    const mK = (currentCategory === "SEMUA" || item.dataset.kat === currentCategory);
+                    const mS = (q === "" || item.dataset.nama.includes(q));
+                    if (mK && mS) {
+                        item.style.display = "block";
+                        visibleCount++;
+                        const originalData = productsData.find(p => p.nama.toLowerCase() === item.dataset.nama);
+                        if(originalData) visibleData.push(originalData);
+                    } else {
+                        item.style.display = "none";
+                    }
+                });
+                document.getElementById('status').innerText = visibleCount + " ITEM";
+                updateAZSidebar(visibleData);
+            }, 150);
+        }
+
+        function renderBtn(nama, satuan, harga, warna, detail) {
+            const key = `${nama} (${satuan})`;
+            const qty = cart[key]?.qty || 0;
+            const esc = nama.replace(/'/g, "\\'");
+            const label = `${satuan} (${detail})`;
+            if (qty === 0) {
+                return `<div class="flex items-center justify-between bg-${warna}-50 rounded-2xl border border-${warna}-100 overflow-hidden">
+                    <div class="pl-4 py-2"><p class="text-[10px] font-black text-${warna}-700 uppercase italic mb-0.5">${label}</p><p class="text-sm font-black text-slate-700">Rp ${formatRupiah(harga)}</p></div>
+                    <button onclick="updateCart('${esc}', '${satuan}', ${harga}, '${warna}', 1, '${detail}')" class="bg-${warna}-600 text-white px-6 py-4 text-xs font-black uppercase">+ BELI</button>
+                </div>`;
+            } else {
+                return `<div class="flex items-center justify-between bg-${warna}-600 text-white rounded-2xl border-2 border-${warna}-700 shadow-lg overflow-hidden">
+                    <div class="pl-4 py-2"><p class="text-[10px] font-black uppercase italic text-white/80">${label}</p><p class="text-sm font-black">Rp ${formatRupiah(harga)}</p></div>
+                    <div class="flex items-center bg-black/10">
+                        <button onclick="updateCart('${esc}', '${satuan}', ${harga}, '${warna}', -1, '${detail}')" class="w-10 h-12 font-black text-xl">-</button>
+                        <input type="number" value="${qty}" onchange="editQty('${esc}', '${satuan}', this.value, ${harga}, '${warna}', '${detail}')" class="w-10 bg-transparent text-center font-black text-sm outline-none border-none text-white">
+                        <button onclick="updateCart('${esc}', '${satuan}', ${harga}, '${warna}', 1, '${detail}')" class="w-10 h-12 font-black text-xl">+</button>
+                    </div>
+                </div>`;
+            }
+        }
+
+        function updateCart(nama, satuan, harga, warna, delta, detail) {
+            const key = `${nama} (${satuan})`;
+            if (!cart[key]) cart[key] = { qty: 0, harga: harga, warna: warna, detail: detail, namaAsli: nama, satuanAsli: satuan };
+            cart[key].qty += delta;
+            if (cart[key].qty <= 0) delete cart[key];
+            const tid = getSafeId(nama, satuan);
+            const el = document.getElementById(`box-${tid}`);
+            if(el) el.innerHTML = renderBtn(nama, satuan, harga, warna, detail);
+            updateTotals();
+            if(!document.getElementById('cart-footer').classList.contains('hidden')) renderCartList();
+        }
+
+        function updateTotals() {
+            let tQty = 0, tPrice = 0;
+            for (let k in cart) { tQty += cart[k].qty; tPrice += (cart[k].qty * cart[k].harga); }
+            document.getElementById('cart-total').innerText = tQty;
+            document.getElementById('cart-price').innerText = formatRupiah(tPrice);
+            document.getElementById('summary-price').innerText = formatRupiah(tPrice);
+            document.getElementById('float-cart').style.display = tQty > 0 ? 'flex' : 'none';
+        }
+
+        function renderCartList() {
+            const l = document.getElementById('cart-list');
+            l.innerHTML = "";
+            for(let k in cart) {
+                const item = cart[k];
+                const esc = item.namaAsli.replace(/'/g, "\\'");
+                l.innerHTML += `
+                <div class="py-4 flex justify-between items-center">
+                    <div class="flex-1 pr-4">
+                        <p class="text-lg font-black text-slate-800 leading-tight uppercase">${item.namaAsli}</p>
+                        <p class="text-xs font-bold text-slate-500 italic uppercase">${item.satuanAsli} (${item.detail})</p>
+                    </div>
+                    <div class="flex items-center bg-slate-100 rounded-xl p-1 border border-slate-200">
+                        <button onclick="updateCart('${esc}', '${item.satuanAsli}', ${item.harga}, '${item.warna}', -1, '${item.detail}')" class="w-8 h-8 font-black">-</button>
+                        <input type="number" value="${item.qty}" onchange="editQty('${esc}', '${item.satuanAsli}', this.value, ${item.harga}, '${item.warna}', '${item.detail}')" class="w-10 bg-transparent text-center font-black text-sm outline-none">
+                        <button onclick="updateCart('${esc}', '${item.satuanAsli}', ${item.harga}, '${item.warna}', 1, '${item.detail}')" class="w-8 h-8 font-black text-emerald-600">+</button>
+                    </div>
+                </div>`;
+            }
+        }
+
+        function filterByCategory(cat) {
+            document.getElementById('searchInput').value = "";
+            currentCategory = cat;
+            document.querySelectorAll('.cat-btn, #btn-all').forEach(b => b.classList.toggle('cat-btn-active', b.innerText === cat));
+            filterProducts();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function resetToAll() {
+            if (currentCategory !== "SEMUA") {
+                currentCategory = "SEMUA";
+                document.querySelectorAll('.cat-btn, #btn-all').forEach(b => b.classList.toggle('cat-btn-active', b.innerText === "SEMUA"));
+                filterProducts();
+            }
+        }
+
+        function editQty(nama, satuan, val, harga, warna, detail) {
+            const qty = parseInt(val);
+            const key = `${nama} (${satuan})`;
+            const currentQty = cart[key] ? cart[key].qty : 0;
+            updateCart(nama, satuan, harga, warna, (isNaN(qty) || qty <= 0 ? -currentQty : qty - currentQty), detail);
+        }
+
+        function toggleCart() { 
+            const m = document.getElementById('cart-footer');
+            m.classList.toggle('hidden');
+            if(!m.classList.contains('hidden')) renderCartList();
+        }
+
+        function sendToWhatsApp() {
+            const name = document.getElementById('custName').value.trim();
+            if (!name) return alert("MOHON ISI NAMA ANDA!");
+            let total = 0, p = `*ORDER TOKO DAMAI*\n👤 Nama: *${name.toUpperCase()}*\n\n`;
+            for (let k in cart) {
+                let sub = cart[k].qty * cart[k].harga;
+                p += `✅ *${cart[k].namaAsli}*\n   ${cart[k].qty} ${cart[k].satuanAsli} (${cart[k].detail}) = *Rp ${formatRupiah(sub)}*\n`;
+                total += sub;
+            }
+            p += `\n💰 *TOTAL: Rp ${formatRupiah(total)}*\n\n_Catatan: Harga dapat berubah sewaktu-waktu mengikuti sistem pusat._`;
+            window.open(`https://wa.me/6285815022210?text=${encodeURIComponent(p)}`);
+        }
+
+        function formatRupiah(n) { return new Intl.NumberFormat('id-ID').format(n); }
+        function getSafeId(n, s) { 
+            let hash = 0, seed = n + s;
+            for (let i = 0; i < seed.length; i++) hash = ((hash << 5) - hash) + seed.charCodeAt(i);
+            return 'p_' + Math.abs(hash);
+        }
+
+        // Fungsi untuk ambil tanggal saja saat awal buka web
+async function fetchUpdateDate() {
+            try {
+                // Tambahkan ?v= + Date.now() agar selalu ambil data terbaru (Anti-Cache)
+                const response = await fetch(promoUrl + "?v=" + Date.now()); 
+                const csvText = await response.text();
+                const rows = csvText.split(/\r?\n/).filter(row => row.trim() !== "");
+                if (rows.length > 0) {
+                    const firstRow = rows[0].split(',');
+                    const tgl = firstRow[0].trim().replace(/^"|"$/g, '') || "Terbaru";
+                    document.getElementById('header-update-date').innerText = "Update: " + tgl;
+                }
+            } catch (e) {
+                console.log("Gagal ambil tanggal");
+            }
+        }
+
+        // Jalankan semua saat web dibuka
+        loadData();
+        fetchUpdateDate(); 
+    </script>
+</body>
+</html>
