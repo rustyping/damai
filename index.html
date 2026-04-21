@@ -184,28 +184,26 @@
         const promoUrl = "https://raw.githubusercontent.com/rustyping/damai/main/promo.csv?v=" + Date.now();
         let productsData = [], cart = {}, currentCategory = "SEMUA", searchTimeout;
 
-        // Progress Bar
         window.onscroll = function() {
             let winScroll = document.body.scrollTop || document.documentElement.scrollTop;
             let height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-            let scrolled = (winScroll / height) * 100;
-            document.getElementById("scroll-progress").style.width = scrolled + "%";
+            document.getElementById("scroll-progress").style.width = (winScroll / height * 100) + "%";
         };
 
-        // Load Data Utama
         async function loadData() {
             try {
                 const response = await fetch(githubUrl);
                 const csvText = await response.text();
                 const rows = csvText.split(/\r?\n/).filter(row => row.trim() !== "");
                 let catSet = new Set();
-                const groupedMap = {};
+                
+                // Objek penampung untuk menyatukan barang yang namanya sama
+                const penyatuBarang = {};
 
                 rows.slice(1).forEach(row => {
                     const cols = row.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
                     const nama = cols[2] || "";
                     
-                    // Filter Baris Sampah
                     if (!nama || nama.toLowerCase().includes("nama barang") || 
                         nama.toLowerCase().includes("xxx") || 
                         nama.includes("___") || 
@@ -214,26 +212,27 @@
                     const kategori = cols[4] || "UMUM";
                     catSet.add(kategori);
 
-                    // LOGIC PENYATUAN: Jika nama barang belum ada di daftar, buat grup baru
-                    if (!groupedMap[nama]) {
-                        groupedMap[nama] = { 
+                    // Jika nama barang belum ada di penampung, buat grup baru
+                    if (!penyatuBarang[nama]) {
+                        penyatuBarang[nama] = { 
                             nama: nama, 
                             kategori: kategori, 
-                            varians: [] 
+                            semuaVarian: [] 
                         };
                     }
 
-                    // Ambil varian dari baris ini (S1, S2, S3) dan masukkan ke grup barang tersebut
-                    if (cols[6] && parseInt(cols[19]) > 0) groupedMap[nama].varians.push({ s: cols[6], h: parseInt(cols[19]), d: cols[10] || "1", c: 'emerald' });
-                    if (cols[7] && parseInt(cols[22]) > 0) groupedMap[nama].varians.push({ s: cols[7], h: parseInt(cols[22]), d: cols[11] || "1", c: 'orange' });
-                    if (cols[8] && parseInt(cols[25]) > 0) groupedMap[nama].varians.push({ s: cols[8], h: parseInt(cols[25]), d: cols[12] || "1", c: 'blue' });
+                    // Masukkan semua satuan yang ada di baris ini ke dalam list varian
+                    if (cols[6] && parseInt(cols[19]) > 0) penyatuBarang[nama].semuaVarian.push({ s: cols[6], h: parseInt(cols[19]), d: cols[10] || "1", c: 'emerald' });
+                    if (cols[7] && parseInt(cols[22]) > 0) penyatuBarang[nama].semuaVarian.push({ s: cols[7], h: parseInt(cols[22]), d: cols[11] || "1", c: 'orange' });
+                    if (cols[8] && parseInt(cols[25]) > 0) penyatuBarang[nama].semuaVarian.push({ s: cols[8], h: parseInt(cols[25]), d: cols[12] || "1", c: 'blue' });
                 });
 
-                // Ubah hasil pengelompokan kembali ke array dan sortir
-                productsData = Object.values(groupedMap).filter(p => p.varians.length > 0);
+                // Ubah objek menjadi array agar bisa ditampilkan
+                productsData = Object.values(penyatuBarang).filter(p => p.semuaVarian.length > 0);
+                
+                // Sorting agar urut abjad
                 productsData.sort((a, b) => a.nama.localeCompare(b.nama, 'id', { numeric: true }));
 
-                // Render Bar Kategori
                 const b = document.getElementById('category-bar');
                 b.innerHTML = "";
                 Array.from(catSet).sort().forEach(c => {
@@ -241,13 +240,10 @@
                 });
 
                 renderKatalog(productsData);
-                document.getElementById('status').innerText = productsData.length + " PRODUK";
-            } catch (e) { console.error("Error Load Data:", e); }
+                document.getElementById('status').innerText = productsData.length + " MACAM BARANG";
+            } catch (e) { console.error(e); }
         }
 
-
-        
-        // Render Katalog ke Layar
         function renderKatalog(data) {
             const katalog = document.getElementById('katalog');
             let content = `<div class="grid gap-1">`;
@@ -256,7 +252,7 @@
                 <div class="product-item product-card p-5 rounded-3xl" data-nama="${p.nama.toLowerCase()}" data-kat="${p.kategori}">
                     <p class="product-name text-base mb-4 tracking-tight">${p.nama}</p>
                     <div class="grid gap-3">
-                        ${p.varians.map(v => `
+                        ${p.semuaVarian.map(v => `
                             <div id="box-${getSafeId(p.nama, v.s)}">
                                 ${renderBtn(p.nama, v.s, v.h, v.c, v.d)}
                             </div>
@@ -267,41 +263,7 @@
             katalog.innerHTML = content + `</div>`;
             updateAZSidebar(data);
         }
-        
 
-        // FUNGSI SEARCH FLEXIBLE (UPDATED)
-        function filterProducts() {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                const query = document.getElementById('searchInput').value.toLowerCase().trim();
-                const keywords = query.split(/\s+/); // Pecah berdasarkan spasi
-                
-                let visibleCount = 0;
-                let visibleData = [];
-
-                document.querySelectorAll('.product-item').forEach(item => {
-                    const nama = item.dataset.nama;
-                    const matchKat = (currentCategory === "SEMUA" || item.dataset.kat === currentCategory);
-                    
-                    // Pencarian pintar: Semua keyword harus ada di nama barang
-                    const matchSearch = (query === "" || keywords.every(kw => nama.includes(kw)));
-
-                    if (matchKat && matchSearch) {
-                        item.style.display = "block";
-                        visibleCount++;
-                        const original = productsData.find(p => p.nama.toLowerCase() === nama);
-                        if(original) visibleData.push(original);
-                    } else {
-                        item.style.display = "none";
-                    }
-                });
-
-                document.getElementById('status').innerText = visibleCount + " ITEM";
-                updateAZSidebar(visibleData);
-            }, 150);
-        }
-
-        // Logic Tombol & Cart (v1.7)
         function renderBtn(nama, satuan, harga, warna, detail) {
             const key = `${nama} (${satuan})`;
             const qty = cart[key]?.qty || 0;
@@ -351,12 +313,8 @@
             for(let k in cart) {
                 const item = cart[k];
                 const esc = item.namaAsli.replace(/'/g, "\\'");
-                l.innerHTML += `
-                <div class="py-4 flex justify-between items-center">
-                    <div class="flex-1 pr-4">
-                        <p class="text-lg font-black text-slate-800 leading-tight uppercase">${item.namaAsli}</p>
-                        <p class="text-xs font-bold text-slate-500 italic uppercase">${item.satuanAsli} (${item.detail})</p>
-                    </div>
+                l.innerHTML += `<div class="py-4 flex justify-between items-center">
+                    <div class="flex-1 pr-4"><p class="text-lg font-black text-slate-800 leading-tight uppercase">${item.namaAsli}</p><p class="text-xs font-bold text-slate-500 italic uppercase">${item.satuanAsli} (${item.detail})</p></div>
                     <div class="flex items-center bg-slate-100 rounded-xl p-1 border border-slate-200">
                         <button onclick="updateCart('${esc}', '${item.satuanAsli}', ${item.harga}, '${item.warna}', -1, '${item.detail}')" class="w-8 h-8 font-black">-</button>
                         <input type="number" value="${item.qty}" onchange="editQty('${esc}', '${item.satuanAsli}', this.value, ${item.harga}, '${item.warna}', '${item.detail}')" class="w-10 bg-transparent text-center font-black text-sm outline-none">
@@ -366,129 +324,105 @@
             }
         }
 
-        // Promo Logic
+        function filterProducts() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                const query = document.getElementById('searchInput').value.toLowerCase().trim();
+                const keywords = query.split(/\s+/);
+                let visibleCount = 0;
+                let visibleData = [];
+
+                document.querySelectorAll('.product-item').forEach(item => {
+                    const nama = item.dataset.nama;
+                    const matchKat = (currentCategory === "SEMUA" || item.dataset.kat === currentCategory);
+                    const matchSearch = (query === "" || keywords.every(kw => nama.includes(kw)));
+
+                    if (matchKat && matchSearch) {
+                        item.style.display = "block";
+                        visibleCount++;
+                        const original = productsData.find(p => p.nama.toLowerCase() === nama);
+                        if(original) visibleData.push(original);
+                    } else {
+                        item.style.display = "none";
+                    }
+                });
+                document.getElementById('status').innerText = visibleCount + " ITEM";
+                updateAZSidebar(visibleData);
+            }, 150);
+        }
+
         async function showPromo() {
             const modal = document.getElementById('promo-modal');
             const content = document.getElementById('promo-content');
-            const dateBadge = document.getElementById('promo-date');
             modal.classList.remove('hidden');
-            content.innerHTML = `<p class="text-center py-10 text-gray-400 font-bold">Mengambil data promo...</p>`;
+            content.innerHTML = `<p class="text-center py-10 text-gray-400 font-bold">Memuat...</p>`;
             try {
-                const response = await fetch(promoUrl + "&t=" + Date.now());
-                const csvText = await response.text();
-                const rows = csvText.split(/\r?\n/).filter(row => row.trim() !== "");
-                if (rows.length < 1) {
-                    content.innerHTML = `<p class="text-center py-10 text-gray-400">Belum ada promo aktif.</p>`;
-                    return;
-                }
-                const tglPromo = rows[0].split(',')[0].trim().replace(/^"|"$/g, '') || "Terbaru";
-                dateBadge.innerText = tglPromo;
+                const r = await fetch(promoUrl + "&t=" + Date.now());
+                const csv = await r.text();
+                const rows = csv.split(/\r?\n/).filter(row => row.trim() !== "");
+                if (rows.length < 1) { content.innerHTML = "Tidak ada promo aktif."; return; }
+                document.getElementById('promo-date').innerText = rows[0].split(',')[0].replace(/^"|"$/g, '') || "Terbaru";
                 let html = `<table class="promo-table"><thead><tr><th>Barang</th><th>Harga</th></tr></thead><tbody>`;
                 rows.slice(1).forEach(row => {
-                    const cols = row.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
-                    if (cols[1]) {
-                        html += `<tr><td class="font-bold text-slate-800 uppercase leading-tight">${cols[1]}<br><span class="text-[9px] text-orange-500">${cols[2] || 'PCS'}</span></td><td><span class="bg-red-500 text-white px-3 py-1.5 rounded-lg font-black text-sm">Rp ${cols[3] || '0'}</span></td></tr>`;
-                    }
+                    const c = row.split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+                    if (c[1]) html += `<tr><td class="font-bold uppercase">${c[1]}<br><span class="text-[9px] text-orange-500">${c[2] || 'PCS'}</span></td><td><span class="bg-red-500 text-white px-3 py-1.5 rounded-lg font-black text-sm">Rp ${c[3] || '0'}</span></td></tr>`;
                 });
-                content.innerHTML = html + `</tbody></table>`;
-            } catch (e) { content.innerHTML = "Gagal memuat promo."; }
+                content.innerHTML = html + "</tbody></table>";
+            } catch (e) { content.innerHTML = "Gagal memuat."; }
         }
 
         function closePromo() { document.getElementById('promo-modal').classList.add('hidden'); }
+        function filterByCategory(cat) { document.getElementById('searchInput').value = ""; currentCategory = cat; document.querySelectorAll('.cat-btn, #btn-all').forEach(b => b.classList.toggle('cat-btn-active', b.innerText === cat)); filterProducts(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+        function resetToAll() { if (currentCategory !== "SEMUA") filterByCategory("SEMUA"); }
+        function editQty(n, s, v, h, w, d) { const q = parseInt(v); const k = `${n} (${s})`; const cur = cart[k] ? cart[k].qty : 0; updateCart(n, s, h, w, (isNaN(q) || q <= 0 ? -cur : q - cur), d); }
+        function toggleCart() { document.getElementById('cart-footer').classList.toggle('hidden'); if(!document.getElementById('cart-footer').classList.contains('hidden')) renderCartList(); }
+        function formatRupiah(n) { return new Intl.NumberFormat('id-ID').format(n); }
+        function getSafeId(n, s) { let h = 0, sd = n + s; for (let i = 0; i < sd.length; i++) h = ((h << 5) - h) + sd.charCodeAt(i); return 'p_' + Math.abs(h); }
 
-        // A-Z Sidebar
         function updateAZSidebar(data) {
             const sidebar = document.getElementById('az-sidebar');
-            if (!sidebar) return;
             const firstChars = [...new Set(data.map(p => p.nama[0].toUpperCase()))];
             const letters = firstChars.filter(c => /^[A-Z]/.test(c)).sort();
-            const others = firstChars.filter(c => !/^[A-Z]/.test(c));
             sidebar.innerHTML = "";
             letters.forEach(l => {
-                const btn = document.createElement('div');
-                btn.className = "az-letter";
-                btn.innerText = l;
-                btn.onclick = () => scrollToLetter(l);
-                sidebar.appendChild(btn);
+                const btn = document.createElement('div'); btn.className = "az-letter"; btn.innerText = l; btn.onclick = () => scrollToLetter(l); sidebar.appendChild(btn);
             });
-            if (others.length > 0) {
-                const specialBtn = document.createElement('div');
-                specialBtn.className = "az-letter";
-                specialBtn.innerText = "#";
-                specialBtn.onclick = () => scrollToLetter("SPECIAL_CHAR"); 
-                sidebar.appendChild(specialBtn);
-            }
         }
 
-        function scrollToLetter(letter) {
+        function scrollToLetter(l) {
             const items = document.querySelectorAll('.product-item');
-            for (let item of items) {
-                if (item.style.display !== 'none') {
-                    const firstChar = item.dataset.nama[0].toUpperCase();
-                    let isMatch = (letter === "SPECIAL_CHAR") ? !/^[A-Z]/.test(firstChar) : firstChar === letter;
-                    if (isMatch) {
-                        window.scrollTo({ top: item.getBoundingClientRect().top + window.pageYOffset - 180, behavior: "smooth" });
-                        break;
-                    }
+            for (let itm of items) {
+                if (itm.style.display !== 'none' && itm.dataset.nama[0].toUpperCase() === l) {
+                    window.scrollTo({ top: itm.getBoundingClientRect().top + window.pageYOffset - 180, behavior: "smooth" });
+                    break;
                 }
             }
         }
 
-        // Utils
-        function filterByCategory(cat) {
-            document.getElementById('searchInput').value = "";
-            currentCategory = cat;
-            document.querySelectorAll('.cat-btn, #btn-all').forEach(b => b.classList.toggle('cat-btn-active', b.innerText === cat));
-            filterProducts();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        function resetToAll() {
-            if (currentCategory !== "SEMUA") {
-                currentCategory = "SEMUA";
-                document.querySelectorAll('.cat-btn, #btn-all').forEach(b => b.classList.toggle('cat-btn-active', b.innerText === "SEMUA"));
-                filterProducts();
-            }
-        }
-
-        function editQty(nama, satuan, val, harga, warna, detail) {
-            const qty = parseInt(val);
-            const key = `${nama} (${satuan})`;
-            const currentQty = cart[key] ? cart[key].qty : 0;
-            updateCart(nama, satuan, harga, warna, (isNaN(qty) || qty <= 0 ? -currentQty : qty - currentQty), detail);
-        }
-
-        function toggleCart() { document.getElementById('cart-footer').classList.toggle('hidden'); if(!document.getElementById('cart-footer').classList.contains('hidden')) renderCartList(); }
-        function formatRupiah(n) { return new Intl.NumberFormat('id-ID').format(n); }
-        function getSafeId(n, s) { let hash = 0, seed = n + s; for (let i = 0; i < seed.length; i++) hash = ((hash << 5) - hash) + seed.charCodeAt(i); return 'p_' + Math.abs(hash); }
-
         function sendToWhatsApp() {
             const name = document.getElementById('custName').value.trim();
-            if (!name) return alert("MOHON ISI NAMA ANDA!");
+            if (!name) return alert("ISI NAMA ANDA!");
             let total = 0, p = `*ORDER TOKO DAMAI*\n👤 Nama: *${name.toUpperCase()}*\n\n`;
             for (let k in cart) {
                 let sub = cart[k].qty * cart[k].harga;
                 p += `✅ *${cart[k].namaAsli}*\n   ${cart[k].qty} ${cart[k].satuanAsli} (${cart[k].detail}) = *Rp ${formatRupiah(sub)}*\n`;
                 total += sub;
             }
-            p += `\n💰 *TOTAL: Rp ${formatRupiah(total)}*\n\n_Catatan: Harga dapat berubah sewaktu-waktu._`;
+            p += `\n💰 *TOTAL: Rp ${formatRupiah(total)}*`;
             window.open(`https://wa.me/6285815022210?text=${encodeURIComponent(p)}`);
         }
 
         async function fetchUpdateDate() {
             try {
-                const response = await fetch(promoUrl + "?v=" + Date.now()); 
-                const csvText = await response.text();
-                const rows = csvText.split(/\r?\n/).filter(row => row.trim() !== "");
-                if (rows.length > 0) {
-                    const tgl = rows[0].split(',')[0].trim().replace(/^"|"$/g, '') || "Terbaru";
-                    document.getElementById('header-update-date').innerText = "Update: " + tgl;
-                }
-            } catch (e) {}
+                const r = await fetch(promoUrl + "?v=" + Date.now());
+                const t = await r.text();
+                const row = t.split(/\r?\n/)[0];
+                if(row) document.getElementById('header-update-date').innerText = "Update: " + row.split(',')[0].replace(/^"|"$/g, '');
+            } catch(e){}
         }
 
         loadData();
-        fetchUpdateDate(); 
+        fetchUpdateDate();
     </script>
 </body>
 </html>
