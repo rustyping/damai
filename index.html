@@ -314,21 +314,26 @@
                 const esc = nama.replace(/'/g, "\\'");
                 const label = `${satuan} (${detail})`;
                 
-                // Kita bungkus dengan class unit-item
                 if (qty === 0) {
+                    // Bubble satuan sekarang menjadi tombol utuh (onclick di div utama)
                     return `
-                    <div class="unit-item flex items-center justify-between bg-${warna}-50 rounded-2xl border border-${warna}-100 overflow-hidden">
-                        <div class="pl-3 py-2"><p class="text-[9px] font-black text-${warna}-700 uppercase italic leading-none mb-1">${label}</p><p class="text-xs font-black text-slate-700">Rp ${formatRupiah(harga)}</p></div>
-                        <button onclick="updateCart('${esc}', '${satuan}', ${harga}, '${warna}', 1, '${detail}')" class="bg-${warna}-600 text-white px-4 py-4 text-[10px] font-black uppercase">+ BELI</button>
+                    <div onclick="updateCart('${esc}', '${satuan}', ${harga}, '${warna}', 1, '${detail}')" 
+                         class="unit-item flex flex-col justify-center bg-${warna}-50 rounded-2xl border border-${warna}-200 p-3 cursor-pointer active:scale-95 transition-transform">
+                        <p class="text-[9px] font-black text-${warna}-700 uppercase italic leading-none mb-1">${label}</p>
+                        <p class="text-sm font-black text-slate-700">Rp ${formatRupiah(harga)}</p>
                     </div>`;
                 } else {
+                    // Jika sudah ada di keranjang, tampilkan kontrol plus minus
                     return `
                     <div class="unit-item flex items-center justify-between bg-${warna}-600 text-white rounded-2xl border-2 border-${warna}-700 shadow-lg overflow-hidden">
-                        <div class="pl-3 py-2"><p class="text-[9px] font-black uppercase italic text-white/80 leading-none mb-1">${label}</p><p class="text-xs font-black">Rp ${formatRupiah(harga)}</p></div>
-                        <div class="flex items-center bg-black/10">
-                            <button onclick="updateCart('${esc}', '${satuan}', ${harga}, '${warna}', -1, '${detail}')" class="w-8 h-12 font-black text-lg">-</button>
+                        <div class="pl-3 py-2">
+                            <p class="text-[9px] font-black uppercase italic text-white/80 leading-none mb-1">${label}</p>
+                            <p class="text-xs font-black">Rp ${formatRupiah(harga)}</p>
+                        </div>
+                        <div class="flex items-center bg-black/20">
+                            <button onclick="updateCart('${esc}', '${satuan}', ${harga}, '${warna}', -1, '${detail}')" class="w-10 h-12 font-black text-xl active:bg-black/30">-</button>
                             <input type="number" value="${qty}" onchange="editQty('${esc}', '${satuan}', this.value, ${harga}, '${warna}', '${detail}')" class="w-8 bg-transparent text-center font-black text-xs outline-none border-none text-white">
-                            <button onclick="updateCart('${esc}', '${satuan}', ${harga}, '${warna}', 1, '${detail}')" class="w-8 h-12 font-black text-lg">+</button>
+                            <button onclick="updateCart('${esc}', '${satuan}', ${harga}, '${warna}', 1, '${detail}')" class="w-10 h-12 font-black text-xl active:bg-black/30">+</button>
                         </div>
                     </div>`;
                 }
