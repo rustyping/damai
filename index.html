@@ -148,10 +148,21 @@
                 
                 productsData = rows.slice(1).map(row => {
                     const cols = row.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
-                    if (!cols[2] || cols[2].includes("___")) return null;
+                    const nama = cols[2] || "";
+
+                    // --- PAGAR PENGAMAN (FILTER BARIS SAMPAH) ---
+                    if (!nama || 
+                        nama.toLowerCase().includes("xxx") || 
+                        nama.toLowerCase().includes("nama barang") || 
+                        nama.includes("___") || 
+                        nama.toLowerCase().includes("ongkos kirim")) {
+                        return null;
+                    }
+
                     catSet.add(cols[4] || "UMUM");
                     return { 
-                        nama: cols[2], kategori: cols[4] || "UMUM", 
+                        nama: nama, 
+                        kategori: cols[4] || "UMUM", 
                         vars: [
                             {s: cols[6], d: cols[10], h: parseInt(cols[19]) || 0, w: 'emerald'},
                             {s: cols[7], d: cols[11], h: parseInt(cols[22]) || 0, w: 'orange'},
@@ -160,6 +171,7 @@
                     };
                 }).filter(Boolean);
 
+                // Sorting tetap alfabetis
                 productsData.sort((a,b) => a.nama.localeCompare(b.nama, 'id', {numeric:true}));
                 
                 const b = document.getElementById('category-bar');
