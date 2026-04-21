@@ -303,32 +303,22 @@
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => {
                 const query = document.getElementById('searchInput').value.toLowerCase().trim();
-                const keywords = query.split(/\s+/); // Pecah berdasarkan spasi
+                const keywords = query.split(/\s+/).filter(kw => kw !== "");
                 
-                let visibleCount = 0;
-                let visibleData = [];
-
-                document.querySelectorAll('.product-item').forEach(item => {
-                    const nama = item.dataset.nama;
-                    const matchKat = (currentCategory === "SEMUA" || item.dataset.kat === currentCategory);
-                    
-                    // Pencarian pintar: Semua keyword harus ada di nama barang
-                    const matchSearch = (query === "" || keywords.every(kw => nama.includes(kw)));
-
-                    if (matchKat && matchSearch) {
-                        item.style.display = "block";
-                        visibleCount++;
-                        const original = productsData.find(p => p.nama.toLowerCase() === nama);
-                        if(original) visibleData.push(original);
-                    } else {
-                        item.style.display = "none";
-                    }
+                // Selalu filter dari productsData (data master) agar tidak nyangkut
+                let visibleData = productsData.filter(p => {
+                    const matchKat = (currentCategory === "SEMUA" || p.kategori === currentCategory);
+                    const matchSearch = (query === "" || keywords.every(kw => p.nama.toLowerCase().includes(kw)));
+                    return matchKat && matchSearch;
                 });
-
-                document.getElementById('status').innerText = visibleCount + " ITEM";
-                // Tambahkan baris ini agar saat mengetik, render ulang dilakukan dengan highlight
+        
+                // Re-render katalog dengan data yang sudah difilter + highlight
                 renderKatalog(visibleData, query);
-                    
+                
+                // Update status jumlah item
+                document.getElementById('status').innerText = visibleData.length + " ITEM";
+                
+                // Update navigasi A-Z agar hanya muncul huruf yang relevan
                 updateAZSidebar(visibleData);
             }, 150);
         }
@@ -476,10 +466,9 @@
 
         // Utils
         function filterByCategory(cat) {
-            document.getElementById('searchInput').value = "";
             currentCategory = cat;
             document.querySelectorAll('.cat-btn, #btn-all').forEach(b => b.classList.toggle('cat-btn-active', b.innerText === cat));
-            filterProducts();
+            filterProducts(); // Ini akan memicu filter ulang yang bersih
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
