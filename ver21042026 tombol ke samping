@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Katalog Toko Damai v1.7</title>
+    <title>Katalog Toko Damai v1.7.1</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -17,11 +17,29 @@
             background: #fb923c; z-index: 100; transition: width 0.1s; 
         }
 
+        
+        /* Tambahan untuk membuat tombol satuan ke samping */
+        .unit-container {
+            display: flex;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            gap: 8px;
+            padding-bottom: 4px;
+        }
+        .unit-container::-webkit-scrollbar { display: none; } /* Sembunyikan scrollbar */
+        
+        .unit-item {
+            flex: 0 0 auto; /* Tombol tidak mengecil */
+            min-width: 140px; /* Lebar minimal tiap tombol */
+        }
+
+        
+
         /* Navigasi Huruf A-Z di samping kanan */
         .az-sidebar {
             position: fixed;
             right: 8px;
-            top: 220px; /* Diturunkan agar tidak tertutup header desktop */
+            top: 220px;
             display: flex;
             flex-direction: column;
             z-index: 40;
@@ -76,6 +94,26 @@
         input[type=number]::-webkit-inner-spin-button, 
         input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number] { -moz-appearance: textfield; }
+
+        @keyframes pulse-orange {
+            0% { box-shadow: 0 0 0 0 rgba(251, 146, 60, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(251, 146, 60, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(251, 146, 60, 0); }
+        }
+        .btn-promo {
+            animation: pulse-orange 2s infinite;
+            background: #fb923c;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 900;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 15px rgba(251, 146, 60, 0.3);
+        }
+        .promo-table { width: 100%; border-collapse: collapse; }
+        .promo-table th { background: #f8fafc; text-align: left; padding: 12px; border-bottom: 2px solid #e2e8f0; font-size: 10px; text-transform: uppercase; color: #64748b; font-weight: 800; }
+        .promo-table td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 13px; vertical-align: middle; }
     </style>
 </head>
 <body class="pb-40 text-gray-900">
@@ -84,12 +122,19 @@
 
     <header class="header-bg p-5 sticky top-0 z-50 shadow-2xl">
         <div class="mb-4">
-            <div class="flex justify-between items-start">
-                <div>
-                    <h1 class="text-3xl font-black italic tracking-tighter leading-none">TOKO DAMAI</h1>
-                    <p class="text-[11px] font-bold opacity-90 mt-1">Jl. Kol Sugiono 61, Malang</p>
+            <div class="flex justify-between items-center">
+                <div class="flex items-center gap-4">
+                    <div>
+                        <h1 class="text-3xl font-black italic tracking-tighter leading-none">TOKO DAMAI</h1>
+                        <p class="text-[11px] font-bold opacity-90 mt-1 uppercase">
+                           Malang <span id="header-update-date" class="ml-2 border-l border-white/30 pl-2"></span>
+                        </p>
+                    </div>
+                    <button onclick="showPromo()" class="btn-promo active:scale-90 transition-transform flex items-center gap-2">
+                        <i class="fas fa-fire-alt animate-bounce"></i> PROMO
+                    </button>
                 </div>
-                <div id="status" class="text-[9px] bg-black/20 px-2 py-1 rounded-md font-black uppercase border border-white/10">Memuat...</div>
+                <div id="status" class="text-[9px] bg-black/20 px-2 py-1 rounded-md font-black uppercase border border-white/10 tracking-widest">Memuat...</div>
             </div>
         </div>
         <input type="text" id="searchInput" oninput="filterProducts()" onfocus="resetToAll()" placeholder="Cari nama barang..." class="w-full p-4 rounded-xl text-gray-900 font-bold outline-none mb-4 shadow-inner">
@@ -102,6 +147,27 @@
     <div id="az-sidebar" class="az-sidebar"></div>
 
     <main id="katalog" class="p-4 max-w-xl mx-auto"></main>
+
+    <div id="promo-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-[110] hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-orange-400/20">
+            <div class="bg-gradient-to-r from-orange-500 to-red-500 p-6 text-white flex justify-between items-center">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h3 class="font-black text-xl italic tracking-tighter leading-none">PROMO SUPER</h3>
+                        <span id="promo-date" class="bg-white/20 px-2 py-1 rounded text-[10px] font-black tracking-tight border border-white/30">...</span>
+                    </div>
+                    <p class="text-[10px] font-bold opacity-80 mt-1 uppercase tracking-widest">Penawaran Terbatas</p>
+                </div>
+                <button onclick="closePromo()" class="text-2xl font-bold bg-white/20 w-10 h-10 rounded-full flex items-center justify-center hover:bg-white/40">&times;</button>
+            </div>
+            <div class="p-2 max-h-[60vh] overflow-y-auto" id="promo-content">
+                <p class="text-center py-10 text-gray-400 font-bold">Mengambil data promo...</p>
+            </div>
+            <div class="p-6 bg-gray-50 text-center border-t border-gray-100">
+                <button onclick="closePromo()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl active:scale-95 transition-all">SAYA MENGERTI</button>
+            </div>
+        </div>
+    </div>
 
     <button id="float-cart" onclick="toggleCart()" class="fixed bottom-8 right-6 bg-orange-600 text-white px-7 py-5 rounded-2xl shadow-2xl z-50 hidden font-black border-2 border-white/20 flex items-center gap-3 active:scale-95 transition-all">
         <i class="fas fa-shopping-basket text-xl"></i>
@@ -133,8 +199,10 @@
 
     <script>
         const githubUrl = "https://raw.githubusercontent.com/rustyping/damai/main/listDamaiFull.csv?v=" + Date.now();
+        const promoUrl = "https://raw.githubusercontent.com/rustyping/damai/main/promo.csv?v=" + Date.now();
         let productsData = [], cart = {}, currentCategory = "SEMUA", searchTimeout;
 
+        // Progress Bar
         window.onscroll = function() {
             let winScroll = document.body.scrollTop || document.documentElement.scrollTop;
             let height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
@@ -142,6 +210,7 @@
             document.getElementById("scroll-progress").style.width = scrolled + "%";
         };
 
+        // Load Data Utama
         async function loadData() {
             try {
                 const response = await fetch(githubUrl);
@@ -152,6 +221,7 @@
                 productsData = rows.slice(1).map(row => {
                     const cols = row.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
                     const nama = cols[2] || "";
+                    // Filter Baris Sampah
                     if (!nama || nama.toLowerCase().includes("nama barang") || nama.toLowerCase().includes("xxx") || 
                         nama.includes("___") || nama.toLowerCase().includes("ongkos kirim")) return null;
 
@@ -164,13 +234,12 @@
                     };
                 }).filter(Boolean);
 
-                // SORTING: A-Z duluan, lalu Simbol/Angka
+                // Sorting Alfabet & Numerik
                 productsData.sort((a, b) => {
                     const nameA = a.nama.toUpperCase();
                     const nameB = b.nama.toUpperCase();
                     const isLetterA = /^[A-Z]/.test(nameA);
                     const isLetterB = /^[A-Z]/.test(nameB);
-
                     if (isLetterA && !isLetterB) return -1;
                     if (!isLetterA && isLetterB) return 1;
                     return nameA.localeCompare(nameB, 'id', { numeric: true });
@@ -187,6 +256,7 @@
             } catch (e) { console.error(e); }
         }
 
+        // Render Katalog ke Layar
         function renderKatalog(data) {
             const katalog = document.getElementById('katalog');
             let content = `<div class="grid gap-1">`;
@@ -194,7 +264,7 @@
                 content += `
                 <div class="product-item product-card p-5 rounded-3xl" data-nama="${p.nama.toLowerCase()}" data-kat="${p.kategori}">
                     <p class="product-name text-base mb-4 tracking-tight">${p.nama}</p>
-                    <div class="grid gap-3">
+                    <div class="unit-container">
                         ${p.s1 && p.h1 > 0 ? `<div id="box-${getSafeId(p.nama, p.s1)}">${renderBtn(p.nama, p.s1, p.h1, 'emerald', p.d1)}</div>` : ''}
                         ${p.s2 && p.h2 > 0 ? `<div id="box-${getSafeId(p.nama, p.s2)}">${renderBtn(p.nama, p.s2, p.h2, 'orange', p.d2)}</div>` : ''}
                         ${p.s3 && p.h3 > 0 ? `<div id="box-${getSafeId(p.nama, p.s3)}">${renderBtn(p.nama, p.s3, p.h3, 'blue', p.d3)}</div>` : ''}
@@ -205,108 +275,80 @@
             updateAZSidebar(data);
         }
 
-        function updateAZSidebar(data) {
-            const sidebar = document.getElementById('az-sidebar');
-            if (!sidebar) return;
-
-            const firstChars = [...new Set(data.map(p => p.nama[0].toUpperCase()))];
-            const letters = firstChars.filter(c => /^[A-Z]/.test(c)).sort();
-            const others = firstChars.filter(c => !/^[A-Z]/.test(c));
-
-            sidebar.innerHTML = "";
-            letters.forEach(l => {
-                const btn = document.createElement('div');
-                btn.className = "az-letter";
-                btn.innerText = l;
-                btn.onclick = () => scrollToLetter(l);
-                sidebar.appendChild(btn);
-            });
-
-            if (others.length > 0) {
-                const specialBtn = document.createElement('div');
-                specialBtn.className = "az-letter";
-                specialBtn.innerText = "#";
-                specialBtn.onclick = () => scrollToLetter("SPECIAL_CHAR"); 
-                sidebar.appendChild(specialBtn);
-            }
-        }
-
-        function scrollToLetter(letter) {
-            const items = document.querySelectorAll('.product-item');
-            for (let item of items) {
-                if (item.style.display !== 'none') {
-                    const firstChar = item.dataset.nama[0].toUpperCase();
-                    let isMatch = (letter === "SPECIAL_CHAR") ? !/^[A-Z]/.test(firstChar) : firstChar === letter;
-                    
-                    if (isMatch) {
-                        const headerOffset = 180; 
-                        const elementPosition = item.getBoundingClientRect().top;
-                        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-                        window.scrollTo({ top: offsetPosition, behavior: "smooth" });
-                        break;
-                    }
-                }
-            }
-        }
-
+        // FUNGSI SEARCH FLEXIBLE (UPDATED)
         function filterProducts() {
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => {
-                const q = document.getElementById('searchInput').value.toLowerCase().trim();
+                const query = document.getElementById('searchInput').value.toLowerCase().trim();
+                const keywords = query.split(/\s+/); // Pecah berdasarkan spasi
+                
                 let visibleCount = 0;
                 let visibleData = [];
 
                 document.querySelectorAll('.product-item').forEach(item => {
-                    const mK = (currentCategory === "SEMUA" || item.dataset.kat === currentCategory);
-                    const mS = (q === "" || item.dataset.nama.includes(q));
-                    if (mK && mS) {
+                    const nama = item.dataset.nama;
+                    const matchKat = (currentCategory === "SEMUA" || item.dataset.kat === currentCategory);
+                    
+                    // Pencarian pintar: Semua keyword harus ada di nama barang
+                    const matchSearch = (query === "" || keywords.every(kw => nama.includes(kw)));
+
+                    if (matchKat && matchSearch) {
                         item.style.display = "block";
                         visibleCount++;
-                        // Cari data asli untuk sidebar
-                        const originalData = productsData.find(p => p.nama.toLowerCase() === item.dataset.nama);
-                        if(originalData) visibleData.push(originalData);
+                        const original = productsData.find(p => p.nama.toLowerCase() === nama);
+                        if(original) visibleData.push(original);
                     } else {
                         item.style.display = "none";
                     }
                 });
+
                 document.getElementById('status').innerText = visibleCount + " ITEM";
                 updateAZSidebar(visibleData);
             }, 150);
         }
 
+        // Logic Tombol & Cart (v1.7)
         function renderBtn(nama, satuan, harga, warna, detail) {
-            const key = `${nama} (${satuan})`;
-            const qty = cart[key]?.qty || 0;
-            const esc = nama.replace(/'/g, "\\'");
-            const label = `${satuan} (${detail})`;
-
-            if (qty === 0) {
-                return `<div class="flex items-center justify-between bg-${warna}-50 rounded-2xl border border-${warna}-100 overflow-hidden">
-                    <div class="pl-4 py-2"><p class="text-[10px] font-black text-${warna}-700 uppercase italic mb-0.5">${label}</p><p class="text-sm font-black text-slate-700">Rp ${formatRupiah(harga)}</p></div>
-                    <button onclick="updateCart('${esc}', '${satuan}', ${harga}, '${warna}', 1, '${detail}')" class="bg-${warna}-600 text-white px-6 py-4 text-xs font-black uppercase">+ BELI</button>
-                </div>`;
-            } else {
-                return `<div class="flex items-center justify-between bg-${warna}-600 text-white rounded-2xl border-2 border-${warna}-700 shadow-lg overflow-hidden">
-                    <div class="pl-4 py-2"><p class="text-[10px] font-black uppercase italic text-white/80">${label}</p><p class="text-sm font-black">Rp ${formatRupiah(harga)}</p></div>
-                    <div class="flex items-center bg-black/10">
-                        <button onclick="updateCart('${esc}', '${satuan}', ${harga}, '${warna}', -1, '${detail}')" class="w-10 h-12 font-black text-xl">-</button>
-                        <input type="number" value="${qty}" onchange="editQty('${esc}', '${satuan}', this.value, ${harga}, '${warna}', '${detail}')" class="w-10 bg-transparent text-center font-black text-sm outline-none border-none text-white">
-                        <button onclick="updateCart('${esc}', '${satuan}', ${harga}, '${warna}', 1, '${detail}')" class="w-10 h-12 font-black text-xl">+</button>
-                    </div>
-                </div>`;
+                const key = `${nama} (${satuan})`;
+                const qty = cart[key]?.qty || 0;
+                const esc = nama.replace(/'/g, "\\'");
+                const label = `${satuan} (${detail})`;
+                
+                if (qty === 0) {
+                    // Bubble satuan sekarang menjadi tombol utuh (onclick di div utama)
+                    return `
+                    <div onclick="updateCart('${esc}', '${satuan}', ${harga}, '${warna}', 1, '${detail}')" 
+                         class="unit-item flex flex-col justify-center bg-${warna}-50 rounded-2xl border border-${warna}-200 p-3 cursor-pointer active:scale-95 transition-transform">
+                        <p class="text-[9px] font-black text-${warna}-700 uppercase italic leading-none mb-1">${label}</p>
+                        <p class="text-sm font-black text-slate-700">Rp ${formatRupiah(harga)}</p>
+                    </div>`;
+                } else {
+                    // Jika sudah ada di keranjang, tampilkan kontrol plus minus
+                    return `
+                    <div class="unit-item flex items-center justify-between bg-${warna}-600 text-white rounded-2xl border-2 border-${warna}-700 shadow-lg overflow-hidden">
+                        <div class="pl-3 py-2">
+                            <p class="text-[9px] font-black uppercase italic text-white/80 leading-none mb-1">${label}</p>
+                            <p class="text-xs font-black">Rp ${formatRupiah(harga)}</p>
+                        </div>
+                        <div class="flex items-center bg-black/20">
+                            <button onclick="updateCart('${esc}', '${satuan}', ${harga}, '${warna}', -1, '${detail}')" class="w-10 h-12 font-black text-xl active:bg-black/30">-</button>
+                            <input type="number" value="${qty}" onchange="editQty('${esc}', '${satuan}', this.value, ${harga}, '${warna}', '${detail}')" class="w-8 bg-transparent text-center font-black text-xs outline-none border-none text-white">
+                            <button onclick="updateCart('${esc}', '${satuan}', ${harga}, '${warna}', 1, '${detail}')" class="w-10 h-12 font-black text-xl active:bg-black/30">+</button>
+                        </div>
+                    </div>`;
+                }
             }
-        }
+
+        
 
         function updateCart(nama, satuan, harga, warna, delta, detail) {
             const key = `${nama} (${satuan})`;
             if (!cart[key]) cart[key] = { qty: 0, harga: harga, warna: warna, detail: detail, namaAsli: nama, satuanAsli: satuan };
             cart[key].qty += delta;
             if (cart[key].qty <= 0) delete cart[key];
-            
             const tid = getSafeId(nama, satuan);
             const el = document.getElementById(`box-${tid}`);
             if(el) el.innerHTML = renderBtn(nama, satuan, harga, warna, detail);
-            
             updateTotals();
             if(!document.getElementById('cart-footer').classList.contains('hidden')) renderCartList();
         }
@@ -341,6 +383,75 @@
             }
         }
 
+        // Promo Logic
+        async function showPromo() {
+            const modal = document.getElementById('promo-modal');
+            const content = document.getElementById('promo-content');
+            const dateBadge = document.getElementById('promo-date');
+            modal.classList.remove('hidden');
+            content.innerHTML = `<p class="text-center py-10 text-gray-400 font-bold">Mengambil data promo...</p>`;
+            try {
+                const response = await fetch(promoUrl + "&t=" + Date.now());
+                const csvText = await response.text();
+                const rows = csvText.split(/\r?\n/).filter(row => row.trim() !== "");
+                if (rows.length < 1) {
+                    content.innerHTML = `<p class="text-center py-10 text-gray-400">Belum ada promo aktif.</p>`;
+                    return;
+                }
+                const tglPromo = rows[0].split(',')[0].trim().replace(/^"|"$/g, '') || "Terbaru";
+                dateBadge.innerText = tglPromo;
+                let html = `<table class="promo-table"><thead><tr><th>Barang</th><th>Harga</th></tr></thead><tbody>`;
+                rows.slice(1).forEach(row => {
+                    const cols = row.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+                    if (cols[1]) {
+                        html += `<tr><td class="font-bold text-slate-800 uppercase leading-tight">${cols[1]}<br><span class="text-[9px] text-orange-500">${cols[2] || 'PCS'}</span></td><td><span class="bg-red-500 text-white px-3 py-1.5 rounded-lg font-black text-sm">Rp ${cols[3] || '0'}</span></td></tr>`;
+                    }
+                });
+                content.innerHTML = html + `</tbody></table>`;
+            } catch (e) { content.innerHTML = "Gagal memuat promo."; }
+        }
+
+        function closePromo() { document.getElementById('promo-modal').classList.add('hidden'); }
+
+        // A-Z Sidebar
+        function updateAZSidebar(data) {
+            const sidebar = document.getElementById('az-sidebar');
+            if (!sidebar) return;
+            const firstChars = [...new Set(data.map(p => p.nama[0].toUpperCase()))];
+            const letters = firstChars.filter(c => /^[A-Z]/.test(c)).sort();
+            const others = firstChars.filter(c => !/^[A-Z]/.test(c));
+            sidebar.innerHTML = "";
+            letters.forEach(l => {
+                const btn = document.createElement('div');
+                btn.className = "az-letter";
+                btn.innerText = l;
+                btn.onclick = () => scrollToLetter(l);
+                sidebar.appendChild(btn);
+            });
+            if (others.length > 0) {
+                const specialBtn = document.createElement('div');
+                specialBtn.className = "az-letter";
+                specialBtn.innerText = "#";
+                specialBtn.onclick = () => scrollToLetter("SPECIAL_CHAR"); 
+                sidebar.appendChild(specialBtn);
+            }
+        }
+
+        function scrollToLetter(letter) {
+            const items = document.querySelectorAll('.product-item');
+            for (let item of items) {
+                if (item.style.display !== 'none') {
+                    const firstChar = item.dataset.nama[0].toUpperCase();
+                    let isMatch = (letter === "SPECIAL_CHAR") ? !/^[A-Z]/.test(firstChar) : firstChar === letter;
+                    if (isMatch) {
+                        window.scrollTo({ top: item.getBoundingClientRect().top + window.pageYOffset - 180, behavior: "smooth" });
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Utils
         function filterByCategory(cat) {
             document.getElementById('searchInput').value = "";
             currentCategory = cat;
@@ -364,11 +475,9 @@
             updateCart(nama, satuan, harga, warna, (isNaN(qty) || qty <= 0 ? -currentQty : qty - currentQty), detail);
         }
 
-        function toggleCart() { 
-            const m = document.getElementById('cart-footer');
-            m.classList.toggle('hidden');
-            if(!m.classList.contains('hidden')) renderCartList();
-        }
+        function toggleCart() { document.getElementById('cart-footer').classList.toggle('hidden'); if(!document.getElementById('cart-footer').classList.contains('hidden')) renderCartList(); }
+        function formatRupiah(n) { return new Intl.NumberFormat('id-ID').format(n); }
+        function getSafeId(n, s) { let hash = 0, seed = n + s; for (let i = 0; i < seed.length; i++) hash = ((hash << 5) - hash) + seed.charCodeAt(i); return 'p_' + Math.abs(hash); }
 
         function sendToWhatsApp() {
             const name = document.getElementById('custName').value.trim();
@@ -379,18 +488,24 @@
                 p += `✅ *${cart[k].namaAsli}*\n   ${cart[k].qty} ${cart[k].satuanAsli} (${cart[k].detail}) = *Rp ${formatRupiah(sub)}*\n`;
                 total += sub;
             }
-            p += `\n💰 *TOTAL: Rp ${formatRupiah(total)}*\n\n_Catatan: Harga dapat berubah sewaktu-waktu mengikuti sistem pusat._`;
+            p += `\n💰 *TOTAL: Rp ${formatRupiah(total)}*\n\n_Catatan: Harga dapat berubah sewaktu-waktu._`;
             window.open(`https://wa.me/6285815022210?text=${encodeURIComponent(p)}`);
         }
 
-        function formatRupiah(n) { return new Intl.NumberFormat('id-ID').format(n); }
-        function getSafeId(n, s) { 
-            let hash = 0, seed = n + s;
-            for (let i = 0; i < seed.length; i++) hash = ((hash << 5) - hash) + seed.charCodeAt(i);
-            return 'p_' + Math.abs(hash);
+        async function fetchUpdateDate() {
+            try {
+                const response = await fetch(promoUrl + "?v=" + Date.now()); 
+                const csvText = await response.text();
+                const rows = csvText.split(/\r?\n/).filter(row => row.trim() !== "");
+                if (rows.length > 0) {
+                    const tgl = rows[0].split(',')[0].trim().replace(/^"|"$/g, '') || "Terbaru";
+                    document.getElementById('header-update-date').innerText = "Update: " + tgl;
+                }
+            } catch (e) {}
         }
 
         loadData();
+        fetchUpdateDate(); 
     </script>
 </body>
 </html>
