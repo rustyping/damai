@@ -302,17 +302,33 @@
         function renderKatalog(data) {
             const katalog = document.getElementById('katalog');
             let content = `<div class="grid gap-1">`;
+            
+            // Mengelompokkan produk berdasarkan nama yang sama
+            const groupedProducts = {};
             data.forEach(p => {
+                if (!groupedProducts[p.nama]) {
+                    groupedProducts[p.nama] = {
+                        nama: p.nama,
+                        kategori: p.kategori,
+                        varians: []
+                    };
+                }
+                // Masukkan semua varian satuan yang ada harganya
+                if (p.s1 && p.h1 > 0) groupedProducts[p.nama].varians.push({ s: p.s1, h: p.h1, d: p.d1, c: 'emerald' });
+                if (p.s2 && p.h2 > 0) groupedProducts[p.nama].varians.push({ s: p.s2, h: p.h2, d: p.d2, c: 'orange' });
+                if (p.s3 && p.h3 > 0) groupedProducts[p.nama].varians.push({ s: p.s3, h: p.h3, d: p.d3, c: 'blue' });
+            });
+
+            Object.values(groupedProducts).forEach(p => {
                 content += `
                 <div class="product-item product-card p-5 rounded-3xl" data-nama="${p.nama.toLowerCase()}" data-kat="${p.kategori}">
                     <p class="product-name text-base mb-4 tracking-tight">${p.nama}</p>
                     <div class="grid gap-3">
-                        ${p.s1 && p.h1 > 0 ? `<div id="box-${getSafeId(p.nama, p.s1)}">${renderBtn(p.nama, p.s1, p.h1, 'emerald', p.d1)}</div>` : ''}
-                        ${p.s2 && p.h2 > 0 ? `<div id="box-${getSafeId(p.nama, p.s2)}">${renderBtn(p.nama, p.s2, p.h2, 'orange', p.d2)}</div>` : ''}
-                        ${p.s3 && p.h3 > 0 ? `<div id="box-${getSafeId(p.nama, p.s3)}">${renderBtn(p.nama, p.s3, p.h3, 'blue', p.d3)}</div>` : ''}
+                        ${p.varians.map(v => `<div id="box-${getSafeId(p.nama, v.s)}">${renderBtn(p.nama, v.s, v.h, v.c, v.d)}</div>`).join('')}
                     </div>
                 </div>`;
             });
+            
             katalog.innerHTML = content + `</div>`;
             updateAZSidebar(data);
         }
@@ -360,21 +376,29 @@
         function filterProducts() {
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => {
-                const q = document.getElementById('searchInput').value.toLowerCase().trim();
+                const input = document.getElementById('searchInput').value.toLowerCase().trim();
+                const keywords = input.split(/\s+/); // Memecah input jadi beberapa kata
+                
                 let visibleCount = 0;
                 let visibleData = [];
+                
                 document.querySelectorAll('.product-item').forEach(item => {
-                    const mK = (currentCategory === "SEMUA" || item.dataset.kat === currentCategory);
-                    const mS = (q === "" || item.dataset.nama.includes(q));
-                    if (mK && mS) {
+                    const namaBarang = item.dataset.nama;
+                    const kategoriMatch = (currentCategory === "SEMUA" || item.dataset.kat === currentCategory);
+                    
+                    // Logika: Semua kata kunci harus ada di dalam nama barang (urutan bebas)
+                    const searchMatch = keywords.every(word => namaBarang.includes(word));
+                    
+                    if (kategoriMatch && searchMatch) {
                         item.style.display = "block";
                         visibleCount++;
-                        const originalData = productsData.find(p => p.nama.toLowerCase() === item.dataset.nama);
+                        const originalData = productsData.find(p => p.nama.toLowerCase() === namaBarang);
                         if(originalData) visibleData.push(originalData);
                     } else {
                         item.style.display = "none";
                     }
                 });
+                
                 document.getElementById('status').innerText = visibleCount + " ITEM";
                 updateAZSidebar(visibleData);
             }, 150);
