@@ -315,7 +315,7 @@
                 const label = `${satuan} (${detail})`;
                 
                 if (qty === 0) {
-                    // Tampilan Ringkas (Sebelum dipilih)
+                    // Tampilan awal (Sebelum dipilih)
                     return `
                     <div onclick="updateCart('${esc}', '${satuan}', ${harga}, '${warna}', 1, '${detail}')" 
                          class="unit-item flex flex-col justify-center bg-${warna}-50 rounded-2xl border border-${warna}-200 p-2 cursor-pointer active:scale-95 transition-transform text-center">
@@ -323,14 +323,14 @@
                         <p class="text-xs font-black text-slate-700">Rp ${formatRupiah(harga)}</p>
                     </div>`;
                 } else {
-                    // Tampilan Minimalis (Setelah dipilih - Teks Hilang)
+                    // Tampilan setelah dipilih (Teks "ISI" diganti menjadi Satuan)
                     return `
                     <div class="unit-item flex items-center justify-between bg-${warna}-600 text-white rounded-2xl border-2 border-${warna}-700 shadow-lg overflow-hidden">
                         <button onclick="updateCart('${esc}', '${satuan}', ${harga}, '${warna}', -1, '${detail}')" class="w-8 h-10 font-black text-lg active:bg-black/20">-</button>
                         
                         <div class="flex flex-col items-center justify-center leading-none">
-                            <span class="text-xs font-black">${qty}</span>
-                            <span class="text-[7px] font-bold opacity-70 uppercase tracking-tighter">ISI</span>
+                            <span class="text-sm font-black">${qty}</span>
+                            <span class="text-[8px] font-black opacity-90 uppercase tracking-tighter">${satuan}</span>
                         </div>
             
                         <button onclick="updateCart('${esc}', '${satuan}', ${harga}, '${warna}', 1, '${detail}')" class="w-8 h-10 font-black text-lg active:bg-black/20">+</button>
