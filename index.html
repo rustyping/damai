@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Katalog Toko Damai v1.7.4</title>
+    <title>Katalog Toko Damai v1.7.5</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -12,39 +12,44 @@
         .product-card { background: white; border-radius: 20px; border: 1px solid #e2e8f0; margin-bottom: 0.75rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
         .product-name { color: #0f172a; font-weight: 800; text-transform: uppercase; border-bottom: 1px dashed #e2e8f0; padding-bottom: 6px; margin-bottom: 10px; font-size: 13px; }
         
-        /* Grid Tombol Ramping */
         .variant-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-        
-        /* State Tombol Normal */
-        .btn-price { 
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            padding: 8px 4px; border-radius: 12px; transition: all 0.2s; height: 55px;
-        }
-        /* State Tombol Aktif (+/-) */
-        .btn-counter { 
-            display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-            padding: 4px; border-radius: 12px; height: 55px; color: white;
-        }
+        .btn-price { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px 4px; border-radius: 12px; transition: all 0.2s; height: 55px; }
+        .btn-counter { display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 4px; border-radius: 12px; height: 55px; color: white; }
 
         .cat-btn { white-space: nowrap; padding: 10px 20px; border-radius: 12px; font-size: 11px; font-weight: 800; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); }
         .cat-btn-active { background: #fb923c !important; border-color: #fb923c !important; }
         
-        .az-sidebar { position: fixed; right: 8px; top: 220px; display: flex; flex-direction: column; z-index: 40; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); padding: 12px 5px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
+        .az-sidebar { position: fixed; right: 8px; top: 220px; display: flex; flex-direction: column; z-index: 40; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); padding: 12px 5px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); max-height: 60vh; overflow-y: auto; }
         .az-letter { font-size: 10px; font-weight: 900; color: #075E54; width: 24px; height: 20px; display: flex; align-items: center; justify-content: center; }
+
+        @keyframes pulse-orange {
+            0% { box-shadow: 0 0 0 0 rgba(251, 146, 60, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(251, 146, 60, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(251, 146, 60, 0); }
+        }
+        .btn-promo { animation: pulse-orange 2s infinite; background: #fb923c; color: white; padding: 6px 14px; border-radius: 10px; font-size: 11px; font-weight: 900; }
+        .promo-table { width: 100%; border-collapse: collapse; }
+        .promo-table th { background: #f8fafc; text-align: left; padding: 12px; font-size: 10px; color: #64748b; font-weight: 800; }
+        .promo-table td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 13px; }
     </style>
 </head>
 <body class="pb-40">
 
     <header class="header-bg p-5 sticky top-0 z-50 shadow-xl">
         <div class="flex justify-between items-center mb-4">
-            <div>
-                <h1 class="text-3xl font-black italic tracking-tighter leading-none">TOKO DAMAI</h1>
-                <p class="text-[11px] font-bold opacity-90 mt-1 uppercase">Malang <span id="header-update-date" class="ml-2 border-l border-white/30 pl-2"></span></p>
+            <div class="flex items-center gap-4">
+                <div>
+                    <h1 class="text-3xl font-black italic tracking-tighter leading-none">TOKO DAMAI</h1>
+                    <p class="text-[11px] font-bold opacity-90 mt-1 uppercase">Malang <span id="header-update-date" class="ml-2 border-l border-white/30 pl-2"></span></p>
+                </div>
+                <button onclick="showPromo()" class="btn-promo flex items-center gap-2">
+                    <i class="fas fa-fire-alt"></i> PROMO
+                </button>
             </div>
-            <div id="status" class="text-[9px] bg-black/20 px-2 py-1 rounded-md font-black uppercase">Memuat...</div>
+            <div id="status" class="text-[9px] bg-black/20 px-2 py-1 rounded-md font-black uppercase tracking-widest text-white">Memuat...</div>
         </div>
-        <input type="text" id="searchInput" oninput="filterProducts()" placeholder="Cari barang..." class="w-full p-4 rounded-xl text-gray-900 font-bold mb-4 outline-none shadow-inner">
-        <div class="flex items-center gap-2 overflow-x-auto">
+        <input type="text" id="searchInput" oninput="filterProducts()" placeholder="Cari barang..." class="w-full p-4 rounded-xl text-gray-900 font-bold mb-4 outline-none shadow-inner border-2 border-transparent focus:border-orange-400">
+        <div class="flex items-center gap-2 overflow-x-auto no-scrollbar">
             <button id="btn-all" onclick="filterByCategory('SEMUA')" class="cat-btn cat-btn-active">SEMUA</button>
             <div id="category-bar" class="flex gap-2"></div>
         </div>
@@ -52,6 +57,19 @@
 
     <div id="az-sidebar" class="az-sidebar"></div>
     <main id="katalog" class="p-4 max-w-xl mx-auto"></main>
+
+    <div id="promo-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-[110] hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-[2.5rem] overflow-hidden shadow-2xl">
+            <div class="bg-gradient-to-r from-orange-500 to-red-500 p-6 text-white flex justify-between items-center">
+                <h3 class="font-black text-xl italic tracking-tighter">PROMO SUPER</h3>
+                <button onclick="closePromo()" class="text-2xl font-bold bg-white/20 w-10 h-10 rounded-full flex items-center justify-center">&times;</button>
+            </div>
+            <div class="p-2 max-h-[60vh] overflow-y-auto" id="promo-content"></div>
+            <div class="p-6 bg-gray-50 text-center">
+                <button onclick="closePromo()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-sm uppercase">SAYA MENGERTI</button>
+            </div>
+        </div>
+    </div>
 
     <button id="float-cart" onclick="toggleCart()" class="fixed bottom-8 right-6 bg-orange-600 text-white px-7 py-5 rounded-2xl shadow-2xl z-50 hidden font-black flex items-center gap-3 active:scale-95 transition-all">
         <i class="fas fa-shopping-basket text-xl"></i>
@@ -73,7 +91,7 @@
                     <span class="font-bold uppercase text-xs">Total</span>
                     <span class="font-black text-2xl text-emerald-400">Rp <span id="summary-price">0</span></span>
                 </div>
-                <input type="text" id="custName" placeholder="NAMA ANDA..." class="w-full p-5 border-2 rounded-2xl font-black bg-slate-50 text-center uppercase mb-4">
+                <input type="text" id="custName" placeholder="NAMA ANDA..." class="w-full p-5 border-2 rounded-2xl font-black bg-slate-50 text-center uppercase mb-4 focus:border-orange-500 outline-none">
                 <button onclick="sendToWhatsApp()" class="w-full bg-[#25D366] text-white font-black py-5 rounded-2xl flex justify-center items-center gap-3 text-lg uppercase shadow-xl">
                     <i class="fab fa-whatsapp text-3xl"></i> KIRIM WA
                 </button>
@@ -83,6 +101,7 @@
 
     <script>
         const githubUrl = "https://raw.githubusercontent.com/rustyping/damai/main/listDamaiFull.csv?v=" + Date.now();
+        const promoUrl = "https://raw.githubusercontent.com/rustyping/damai/main/promo.csv?v=" + Date.now();
         let productsData = [], cart = {}, currentCategory = "SEMUA";
 
         async function loadData() {
@@ -96,7 +115,6 @@
                     const cols = row.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
                     const nama = cols[2] || "";
 
-                    // PAGAR PENGAMAN (Filter Sesuai Request)
                     if (!nama || nama.toLowerCase().includes("xxx") || 
                         nama.toLowerCase().includes("nama barang") || 
                         nama.includes("___") || 
@@ -116,14 +134,50 @@
                 productsData.sort((a,b) => a.nama.localeCompare(b.nama, 'id', {numeric:true}));
                 
                 const cb = document.getElementById('category-bar');
+                cb.innerHTML = "";
                 Array.from(catSet).sort().forEach(c => {
                     cb.innerHTML += `<button onclick="filterByCategory('${c}')" class="cat-btn">${c}</button>`;
                 });
 
                 renderKatalog(productsData);
                 document.getElementById('status').innerText = productsData.length + " ITEM";
+                
+                // Ambil Tanggal Update
+                fetchUpdateDate();
             } catch (e) { console.error(e); }
         }
+
+        async function fetchUpdateDate() {
+            try {
+                const response = await fetch(promoUrl);
+                const text = await response.text();
+                const firstRow = text.split('\n')[0];
+                const tgl = firstRow.split(',')[0].replace(/"/g,'');
+                if(tgl) document.getElementById('header-update-date').innerText = "Update: " + tgl;
+            } catch (e) {}
+        }
+
+        async function showPromo() {
+            const modal = document.getElementById('promo-modal');
+            const content = document.getElementById('promo-content');
+            modal.classList.remove('hidden');
+            content.innerHTML = `<p class="p-10 text-center">Memuat Promo...</p>`;
+            try {
+                const response = await fetch(promoUrl);
+                const text = await response.text();
+                const rows = text.split(/\r?\n/).filter(r => r.trim() !== "");
+                if (rows.length < 2) { content.innerHTML = `<p class="p-10 text-center">Belum ada promo.</p>`; return; }
+                
+                let html = `<table class="promo-table"><thead><tr><th>Barang</th><th>Harga</th></tr></thead><tbody>`;
+                rows.slice(1).forEach(r => {
+                    const cols = r.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+                    if (cols[1]) html += `<tr><td class="font-bold uppercase text-[11px]">${cols[1]}<br><span class="text-orange-500">${cols[2]}</span></td><td><span class="bg-red-500 text-white px-2 py-1 rounded font-black text-xs">Rp ${formatRupiah(cols[3])}</span></td></tr>`;
+                });
+                content.innerHTML = html + `</tbody></table>`;
+            } catch (e) { content.innerHTML = `<p class="p-10 text-center text-red-500">Gagal memuat promo.</p>`; }
+        }
+
+        function closePromo() { document.getElementById('promo-modal').classList.add('hidden'); }
 
         function renderKatalog(data) {
             const katalog = document.getElementById('katalog');
@@ -144,15 +198,12 @@
             const esc = nama.replace(/'/g, "\\'");
             
             if (qty === 0) {
-                return `
-                <button onclick="updateCart('${esc}', '${satuan}', ${harga}, '${color}', 1, '${detail}')" 
-                    class="w-full btn-price border border-${color}-200 bg-${color}-50 active:scale-95">
-                    <span class="text-[9px] font-black text-${color}-700 uppercase leading-none mb-1">${satuan} (${detail})</span>
+                return `<button onclick="updateCart('${esc}', '${satuan}', ${harga}, '${color}', 1, '${detail}')" class="w-full btn-price border border-${color}-200 bg-${color}-50 active:scale-95 transition-all">
+                    <span class="text-[9px] font-black text-${color}-700 uppercase leading-none mb-1 text-center">${satuan} (${detail})</span>
                     <span class="text-[11px] font-black text-slate-800">Rp ${formatRupiah(harga)}</span>
                 </button>`;
             } else {
-                return `
-                <div class="w-full btn-counter bg-${color}-600 shadow-md">
+                return `<div class="w-full btn-counter bg-${color}-600 shadow-md">
                     <span class="text-[8px] font-bold uppercase leading-none">${satuan}</span>
                     <div class="flex items-center justify-around w-full">
                         <button onclick="updateCart('${esc}', '${satuan}', ${harga}, '${color}', -1, '${detail}')" class="text-lg font-black px-2">-</button>
@@ -186,11 +237,15 @@
 
         function filterProducts() {
             const q = document.getElementById('searchInput').value.toLowerCase().trim();
+            let count = 0;
             document.querySelectorAll('.product-item').forEach(item => {
                 const matchSearch = item.dataset.nama.includes(q);
                 const matchKat = (currentCategory === "SEMUA" || item.dataset.kat === currentCategory);
-                item.style.display = (matchSearch && matchKat) ? "block" : "none";
+                const visible = matchSearch && matchKat;
+                item.style.display = visible ? "block" : "none";
+                if(visible) count++;
             });
+            document.getElementById('status').innerText = count + " ITEM";
         }
 
         function filterByCategory(cat) {
@@ -217,12 +272,18 @@
 
         function renderCartList() {
             const l = document.getElementById('cart-list');
-            l.innerHTML = Object.values(cart).map(item => `
+            l.innerHTML = Object.values(cart).map(item => {
+                const esc = item.namaAsli.replace(/'/g, "\\'");
+                return `
                 <div class="py-3 flex justify-between items-center uppercase text-xs">
-                    <div><p class="font-black">${item.namaAsli}</p><p class="text-[9px] text-slate-500">${item.satuanAsli}</p></div>
-                    <div class="font-black">x ${item.qty}</div>
-                </div>
-            `).join('');
+                    <div class="flex-1 pr-2"><p class="font-black">${item.namaAsli}</p><p class="text-[9px] text-slate-500">${item.satuanAsli} (${item.detail})</p></div>
+                    <div class="flex items-center bg-slate-100 rounded-lg p-1 border">
+                        <button onclick="updateCart('${esc}', '${item.satuanAsli}', ${item.harga}, '${item.color}', -1, '${item.detail}')" class="px-2 font-black">-</button>
+                        <span class="px-2 font-black">${item.qty}</span>
+                        <button onclick="updateCart('${esc}', '${item.satuanAsli}', ${item.harga}, '${item.color}', 1, '${item.detail}')" class="px-2 font-black text-emerald-600">+</button>
+                    </div>
+                </div>`;
+            }).join('');
         }
 
         function sendToWhatsApp() {
