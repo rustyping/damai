@@ -18,19 +18,19 @@
         }
 
         
-        /* Update di bagian style v1.8 */
+        /* Update CSS v1.8 */
         .unit-container {
             display: flex;
             flex-wrap: nowrap;
             overflow-x: auto;
-            gap: 4px; /* Jarak antar bubble satuan diperkecil */
-            padding-bottom: 2px;
+            gap: 3px; /* Jarak antar bubble diperkecil lagi agar hampir menempel */
+            padding-bottom: 4px;
         }
         .unit-container::-webkit-scrollbar { display: none; }
         
         .unit-item {
             flex: 0 0 auto;
-            min-width: 90px; /* Lebar minimal dikurangi sedikit lagi agar lebih rapat */
+            min-width: 105px; /* Diperbesar ~15% dari 90px agar lebih mudah ditekan */
         }
         
 
@@ -73,11 +73,12 @@
 
         .header-bg { background: #075E54; color: white; }
         #katalog { padding-top: 10px; padding-bottom: 120px; }
-        /* Memperkecil jarak antar baris produk */
+        /* Memperkecil padding card agar ruang untuk bubble lebih luas */
         .product-card { 
             background: #ffffff; 
             border: 1px solid #e2e8f0; 
-            margin-bottom: 0.4rem; /* Jarak antar kotak produk diperkecil (sebelumnya 0.75rem) */
+            margin-bottom: 0.4rem;
+            padding: 10px !important; /* Padding dalam kotak produk diperkecil */
             transition: transform 0.2s ease;
         }
         .product-card:active { transform: scale(0.98); }
@@ -315,25 +316,23 @@
                 const label = `${satuan} (${detail})`;
                 
                 if (qty === 0) {
-                    // Tampilan awal (Sebelum dipilih)
                     return `
                     <div onclick="updateCart('${esc}', '${satuan}', ${harga}, '${warna}', 1, '${detail}')" 
-                         class="unit-item flex flex-col justify-center bg-${warna}-50 rounded-2xl border border-${warna}-200 p-2 cursor-pointer active:scale-95 transition-transform text-center">
-                        <p class="text-[9px] font-black text-${warna}-700 uppercase italic leading-none mb-1">${label}</p>
+                         class="unit-item flex flex-col justify-center bg-${warna}-50 rounded-2xl border border-${warna}-200 p-3 cursor-pointer active:scale-95 transition-transform text-center min-h-[50px]">
+                        <p class="text-[10px] font-black text-${warna}-700 uppercase italic leading-none mb-1">${label}</p>
                         <p class="text-xs font-black text-slate-700">Rp ${formatRupiah(harga)}</p>
                     </div>`;
                 } else {
-                    // Tampilan setelah dipilih (Teks "ISI" diganti menjadi Satuan)
                     return `
-                    <div class="unit-item flex items-center justify-between bg-${warna}-600 text-white rounded-2xl border-2 border-${warna}-700 shadow-lg overflow-hidden">
-                        <button onclick="updateCart('${esc}', '${satuan}', ${harga}, '${warna}', -1, '${detail}')" class="w-8 h-10 font-black text-lg active:bg-black/20">-</button>
+                    <div class="unit-item flex items-center justify-between bg-${warna}-600 text-white rounded-2xl border-2 border-${warna}-700 shadow-lg overflow-hidden min-h-[50px]">
+                        <button onclick="updateCart('${esc}', '${satuan}', ${harga}, '${warna}', -1, '${detail}')" class="w-10 h-12 font-black text-xl active:bg-black/20">-</button>
                         
                         <div class="flex flex-col items-center justify-center leading-none">
-                            <span class="text-sm font-black">${qty}</span>
-                            <span class="text-[8px] font-black opacity-90 uppercase tracking-tighter">${satuan}</span>
+                            <span class="text-base font-black">${qty}</span>
+                            <span class="text-[9px] font-black opacity-90 uppercase tracking-tighter">${satuan}</span>
                         </div>
             
-                        <button onclick="updateCart('${esc}', '${satuan}', ${harga}, '${warna}', 1, '${detail}')" class="w-8 h-10 font-black text-lg active:bg-black/20">+</button>
+                        <button onclick="updateCart('${esc}', '${satuan}', ${harga}, '${warna}', 1, '${detail}')" class="w-10 h-12 font-black text-xl active:bg-black/20">+</button>
                     </div>`;
                 }
             }
