@@ -120,7 +120,7 @@
         const promoUrl = "https://raw.githubusercontent.com/rustyping/damai/main/promo.csv?v=" + Date.now();
         let productsData = [], cart = {}, currentCategory = "SEMUA", searchTimeout;
 
-        // 1. LOAD DATA & PENYATUAN VARIAN
+        // 1. LOAD DATA & PENYATUAN VARIAN (DENGAN FILTER KETAT)
         async function loadData() {
             try {
                 const response = await fetch(githubUrl);
@@ -132,7 +132,15 @@
                 rows.slice(1).forEach(row => {
                     const cols = row.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
                     const nama = cols[2] || "";
-                    if (!nama || nama.toLowerCase().includes("nama barang") || nama.includes("___")) return;
+                    
+                    // --- FILTER KETAT DISINI ---
+                    if (!nama || 
+                        nama.toLowerCase().includes("nama barang") || 
+                        nama.toLowerCase().includes("xxx") || 
+                        nama.includes("___") || 
+                        nama.toLowerCase().includes("ongkos kirim")) {
+                        return; // Lewati jika mengandung kata-kata ini
+                    }
 
                     const kategori = cols[4] || "UMUM";
                     catSet.add(kategori);
@@ -141,13 +149,16 @@
                         tempMap[nama] = { nama: nama, kategori: kategori, varians: [] };
                     }
 
-                    // Mapping varian (S1, S2, S3)
+                    // Mapping varian (S1, S2, S3) jika ada harga > 0
                     if (cols[6] && parseInt(cols[19]) > 0) tempMap[nama].varians.push({ s: cols[6], h: parseInt(cols[19]), d: cols[10] || "1", c: 'emerald' });
                     if (cols[7] && parseInt(cols[22]) > 0) tempMap[nama].varians.push({ s: cols[7], h: parseInt(cols[22]), d: cols[11] || "1", c: 'orange' });
                     if (cols[8] && parseInt(cols[25]) > 0) tempMap[nama].varians.push({ s: cols[8], h: parseInt(cols[25]), d: cols[12] || "1", c: 'blue' });
                 });
 
-                productsData = Object.values(tempMap).sort((a, b) => a.nama.localeCompare(b.nama, 'id', { numeric: true }));
+                // Pastikan hanya memasukkan barang yang punya minimal 1 varian harga
+                productsData = Object.values(tempMap)
+                    .filter(p => p.varians.length > 0) 
+                    .sort((a, b) => a.nama.localeCompare(b.nama, 'id', { numeric: true }));
 
                 const b = document.getElementById('category-bar');
                 b.innerHTML = "";
@@ -156,11 +167,12 @@
                 });
 
                 renderKatalog(productsData);
-                document.getElementById('header-update-date').innerText = "Update: " + (new Date().toLocaleDateString('id-ID'));
-                fetchDateOnly(); // Ambil tanggal asli dari CSV promo
-            } catch (e) { console.error(e); }
+                document.getElementById('status').innerText = productsData.length + " ITEM";
+                fetchDateOnly(); 
+            } catch (e) { console.error("Error Load Data:", e); }
         }
 
+        
         // 2. RENDER KATALOG
         function renderKatalog(data) {
             const katalog = document.getElementById('katalog');
