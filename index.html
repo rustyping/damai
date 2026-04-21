@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Katalog Toko Damai v1.7.5</title>
+    <title>Katalog Toko Damai v1.7.6</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -46,7 +46,7 @@
                     <i class="fas fa-fire-alt"></i> PROMO
                 </button>
             </div>
-            <div id="status" class="text-[9px] bg-black/20 px-2 py-1 rounded-md font-black uppercase tracking-widest text-white">Memuat...</div>
+            <div id="status" class="text-[9px] bg-black/20 px-2 py-1 rounded-md font-black uppercase tracking-widest text-white text-center min-w-[60px]">Memuat...</div>
         </div>
         <input type="text" id="searchInput" oninput="filterProducts()" placeholder="Cari barang..." class="w-full p-4 rounded-xl text-gray-900 font-bold mb-4 outline-none shadow-inner border-2 border-transparent focus:border-orange-400">
         <div class="flex items-center gap-2 overflow-x-auto no-scrollbar">
@@ -80,7 +80,7 @@
     </button>
 
     <div id="cart-footer" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden flex items-end">
-        <div class="w-full bg-white rounded-t-[3rem] p-8 max-h-[92vh] overflow-y-auto">
+        <div class="w-full bg-white rounded-t-[3rem] p-8 max-h-[92vh] overflow-y-auto shadow-2xl">
             <div class="max-w-xl mx-auto">
                 <div class="flex justify-between items-center mb-6">
                     <h3 class="font-black text-2xl text-slate-800 italic">RINGKASAN ORDER</h3>
@@ -142,7 +142,6 @@
                 renderKatalog(productsData);
                 document.getElementById('status').innerText = productsData.length + " ITEM";
                 
-                // Ambil Tanggal Update
                 fetchUpdateDate();
             } catch (e) { console.error(e); }
         }
@@ -163,7 +162,7 @@
             modal.classList.remove('hidden');
             content.innerHTML = `<p class="p-10 text-center">Memuat Promo...</p>`;
             try {
-                const response = await fetch(promoUrl);
+                const response = await fetch(promoUrl + "?v=" + Date.now());
                 const text = await response.text();
                 const rows = text.split(/\r?\n/).filter(r => r.trim() !== "");
                 if (rows.length < 2) { content.innerHTML = `<p class="p-10 text-center">Belum ada promo.</p>`; return; }
@@ -171,7 +170,11 @@
                 let html = `<table class="promo-table"><thead><tr><th>Barang</th><th>Harga</th></tr></thead><tbody>`;
                 rows.slice(1).forEach(r => {
                     const cols = r.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
-                    if (cols[1]) html += `<tr><td class="font-bold uppercase text-[11px]">${cols[1]}<br><span class="text-orange-500">${cols[2]}</span></td><td><span class="bg-red-500 text-white px-2 py-1 rounded font-black text-xs">Rp ${formatRupiah(cols[3])}</span></td></tr>`;
+                    // Perbaikan: Harga diubah jadi integer dulu baru diformat rupiah
+                    if (cols[1]) {
+                        const hrgPromo = parseInt(cols[3]) || 0;
+                        html += `<tr><td class="font-bold uppercase text-[11px]">${cols[1]}<br><span class="text-orange-500">${cols[2]}</span></td><td><span class="bg-red-500 text-white px-2 py-1 rounded font-black text-xs whitespace-nowrap">Rp ${formatRupiah(hrgPromo)}</span></td></tr>`;
+                    }
                 });
                 content.innerHTML = html + `</tbody></table>`;
             } catch (e) { content.innerHTML = `<p class="p-10 text-center text-red-500">Gagal memuat promo.</p>`; }
