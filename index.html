@@ -19,7 +19,14 @@
             background: #fb923c; z-index: 100; transition: width 0.1s; 
         }
 
-        
+        mark {
+            background-color: #fde047; /* Kuning cerah */
+            color: #000;
+            padding: 0 2px;
+            border-radius: 4px;
+            font-weight: 900;
+        }
+            
         /* Update CSS v1.8 */
         .unit-container {
             display: flex;
@@ -260,13 +267,26 @@
         }
 
         // Render Katalog ke Layar
-        function renderKatalog(data) {
+        function renderKatalog(data, query = "") {
             const katalog = document.getElementById('katalog');
-            let content = `<div class="grid gap-1">`; // Jarak antar baris grid tetap rapat
+            let content = `<div class="grid gap-1">`;
+            
             data.forEach(p => {
+                // Logika Highlight: Jika ada query, ganti teks yang cocok dengan tag <mark>
+                let displayName = p.nama;
+                if (query) {
+                    const keywords = query.split(/\s+/);
+                    keywords.forEach(kw => {
+                        if (kw.length > 0) {
+                            const regex = new RegExp(`(${kw})`, 'gi');
+                            displayName = displayName.replace(regex, `<mark>$1</mark>`);
+                        }
+                    });
+                }
+        
                 content += `
                 <div class="product-item product-card p-3 rounded-2xl" data-nama="${p.nama.toLowerCase()}" data-kat="${p.kategori}">
-                    <p class="product-name text-sm mb-2 tracking-tight">${p.nama}</p>
+                    <p class="product-name text-sm mb-2 tracking-tight">${displayName}</p>
                     <div class="unit-container">
                         ${p.s1 && p.h1 > 0 ? `<div id="box-${getSafeId(p.nama, p.s1)}">${renderBtn(p.nama, p.s1, p.h1, 'emerald', p.d1)}</div>` : ''}
                         ${p.s2 && p.h2 > 0 ? `<div id="box-${getSafeId(p.nama, p.s2)}">${renderBtn(p.nama, p.s2, p.h2, 'orange', p.d2)}</div>` : ''}
@@ -306,6 +326,9 @@
                 });
 
                 document.getElementById('status').innerText = visibleCount + " ITEM";
+                // Tambahkan baris ini agar saat mengetik, render ulang dilakukan dengan highlight
+                renderKatalog(visibleData, query);
+                    
                 updateAZSidebar(visibleData);
             }, 150);
         }
