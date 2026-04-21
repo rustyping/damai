@@ -263,31 +263,49 @@
                 const rows = csvText.split(/\r?\n/).filter(row => row.trim() !== "");
                 let catSet = new Set();
                 
-                productsData = rows.slice(1).map(row => {
+                // Objek sementara untuk menyatukan nama yang sama
+                const tempMap = {};
+
+                rows.slice(1).forEach(row => {
                     const cols = row.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
                     const nama = cols[2] || "";
+                    
                     if (!nama || nama.toLowerCase().includes("nama barang") || nama.toLowerCase().includes("xxx") || 
-                        nama.includes("___") || nama.toLowerCase().includes("ongkos kirim")) return null;
+                        nama.includes("___") || nama.toLowerCase().includes("ongkos kirim")) return;
 
-                    catSet.add(cols[4] || "UMUM");
-                    return { 
-                        nama: nama, kategori: cols[4] || "UMUM", 
-                        s1: cols[6], s2: cols[7], s3: cols[8],
-                        d1: cols[10] || "1", d2: cols[11] || "1", d3: cols[12] || "1",
-                        h1: parseInt(cols[19]) || 0, h2: parseInt(cols[22]) || 0, h3: parseInt(cols[25]) || 0 
-                    };
-                }).filter(Boolean);
+                    const kategori = cols[4] || "UMUM";
+                    catSet.add(kategori);
 
+                    // Jika nama barang belum ada di tempMap, buat baru
+                    if (!tempMap[nama]) {
+                        tempMap[nama] = { 
+                            nama: nama, 
+                            kategori: kategori, 
+                            varians: [] 
+                        };
+                    }
+
+                    // Ambil varian dari kolom S1, S2, S3 (beserta harga h1, h2, h3)
+                    // Kita kumpulkan semua varian ke dalam satu list
+                    if (cols[6] && parseInt(cols[19]) > 0) 
+                        tempMap[nama].varians.push({ s: cols[6], h: parseInt(cols[19]), d: cols[10] || "1", c: 'emerald' });
+                    if (cols[7] && parseInt(cols[22]) > 0) 
+                        tempMap[nama].varians.push({ s: cols[7], h: parseInt(cols[22]), d: cols[11] || "1", c: 'orange' });
+                    if (cols[8] && parseInt(cols[25]) > 0) 
+                        tempMap[nama].varians.push({ s: cols[8], h: parseInt(cols[25]), d: cols[12] || "1", c: 'blue' });
+                });
+
+                // Ubah object kembali ke array untuk sorting
+                productsData = Object.values(tempMap);
+
+                // Sorting A-Z
                 productsData.sort((a, b) => {
                     const nameA = a.nama.toUpperCase();
                     const nameB = b.nama.toUpperCase();
-                    const isLetterA = /^[A-Z]/.test(nameA);
-                    const isLetterB = /^[A-Z]/.test(nameB);
-                    if (isLetterA && !isLetterB) return -1;
-                    if (!isLetterA && isLetterB) return 1;
                     return nameA.localeCompare(nameB, 'id', { numeric: true });
                 });
 
+                // Render Bar Kategori
                 const b = document.getElementById('category-bar');
                 b.innerHTML = "";
                 Array.from(catSet).sort().forEach(c => {
@@ -303,21 +321,19 @@
             const katalog = document.getElementById('katalog');
             let content = `<div class="grid gap-1">`;
             
-            // Mengelompokkan produk berdasarkan nama yang sama
-            const groupedProducts = {};
             data.forEach(p => {
-                if (!groupedProducts[p.nama]) {
-                    groupedProducts[p.nama] = {
-                        nama: p.nama,
-                        kategori: p.kategori,
-                        varians: []
-                    };
-                }
-                // Masukkan semua varian satuan yang ada harganya
-                if (p.s1 && p.h1 > 0) groupedProducts[p.nama].varians.push({ s: p.s1, h: p.h1, d: p.d1, c: 'emerald' });
-                if (p.s2 && p.h2 > 0) groupedProducts[p.nama].varians.push({ s: p.s2, h: p.h2, d: p.d2, c: 'orange' });
-                if (p.s3 && p.h3 > 0) groupedProducts[p.nama].varians.push({ s: p.s3, h: p.h3, d: p.d3, c: 'blue' });
+                content += `
+                <div class="product-item product-card p-5 rounded-3xl" data-nama="${p.nama.toLowerCase()}" data-kat="${p.kategori}">
+                    <p class="product-name text-base mb-4 tracking-tight">${p.nama}</p>
+                    <div class="grid gap-3">
+                        ${p.varians.map(v => `<div id="box-${getSafeId(p.nama, v.s)}">${renderBtn(p.nama, v.s, v.h, v.c, v.d)}</div>`).join('')}
+                    </div>
+                </div>`;
             });
+            
+            katalog.innerHTML = content + `</div>`;
+            updateAZSidebar(data);
+        }
 
             Object.values(groupedProducts).forEach(p => {
                 content += `
