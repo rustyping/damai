@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Katalog Toko Damai v1.7.1</title>
+    <title>Katalog Toko Damai v1.7.2 - Ramping</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -16,86 +16,49 @@
             position: fixed; top: 0; left: 0; width: 0%; height: 4px; 
             background: #fb923c; z-index: 100; transition: width 0.1s; 
         }
-
-        /* Navigasi Huruf A-Z di samping kanan */
         .az-sidebar {
-            position: fixed;
-            right: 8px;
-            top: 220px;
-            display: flex;
-            flex-direction: column;
-            z-index: 40;
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(10px);
-            padding: 12px 5px;
-            border-radius: 16px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-            border: 1px solid rgba(0,0,0,0.05);
-            max-height: 65vh; 
-            overflow-y: auto;
+            position: fixed; right: 8px; top: 220px; display: flex;
+            flex-direction: column; z-index: 40; background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px); padding: 12px 5px; border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1); border: 1px solid rgba(0,0,0,0.05);
+            max-height: 65vh; overflow-y: auto;
         }
         .az-sidebar::-webkit-scrollbar { display: none; }
-        
         .az-letter {
-            font-size: 10px;
-            font-weight: 900;
-            color: #075E54;
-            width: 24px;
-            height: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s;
+            font-size: 10px; font-weight: 900; color: #075E54;
+            width: 24px; height: 20px; display: flex; align-items: center;
+            justify-content: center; cursor: pointer; transition: all 0.2s;
         }
-        
-        .az-letter:hover {
-            color: #fb923c;
-            transform: scale(1.3);
-        }
-
+        .az-letter:hover { color: #fb923c; transform: scale(1.3); }
         .header-bg { background: #075E54; color: white; }
         #katalog { padding-top: 10px; padding-bottom: 120px; }
         .product-card { 
             background: #ffffff; border: 1px solid #e2e8f0; 
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-            margin-bottom: 0.75rem;
-            transition: transform 0.2s ease;
+            margin-bottom: 0.75rem; border-radius: 20px;
         }
-        .product-card:active { transform: scale(0.98); }
-        .category-scroll::-webkit-scrollbar { display: none; }
+        .product-name { color: #0f172a; font-weight: 800; text-transform: uppercase; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px; margin-bottom: 12px; }
         .cat-btn { 
             white-space: nowrap; padding: 10px 20px; border-radius: 12px; 
             font-size: 11px; font-weight: 800; text-transform: uppercase; 
             background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); 
             transition: all 0.3s; 
         }
-        .cat-btn-active { background: #fb923c !important; border-color: #fb923c !important; box-shadow: 0 10px 15px -3px rgba(251, 146, 60, 0.4); }
-        .product-name { color: #0f172a; font-weight: 800; text-transform: uppercase; }
+        .cat-btn-active { background: #fb923c !important; border-color: #fb923c !important; }
         .sticky-all { position: sticky; left: 0; z-index: 20; background: #075E54; padding-right: 12px; }
-        input[type=number]::-webkit-inner-spin-button, 
-        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-        input[type=number] { -moz-appearance: textfield; }
+        
+        /* Grid untuk tombol berjejer */
+        .variant-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
 
         @keyframes pulse-orange {
             0% { box-shadow: 0 0 0 0 rgba(251, 146, 60, 0.7); }
             70% { box-shadow: 0 0 0 10px rgba(251, 146, 60, 0); }
             100% { box-shadow: 0 0 0 0 rgba(251, 146, 60, 0); }
         }
-        .btn-promo {
-            animation: pulse-orange 2s infinite;
-            background: #fb923c;
-            color: white;
-            padding: 6px 14px;
-            border-radius: 10px;
-            font-size: 11px;
-            font-weight: 900;
-            letter-spacing: 0.5px;
-            box-shadow: 0 4px 15px rgba(251, 146, 60, 0.3);
-        }
+        .btn-promo { animation: pulse-orange 2s infinite; background: #fb923c; color: white; padding: 6px 14px; border-radius: 10px; font-size: 11px; font-weight: 900; }
         .promo-table { width: 100%; border-collapse: collapse; }
-        .promo-table th { background: #f8fafc; text-align: left; padding: 12px; border-bottom: 2px solid #e2e8f0; font-size: 10px; text-transform: uppercase; color: #64748b; font-weight: 800; }
-        .promo-table td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 13px; vertical-align: middle; }
+        .promo-table th { background: #f8fafc; text-align: left; padding: 12px; font-size: 10px; color: #64748b; font-weight: 800; }
+        .promo-table td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 13px; }
     </style>
 </head>
 <body class="pb-40 text-gray-900">
@@ -119,7 +82,7 @@
                 <div id="status" class="text-[9px] bg-black/20 px-2 py-1 rounded-md font-black uppercase border border-white/10 tracking-widest">Memuat...</div>
             </div>
         </div>
-        <input type="text" id="searchInput" oninput="filterProducts()" onfocus="resetToAll()" placeholder="Cari nama barang..." class="w-full p-4 rounded-xl text-gray-900 font-bold outline-none mb-4 shadow-inner">
+        <input type="text" id="searchInput" oninput="filterProducts()" onfocus="resetToAll()" placeholder="Cari nama barang..." class="w-full p-4 rounded-xl text-gray-900 font-bold outline-none mb-4 shadow-inner border-2 border-transparent focus:border-orange-400">
         <div class="flex items-center overflow-hidden">
             <div class="sticky-all"><button id="btn-all" onclick="filterByCategory('SEMUA')" class="cat-btn cat-btn-active">SEMUA</button></div>
             <div id="category-bar" class="flex overflow-x-auto category-scroll gap-2 py-2"></div>
@@ -131,22 +94,14 @@
     <main id="katalog" class="p-4 max-w-xl mx-auto"></main>
 
     <div id="promo-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-[110] hidden flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-md rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-orange-400/20">
+        <div class="bg-white w-full max-w-md rounded-[2.5rem] overflow-hidden shadow-2xl">
             <div class="bg-gradient-to-r from-orange-500 to-red-500 p-6 text-white flex justify-between items-center">
-                <div>
-                    <div class="flex items-center gap-2">
-                        <h3 class="font-black text-xl italic tracking-tighter leading-none">PROMO SUPER</h3>
-                        <span id="promo-date" class="bg-white/20 px-2 py-1 rounded text-[10px] font-black tracking-tight border border-white/30">...</span>
-                    </div>
-                    <p class="text-[10px] font-bold opacity-80 mt-1 uppercase tracking-widest">Penawaran Terbatas</p>
-                </div>
-                <button onclick="closePromo()" class="text-2xl font-bold bg-white/20 w-10 h-10 rounded-full flex items-center justify-center hover:bg-white/40">&times;</button>
+                <h3 class="font-black text-xl italic tracking-tighter">PROMO SUPER</h3>
+                <button onclick="closePromo()" class="text-2xl font-bold bg-white/20 w-10 h-10 rounded-full flex items-center justify-center">&times;</button>
             </div>
-            <div class="p-2 max-h-[60vh] overflow-y-auto" id="promo-content">
-                <p class="text-center py-10 text-gray-400 font-bold">Mengambil data promo...</p>
-            </div>
-            <div class="p-6 bg-gray-50 text-center border-t border-gray-100">
-                <button onclick="closePromo()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl active:scale-95 transition-all">SAYA MENGERTI</button>
+            <div class="p-2 max-h-[60vh] overflow-y-auto" id="promo-content"></div>
+            <div class="p-6 bg-gray-50 text-center">
+                <button onclick="closePromo()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-sm uppercase">SAYA MENGERTI</button>
             </div>
         </div>
     </div>
@@ -154,7 +109,7 @@
     <button id="float-cart" onclick="toggleCart()" class="fixed bottom-8 right-6 bg-orange-600 text-white px-7 py-5 rounded-2xl shadow-2xl z-50 hidden font-black border-2 border-white/20 flex items-center gap-3 active:scale-95 transition-all">
         <i class="fas fa-shopping-basket text-xl"></i>
         <div class="text-left leading-none">
-            <p class="text-[10px] opacity-80 uppercase">Total Order (<span id="cart-total">0</span>)</p>
+            <p class="text-[10px] opacity-80 uppercase">Order (<span id="cart-total">0</span>)</p>
             <p class="text-lg">Rp <span id="cart-price">0</span></p>
         </div>
     </button>
@@ -163,17 +118,17 @@
         <div class="w-full bg-white rounded-t-[3rem] p-8 shadow-2xl max-h-[92vh] overflow-y-auto">
             <div class="max-w-xl mx-auto">
                 <div class="flex justify-between items-center mb-6">
-                    <h3 class="font-black text-2xl text-slate-800 tracking-tight italic">RINGKASAN ORDER</h3>
+                    <h3 class="font-black text-2xl text-slate-800 italic">RINGKASAN ORDER</h3>
                     <button onclick="toggleCart()"><i class="fas fa-times-circle text-3xl text-slate-300"></i></button>
                 </div>
                 <div id="cart-list" class="divide-y divide-slate-100 mb-6"></div>
-                <div class="bg-slate-900 text-white p-6 rounded-3xl mb-4 flex justify-between items-center shadow-lg">
-                    <span class="font-bold uppercase text-xs tracking-widest text-white/60">Total Bayar</span>
+                <div class="bg-slate-900 text-white p-6 rounded-3xl mb-4 flex justify-between items-center">
+                    <span class="font-bold uppercase text-xs">Total</span>
                     <span class="font-black text-2xl text-emerald-400">Rp <span id="summary-price">0</span></span>
                 </div>
-                <input type="text" id="custName" placeholder="TULIS NAMA ANDA..." class="w-full p-5 border-2 rounded-2xl font-black bg-slate-50 text-center uppercase mb-4 outline-none border-slate-200 focus:border-emerald-500 transition-all">
-                <button onclick="sendToWhatsApp()" class="w-full bg-[#25D366] text-white font-black py-5 rounded-2xl flex justify-center items-center gap-3 shadow-xl uppercase text-lg active:scale-95 transition-all">
-                    <i class="fab fa-whatsapp text-3xl"></i> KIRIM KE WHATSAPP
+                <input type="text" id="custName" placeholder="NAMA ANDA..." class="w-full p-5 border-2 rounded-2xl font-black bg-slate-50 text-center uppercase mb-4">
+                <button onclick="sendToWhatsApp()" class="w-full bg-[#25D366] text-white font-black py-5 rounded-2xl flex justify-center items-center gap-3 text-lg uppercase shadow-xl">
+                    <i class="fab fa-whatsapp text-3xl"></i> KIRIM WA
                 </button>
             </div>
         </div>
@@ -184,12 +139,6 @@
         const promoUrl = "https://raw.githubusercontent.com/rustyping/damai/main/promo.csv?v=" + Date.now();
         let productsData = [], cart = {}, currentCategory = "SEMUA", searchTimeout;
 
-        window.onscroll = function() {
-            let winScroll = document.body.scrollTop || document.documentElement.scrollTop;
-            let height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-            document.getElementById("scroll-progress").style.width = (winScroll / height * 100) + "%";
-        };
-
         async function loadData() {
             try {
                 const response = await fetch(githubUrl);
@@ -197,70 +146,45 @@
                 const rows = csvText.split(/\r?\n/).filter(row => row.trim() !== "");
                 let catSet = new Set();
                 
-                // Objek penampung untuk menyatukan barang yang namanya sama
-                const penyatuBarang = {};
-
-                rows.slice(1).forEach(row => {
+                productsData = rows.slice(1).map(row => {
                     const cols = row.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
-                    const nama = cols[2] || "";
-                    
-                    if (!nama || nama.toLowerCase().includes("nama barang") || 
-                        nama.toLowerCase().includes("xxx") || 
-                        nama.includes("___") || 
-                        nama.toLowerCase().includes("ongkos kirim")) return;
+                    if (!cols[2] || cols[2].includes("___")) return null;
+                    catSet.add(cols[4] || "UMUM");
+                    return { 
+                        nama: cols[2], kategori: cols[4] || "UMUM", 
+                        vars: [
+                            {s: cols[6], d: cols[10], h: parseInt(cols[19]) || 0, w: 'emerald'},
+                            {s: cols[7], d: cols[11], h: parseInt(cols[22]) || 0, w: 'orange'},
+                            {s: cols[8], d: cols[12], h: parseInt(cols[25]) || 0, w: 'blue'}
+                        ].filter(v => v.s && v.h > 0)
+                    };
+                }).filter(Boolean);
 
-                    const kategori = cols[4] || "UMUM";
-                    catSet.add(kategori);
-
-                    // Jika nama barang belum ada di penampung, buat grup baru
-                    if (!penyatuBarang[nama]) {
-                        penyatuBarang[nama] = { 
-                            nama: nama, 
-                            kategori: kategori, 
-                            semuaVarian: [] 
-                        };
-                    }
-
-                    // Masukkan semua satuan yang ada di baris ini ke dalam list varian
-                    if (cols[6] && parseInt(cols[19]) > 0) penyatuBarang[nama].semuaVarian.push({ s: cols[6], h: parseInt(cols[19]), d: cols[10] || "1", c: 'emerald' });
-                    if (cols[7] && parseInt(cols[22]) > 0) penyatuBarang[nama].semuaVarian.push({ s: cols[7], h: parseInt(cols[22]), d: cols[11] || "1", c: 'orange' });
-                    if (cols[8] && parseInt(cols[25]) > 0) penyatuBarang[nama].semuaVarian.push({ s: cols[8], h: parseInt(cols[25]), d: cols[12] || "1", c: 'blue' });
-                });
-
-                // Ubah objek menjadi array agar bisa ditampilkan
-                productsData = Object.values(penyatuBarang).filter(p => p.semuaVarian.length > 0);
+                productsData.sort((a,b) => a.nama.localeCompare(b.nama, 'id', {numeric:true}));
                 
-                // Sorting agar urut abjad
-                productsData.sort((a, b) => a.nama.localeCompare(b.nama, 'id', { numeric: true }));
-
                 const b = document.getElementById('category-bar');
                 b.innerHTML = "";
                 Array.from(catSet).sort().forEach(c => {
                     b.innerHTML += `<button onclick="filterByCategory('${c}')" class="cat-btn">${c}</button>`;
                 });
-
                 renderKatalog(productsData);
-                document.getElementById('status').innerText = productsData.length + " MACAM BARANG";
+                document.getElementById('status').innerText = productsData.length + " ITEM";
             } catch (e) { console.error(e); }
         }
 
         function renderKatalog(data) {
             const katalog = document.getElementById('katalog');
-            let content = `<div class="grid gap-1">`;
+            let content = ``;
             data.forEach(p => {
                 content += `
-                <div class="product-item product-card p-5 rounded-3xl" data-nama="${p.nama.toLowerCase()}" data-kat="${p.kategori}">
-                    <p class="product-name text-base mb-4 tracking-tight">${p.nama}</p>
-                    <div class="grid gap-3">
-                        ${p.semuaVarian.map(v => `
-                            <div id="box-${getSafeId(p.nama, v.s)}">
-                                ${renderBtn(p.nama, v.s, v.h, v.c, v.d)}
-                            </div>
-                        `).join('')}
+                <div class="product-item product-card p-4" data-nama="${p.nama.toLowerCase()}" data-kat="${p.kategori}">
+                    <p class="product-name text-[13px] leading-tight">${p.nama}</p>
+                    <div class="variant-grid">
+                        ${p.vars.map(v => `<div id="box-${getSafeId(p.nama, v.s)}">${renderBtn(p.nama, v.s, v.h, v.w, v.d)}</div>`).join('')}
                     </div>
                 </div>`;
             });
-            katalog.innerHTML = content + `</div>`;
+            katalog.innerHTML = content;
             updateAZSidebar(data);
         }
 
@@ -268,19 +192,22 @@
             const key = `${nama} (${satuan})`;
             const qty = cart[key]?.qty || 0;
             const esc = nama.replace(/'/g, "\\'");
-            const label = `${satuan} (${detail})`;
+            
             if (qty === 0) {
-                return `<div class="flex items-center justify-between bg-${warna}-50 rounded-2xl border border-${warna}-100 overflow-hidden">
-                    <div class="pl-4 py-2"><p class="text-[10px] font-black text-${warna}-700 uppercase italic mb-0.5">${label}</p><p class="text-sm font-black text-slate-700">Rp ${formatRupiah(harga)}</p></div>
-                    <button onclick="updateCart('${esc}', '${satuan}', ${harga}, '${warna}', 1, '${detail}')" class="bg-${warna}-600 text-white px-6 py-4 text-xs font-black uppercase">+ BELI</button>
-                </div>`;
+                return `
+                <button onclick="updateCart('${esc}', '${satuan}', ${harga}, '${warna}', 1, '${detail}')" 
+                    class="w-full flex flex-col items-center justify-center border border-${warna}-200 bg-${warna}-50 py-3 px-1 rounded-xl active:scale-95 transition-all h-full">
+                    <span class="text-[9px] font-black text-${warna}-700 uppercase leading-none mb-1 text-center">${satuan} (${detail})</span>
+                    <span class="text-[11px] font-black text-slate-800">Rp ${formatRupiah(harga)}</span>
+                </button>`;
             } else {
-                return `<div class="flex items-center justify-between bg-${warna}-600 text-white rounded-2xl border-2 border-${warna}-700 shadow-lg overflow-hidden">
-                    <div class="pl-4 py-2"><p class="text-[10px] font-black uppercase italic text-white/80">${label}</p><p class="text-sm font-black">Rp ${formatRupiah(harga)}</p></div>
-                    <div class="flex items-center bg-black/10">
-                        <button onclick="updateCart('${esc}', '${satuan}', ${harga}, '${warna}', -1, '${detail}')" class="w-10 h-12 font-black text-xl">-</button>
-                        <input type="number" value="${qty}" onchange="editQty('${esc}', '${satuan}', this.value, ${harga}, '${warna}', '${detail}')" class="w-10 bg-transparent text-center font-black text-sm outline-none border-none text-white">
-                        <button onclick="updateCart('${esc}', '${satuan}', ${harga}, '${warna}', 1, '${detail}')" class="w-10 h-12 font-black text-xl">+</button>
+                return `
+                <div class="w-full flex flex-col items-center bg-${warna}-600 text-white rounded-xl shadow-md overflow-hidden py-1 h-full justify-between">
+                    <span class="text-[8px] font-bold uppercase leading-none mb-1">${satuan}</span>
+                    <div class="flex items-center justify-around w-full px-1">
+                        <button onclick="updateCart('${esc}', '${satuan}', ${harga}, '${warna}', -1, '${detail}')" class="text-lg font-black">-</button>
+                        <span class="text-[11px] font-black">${qty}</span>
+                        <button onclick="updateCart('${esc}', '${satuan}', ${harga}, '${warna}', 1, '${detail}')" class="text-lg font-black">+</button>
                     </div>
                 </div>`;
             }
@@ -313,12 +240,12 @@
             for(let k in cart) {
                 const item = cart[k];
                 const esc = item.namaAsli.replace(/'/g, "\\'");
-                l.innerHTML += `<div class="py-4 flex justify-between items-center">
-                    <div class="flex-1 pr-4"><p class="text-lg font-black text-slate-800 leading-tight uppercase">${item.namaAsli}</p><p class="text-xs font-bold text-slate-500 italic uppercase">${item.satuanAsli} (${item.detail})</p></div>
-                    <div class="flex items-center bg-slate-100 rounded-xl p-1 border border-slate-200">
-                        <button onclick="updateCart('${esc}', '${item.satuanAsli}', ${item.harga}, '${item.warna}', -1, '${item.detail}')" class="w-8 h-8 font-black">-</button>
-                        <input type="number" value="${item.qty}" onchange="editQty('${esc}', '${item.satuanAsli}', this.value, ${item.harga}, '${item.warna}', '${item.detail}')" class="w-10 bg-transparent text-center font-black text-sm outline-none">
-                        <button onclick="updateCart('${esc}', '${item.satuanAsli}', ${item.harga}, '${item.warna}', 1, '${item.detail}')" class="w-8 h-8 font-black text-emerald-600">+</button>
+                l.innerHTML += `<div class="py-3 flex justify-between items-center uppercase">
+                    <div class="flex-1 pr-2"><p class="font-black text-xs">${item.namaAsli}</p><p class="text-[9px] font-bold text-slate-500">${item.satuanAsli} (${item.detail})</p></div>
+                    <div class="flex items-center bg-slate-100 rounded-lg p-1 border">
+                        <button onclick="updateCart('${esc}', '${item.satuanAsli}', ${item.harga}, '${item.warna}', -1, '${item.detail}')" class="px-2 font-black">-</button>
+                        <span class="px-2 text-xs font-black">${item.qty}</span>
+                        <button onclick="updateCart('${esc}', '${item.satuanAsli}', ${item.harga}, '${item.warna}', 1, '${item.detail}')" class="px-2 font-black text-emerald-600">+</button>
                     </div>
                 </div>`;
             }
@@ -327,102 +254,86 @@
         function filterProducts() {
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => {
-                const query = document.getElementById('searchInput').value.toLowerCase().trim();
-                const keywords = query.split(/\s+/);
+                const q = document.getElementById('searchInput').value.toLowerCase().trim();
+                const keywords = q.split(/\s+/);
                 let visibleCount = 0;
                 let visibleData = [];
-
                 document.querySelectorAll('.product-item').forEach(item => {
                     const nama = item.dataset.nama;
-                    const matchKat = (currentCategory === "SEMUA" || item.dataset.kat === currentCategory);
-                    const matchSearch = (query === "" || keywords.every(kw => nama.includes(kw)));
-
-                    if (matchKat && matchSearch) {
+                    const mK = (currentCategory === "SEMUA" || item.dataset.kat === currentCategory);
+                    const mS = (q === "" || keywords.every(kw => nama.includes(kw)));
+                    if (mK && mS) {
                         item.style.display = "block";
                         visibleCount++;
                         const original = productsData.find(p => p.nama.toLowerCase() === nama);
                         if(original) visibleData.push(original);
-                    } else {
-                        item.style.display = "none";
-                    }
+                    } else { item.style.display = "none"; }
                 });
                 document.getElementById('status').innerText = visibleCount + " ITEM";
                 updateAZSidebar(visibleData);
             }, 150);
         }
 
+        function filterByCategory(cat) {
+            document.getElementById('searchInput').value = "";
+            currentCategory = cat;
+            document.querySelectorAll('.cat-btn, #btn-all').forEach(b => b.classList.toggle('cat-btn-active', b.innerText === cat));
+            filterProducts();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function updateAZSidebar(data) {
+            const sidebar = document.getElementById('az-sidebar');
+            const firstChars = [...new Set(data.map(p => p.nama[0].toUpperCase()))].filter(c => /^[A-Z]/.test(c)).sort();
+            sidebar.innerHTML = "";
+            firstChars.forEach(l => {
+                const btn = document.createElement('div');
+                btn.className = "az-letter"; btn.innerText = l;
+                btn.onclick = () => {
+                    const target = Array.from(document.querySelectorAll('.product-item')).find(i => i.style.display !== 'none' && i.dataset.nama[0].toUpperCase() === l);
+                    if(target) window.scrollTo({ top: target.getBoundingClientRect().top + window.pageYOffset - 180, behavior: 'smooth' });
+                };
+                sidebar.appendChild(btn);
+            });
+        }
+
         async function showPromo() {
             const modal = document.getElementById('promo-modal');
             const content = document.getElementById('promo-content');
             modal.classList.remove('hidden');
-            content.innerHTML = `<p class="text-center py-10 text-gray-400 font-bold">Memuat...</p>`;
             try {
-                const r = await fetch(promoUrl + "&t=" + Date.now());
-                const csv = await r.text();
-                const rows = csv.split(/\r?\n/).filter(row => row.trim() !== "");
-                if (rows.length < 1) { content.innerHTML = "Tidak ada promo aktif."; return; }
-                document.getElementById('promo-date').innerText = rows[0].split(',')[0].replace(/^"|"$/g, '') || "Terbaru";
+                const response = await fetch(promoUrl + "&v=" + Date.now());
+                const csvText = await response.text();
+                const rows = csvText.split(/\r?\n/).filter(r => r.trim() !== "");
+                if (rows.length < 2) { content.innerHTML = `<p class="p-10 text-center">Belum ada promo.</p>`; return; }
                 let html = `<table class="promo-table"><thead><tr><th>Barang</th><th>Harga</th></tr></thead><tbody>`;
-                rows.slice(1).forEach(row => {
-                    const c = row.split(',').map(v => v.trim().replace(/^"|"$/g, ''));
-                    if (c[1]) html += `<tr><td class="font-bold uppercase">${c[1]}<br><span class="text-[9px] text-orange-500">${c[2] || 'PCS'}</span></td><td><span class="bg-red-500 text-white px-3 py-1.5 rounded-lg font-black text-sm">Rp ${c[3] || '0'}</span></td></tr>`;
+                rows.slice(1).forEach(r => {
+                    const cols = r.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+                    if (cols[1]) html += `<tr><td class="font-bold uppercase text-[11px]">${cols[1]}<br><span class="text-orange-500">${cols[2]}</span></td><td><span class="bg-red-500 text-white px-2 py-1 rounded font-black text-xs">Rp ${cols[3]}</span></td></tr>`;
                 });
-                content.innerHTML = html + "</tbody></table>";
-            } catch (e) { content.innerHTML = "Gagal memuat."; }
+                content.innerHTML = html + `</tbody></table>`;
+            } catch (e) { content.innerHTML = `<p class="p-10 text-center">Gagal muat promo.</p>`; }
         }
 
         function closePromo() { document.getElementById('promo-modal').classList.add('hidden'); }
-        function filterByCategory(cat) { document.getElementById('searchInput').value = ""; currentCategory = cat; document.querySelectorAll('.cat-btn, #btn-all').forEach(b => b.classList.toggle('cat-btn-active', b.innerText === cat)); filterProducts(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
-        function resetToAll() { if (currentCategory !== "SEMUA") filterByCategory("SEMUA"); }
-        function editQty(n, s, v, h, w, d) { const q = parseInt(v); const k = `${n} (${s})`; const cur = cart[k] ? cart[k].qty : 0; updateCart(n, s, h, w, (isNaN(q) || q <= 0 ? -cur : q - cur), d); }
         function toggleCart() { document.getElementById('cart-footer').classList.toggle('hidden'); if(!document.getElementById('cart-footer').classList.contains('hidden')) renderCartList(); }
         function formatRupiah(n) { return new Intl.NumberFormat('id-ID').format(n); }
-        function getSafeId(n, s) { let h = 0, sd = n + s; for (let i = 0; i < sd.length; i++) h = ((h << 5) - h) + sd.charCodeAt(i); return 'p_' + Math.abs(h); }
-
-        function updateAZSidebar(data) {
-            const sidebar = document.getElementById('az-sidebar');
-            const firstChars = [...new Set(data.map(p => p.nama[0].toUpperCase()))];
-            const letters = firstChars.filter(c => /^[A-Z]/.test(c)).sort();
-            sidebar.innerHTML = "";
-            letters.forEach(l => {
-                const btn = document.createElement('div'); btn.className = "az-letter"; btn.innerText = l; btn.onclick = () => scrollToLetter(l); sidebar.appendChild(btn);
-            });
-        }
-
-        function scrollToLetter(l) {
-            const items = document.querySelectorAll('.product-item');
-            for (let itm of items) {
-                if (itm.style.display !== 'none' && itm.dataset.nama[0].toUpperCase() === l) {
-                    window.scrollTo({ top: itm.getBoundingClientRect().top + window.pageYOffset - 180, behavior: "smooth" });
-                    break;
-                }
-            }
-        }
-
+        function getSafeId(n, s) { let hash = 0; let seed = n + s; for (let i = 0; i < seed.length; i++) hash = ((hash << 5) - hash) + seed.charCodeAt(i); return 'p_' + Math.abs(hash); }
+        function resetToAll() { if(currentCategory !== "SEMUA") filterByCategory("SEMUA"); }
         function sendToWhatsApp() {
             const name = document.getElementById('custName').value.trim();
-            if (!name) return alert("ISI NAMA ANDA!");
+            if (!name) return alert("ISI NAMA!");
             let total = 0, p = `*ORDER TOKO DAMAI*\n👤 Nama: *${name.toUpperCase()}*\n\n`;
             for (let k in cart) {
                 let sub = cart[k].qty * cart[k].harga;
-                p += `✅ *${cart[k].namaAsli}*\n   ${cart[k].qty} ${cart[k].satuanAsli} (${cart[k].detail}) = *Rp ${formatRupiah(sub)}*\n`;
+                p += `✅ *${cart[k].namaAsli}*\n   ${cart[k].qty} ${cart[k].satuanAsli} = *Rp ${formatRupiah(sub)}*\n`;
                 total += sub;
             }
             p += `\n💰 *TOTAL: Rp ${formatRupiah(total)}*`;
             window.open(`https://wa.me/6285815022210?text=${encodeURIComponent(p)}`);
         }
 
-        async function fetchUpdateDate() {
-            try {
-                const r = await fetch(promoUrl + "?v=" + Date.now());
-                const t = await r.text();
-                const row = t.split(/\r?\n/)[0];
-                if(row) document.getElementById('header-update-date').innerText = "Update: " + row.split(',')[0].replace(/^"|"$/g, '');
-            } catch(e){}
-        }
-
         loadData();
-        fetchUpdateDate();
     </script>
 </body>
 </html>
