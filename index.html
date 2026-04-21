@@ -160,28 +160,33 @@
         async function showPromo() {
             const modal = document.getElementById('promo-modal');
             const content = document.getElementById('promo-content');
-            const dateBadge = document.getElementById('promo-date');
             modal.classList.remove('hidden');
-            content.innerHTML = `<p class="text-center py-10 text-gray-400 font-bold">Mengambil data promo...</p>`;
+            content.innerHTML = `<p class="p-10 text-center">Memuat Promo...</p>`;
             try {
-                const response = await fetch(promoUrl + "&t=" + Date.now());
-                const csvText = await response.text();
-                const rows = csvText.split(/\r?\n/).filter(row => row.trim() !== "");
-                if (rows.length < 1) {
-                    content.innerHTML = `<p class="text-center py-10 text-gray-400">Belum ada promo aktif.</p>`;
-                    return;
-                }
-                const tglPromo = rows[0].split(',')[0].trim().replace(/^"|"$/g, '') || "Terbaru";
-                dateBadge.innerText = tglPromo;
+                const response = await fetch(promoUrl + "?v=" + Date.now());
+                const text = await response.text();
+                const rows = text.split(/\r?\n/).filter(r => r.trim() !== "");
+                if (rows.length < 2) { content.innerHTML = `<p class="p-10 text-center">Belum ada promo.</p>`; return; }
+                
                 let html = `<table class="promo-table"><thead><tr><th>Barang</th><th>Harga</th></tr></thead><tbody>`;
-                rows.slice(1).forEach(row => {
-                    const cols = row.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+                rows.slice(1).forEach(r => {
+                    const cols = r.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
                     if (cols[1]) {
-                        html += `<tr><td class="font-bold text-slate-800 uppercase leading-tight">${cols[1]}<br><span class="text-[9px] text-orange-500">${cols[2] || 'PCS'}</span></td><td><span class="bg-red-500 text-white px-3 py-1.5 rounded-lg font-black text-sm">Rp ${cols[3] || '0'}</span></td></tr>`;
+                        // Membersihkan karakter non-angka dan memastikan jadi ribuan
+                        let rawPrice = cols[3].replace(/[^0-9]/g, '');
+                        let hrgPromo = parseInt(rawPrice) || 0;
+                        
+                        // Jika angka terlalu kecil (seperti 176), kita asumsikan itu ribuan
+                        if (hrgPromo > 0 && hrgPromo < 1000) hrgPromo = hrgPromo * 1000;
+
+                        html += `<tr>
+                            <td class="font-bold uppercase text-[11px]">${cols[1]}<br><span class="text-orange-500">${cols[2]}</span></td>
+                            <td><span class="bg-red-500 text-white px-2 py-1 rounded font-black text-xs whitespace-nowrap">Rp ${formatRupiah(hrgPromo)}</span></td>
+                        </tr>`;
                     }
                 });
                 content.innerHTML = html + `</tbody></table>`;
-            } catch (e) { content.innerHTML = "Gagal memuat promo."; }
+            } catch (e) { content.innerHTML = `<p class="p-10 text-center text-red-500">Gagal memuat promo.</p>`; }
         }
         
         function closePromo() { document.getElementById('promo-modal').classList.add('hidden'); }
