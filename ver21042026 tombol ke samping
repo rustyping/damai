@@ -1,4 +1,4 @@
-        /* Update CSS v1.8 */
+        /* Update CSS v1.8.1 */
 
 <!DOCTYPE html>
 <html lang="id">
@@ -19,7 +19,14 @@
             background: #fb923c; z-index: 100; transition: width 0.1s; 
         }
 
-        
+        mark {
+            background-color: #fde047; /* Kuning cerah */
+            color: #000;
+            padding: 0 2px;
+            border-radius: 4px;
+            font-weight: 900;
+        }
+            
         /* Update CSS v1.8 */
         .unit-container {
             display: flex;
@@ -260,13 +267,26 @@
         }
 
         // Render Katalog ke Layar
-        function renderKatalog(data) {
+        function renderKatalog(data, query = "") {
             const katalog = document.getElementById('katalog');
-            let content = `<div class="grid gap-1">`; // Jarak antar baris grid tetap rapat
+            let content = `<div class="grid gap-1">`;
+            
             data.forEach(p => {
+                // Logika Highlight: Jika ada query, ganti teks yang cocok dengan tag <mark>
+                let displayName = p.nama;
+                if (query) {
+                    const keywords = query.split(/\s+/);
+                    keywords.forEach(kw => {
+                        if (kw.length > 0) {
+                            const regex = new RegExp(`(${kw})`, 'gi');
+                            displayName = displayName.replace(regex, `<mark>$1</mark>`);
+                        }
+                    });
+                }
+        
                 content += `
                 <div class="product-item product-card p-3 rounded-2xl" data-nama="${p.nama.toLowerCase()}" data-kat="${p.kategori}">
-                    <p class="product-name text-sm mb-2 tracking-tight">${p.nama}</p>
+                    <p class="product-name text-sm mb-2 tracking-tight">${displayName}</p>
                     <div class="unit-container">
                         ${p.s1 && p.h1 > 0 ? `<div id="box-${getSafeId(p.nama, p.s1)}">${renderBtn(p.nama, p.s1, p.h1, 'emerald', p.d1)}</div>` : ''}
                         ${p.s2 && p.h2 > 0 ? `<div id="box-${getSafeId(p.nama, p.s2)}">${renderBtn(p.nama, p.s2, p.h2, 'orange', p.d2)}</div>` : ''}
@@ -283,29 +303,22 @@
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => {
                 const query = document.getElementById('searchInput').value.toLowerCase().trim();
-                const keywords = query.split(/\s+/); // Pecah berdasarkan spasi
+                const keywords = query.split(/\s+/).filter(kw => kw !== "");
                 
-                let visibleCount = 0;
-                let visibleData = [];
-
-                document.querySelectorAll('.product-item').forEach(item => {
-                    const nama = item.dataset.nama;
-                    const matchKat = (currentCategory === "SEMUA" || item.dataset.kat === currentCategory);
-                    
-                    // Pencarian pintar: Semua keyword harus ada di nama barang
-                    const matchSearch = (query === "" || keywords.every(kw => nama.includes(kw)));
-
-                    if (matchKat && matchSearch) {
-                        item.style.display = "block";
-                        visibleCount++;
-                        const original = productsData.find(p => p.nama.toLowerCase() === nama);
-                        if(original) visibleData.push(original);
-                    } else {
-                        item.style.display = "none";
-                    }
+                // Selalu filter dari productsData (data master) agar tidak nyangkut
+                let visibleData = productsData.filter(p => {
+                    const matchKat = (currentCategory === "SEMUA" || p.kategori === currentCategory);
+                    const matchSearch = (query === "" || keywords.every(kw => p.nama.toLowerCase().includes(kw)));
+                    return matchKat && matchSearch;
                 });
-
-                document.getElementById('status').innerText = visibleCount + " ITEM";
+        
+                // Re-render katalog dengan data yang sudah difilter + highlight
+                renderKatalog(visibleData, query);
+                
+                // Update status jumlah item
+                document.getElementById('status').innerText = visibleData.length + " ITEM";
+                
+                // Update navigasi A-Z agar hanya muncul huruf yang relevan
                 updateAZSidebar(visibleData);
             }, 150);
         }
@@ -453,10 +466,9 @@
 
         // Utils
         function filterByCategory(cat) {
-            document.getElementById('searchInput').value = "";
             currentCategory = cat;
             document.querySelectorAll('.cat-btn, #btn-all').forEach(b => b.classList.toggle('cat-btn-active', b.innerText === cat));
-            filterProducts();
+            filterProducts(); // Ini akan memicu filter ulang yang bersih
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
