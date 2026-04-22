@@ -275,35 +275,34 @@
 
         // Render Katalog ke Layar
         function renderKatalog(data, query = "") {
-            const katalog = document.getElementById('katalog');
-            let content = `<div class="grid gap-1">`;
-            
-            data.forEach(p => {
-                // Logika Highlight: Jika ada query, ganti teks yang cocok dengan tag <mark>
-                let displayName = p.nama;
-                if (query) {
-                    const keywords = query.split(/\s+/);
-                    keywords.forEach(kw => {
-                        if (kw.length > 0) {
-                            const regex = new RegExp(`(${kw})`, 'gi');
-                            displayName = displayName.replace(regex, `<mark>$1</mark>`);
-                        }
-                    });
-                }
-        
-                content += `
-                <div class="product-item product-card p-3 rounded-2xl" data-nama="${p.nama.toLowerCase()}" data-kat="${p.kategori}">
-                    <p class="product-name text-sm mb-2 tracking-tight">${displayName}</p>
-                    <div class="unit-container">
-                        ${p.s1 && p.h1 > 0 ? `<div id="box-${getSafeId(p.nama, p.s1)}">${renderBtn(p.nama, p.s1, p.h1, 'emerald', p.d1)}</div>` : ''}
-                        ${p.s2 && p.h2 > 0 ? `<div id="box-${getSafeId(p.nama, p.s2)}">${renderBtn(p.nama, p.s2, p.h2, 'orange', p.d2)}</div>` : ''}
-                        ${p.s3 && p.h3 > 0 ? `<div id="box-${getSafeId(p.nama, p.s3)}">${renderBtn(p.nama, p.s3, p.h3, 'blue', p.d3)}</div>` : ''}
-                    </div>
-                </div>`;
-            });
-            katalog.innerHTML = content + `</div>`;
-            updateAZSidebar(data);
-        }
+             const katalog = document.getElementById('katalog');
+             let content = `<div class="flex flex-col">`; // Menggunakan flex col agar margin-bottom card lebih akurat
+             
+             data.forEach(p => {
+                 let displayName = p.nama;
+                 if (query) {
+                     const keywords = query.split(/\s+/);
+                     keywords.forEach(kw => {
+                         if (kw.length > 0) {
+                             const regex = new RegExp(`(${kw})`, 'gi');
+                             displayName = displayName.replace(regex, `<mark>$1</mark>`);
+                         }
+                     });
+                 }
+         
+                 content += `
+                 <div class="product-item product-card rounded-xl" data-nama="${p.nama.toLowerCase()}" data-kat="${p.kategori}">
+                     <p class="product-name text-[13px] tracking-tighter">${displayName}</p>
+                     <div class="unit-container">
+                         ${p.s1 && p.h1 > 0 ? `<div id="box-${getSafeId(p.nama, p.s1)}">${renderBtn(p.nama, p.s1, p.h1, 'emerald', p.d1)}</div>` : ''}
+                         ${p.s2 && p.h2 > 0 ? `<div id="box-${getSafeId(p.nama, p.s2)}">${renderBtn(p.nama, p.s2, p.h2, 'orange', p.d2)}</div>` : ''}
+                         ${p.s3 && p.h3 > 0 ? `<div id="box-${getSafeId(p.nama, p.s3)}">${renderBtn(p.nama, p.s3, p.h3, 'blue', p.d3)}</div>` : ''}
+                     </div>
+                 </div>`;
+             });
+             katalog.innerHTML = content + `</div>`;
+             updateAZSidebar(data);
+         }
 
         // FUNGSI SEARCH FLEXIBLE (UPDATED)
         function filterProducts() {
