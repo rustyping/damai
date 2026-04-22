@@ -1,11 +1,11 @@
-        /* Update CSS v1.8.1 */
 
 <!DOCTYPE html>
 <html lang="id">
 <head>
+         
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Katalog Toko Damai v1.7.1</title>
+    <title>Katalog Toko Damai v1.8.2</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -32,8 +32,8 @@
             display: flex;
             flex-wrap: nowrap;
             overflow-x: auto;
-            gap: 3px; /* Jarak antar bubble diperkecil lagi agar hampir menempel */
-            padding-bottom: 4px;
+            gap: 2px; /* Jarak antar bubble diperkecil lagi agar hampir menempel */
+            padding-bottom: 2px;
         }
         .unit-container::-webkit-scrollbar { display: none; }
         
@@ -83,13 +83,13 @@
         .header-bg { background: #075E54; color: white; }
         #katalog { padding-top: 10px; padding-bottom: 120px; }
         /* Memperkecil padding card agar ruang untuk bubble lebih luas */
-        .product-card { 
-            background: #ffffff; 
-            border: 1px solid #e2e8f0; 
-            margin-bottom: 0.4rem;
-            padding: 10px !important; /* Padding dalam kotak produk diperkecil */
-            transition: transform 0.2s ease;
-        }
+         .product-card { 
+             background: #ffffff; 
+             border: 1px solid #e2e8f0; 
+             margin-bottom: 0.3rem; /* Jarak antar kotak produk dipersempit lagi */
+             padding: 8px !important; /* Padding dalam kotak diperkecil dari 10px ke 8px */
+             transition: transform 0.2s ease;
+         }
         .product-card:active { transform: scale(0.98); }
         .category-scroll::-webkit-scrollbar { display: none; }
         .cat-btn { 
@@ -99,7 +99,13 @@
             transition: all 0.3s; 
         }
         .cat-btn-active { background: #fb923c !important; border-color: #fb923c !important; box-shadow: 0 10px 15px -3px rgba(251, 146, 60, 0.4); }
-        .product-name { color: #0f172a; font-weight: 800; text-transform: uppercase; }
+        .product-name { 
+             color: #0f172a; 
+             font-weight: 800; 
+             text-transform: uppercase;
+             margin-bottom: 6px !important; /* Jarak teks ke bubble diperkecil */
+             line-height: 1.2;
+         }
         .sticky-all { position: sticky; left: 0; z-index: 20; background: #075E54; padding-right: 12px; }
         input[type=number]::-webkit-inner-spin-button, 
         input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
@@ -268,35 +274,34 @@
 
         // Render Katalog ke Layar
         function renderKatalog(data, query = "") {
-            const katalog = document.getElementById('katalog');
-            let content = `<div class="grid gap-1">`;
-            
-            data.forEach(p => {
-                // Logika Highlight: Jika ada query, ganti teks yang cocok dengan tag <mark>
-                let displayName = p.nama;
-                if (query) {
-                    const keywords = query.split(/\s+/);
-                    keywords.forEach(kw => {
-                        if (kw.length > 0) {
-                            const regex = new RegExp(`(${kw})`, 'gi');
-                            displayName = displayName.replace(regex, `<mark>$1</mark>`);
-                        }
-                    });
-                }
-        
-                content += `
-                <div class="product-item product-card p-3 rounded-2xl" data-nama="${p.nama.toLowerCase()}" data-kat="${p.kategori}">
-                    <p class="product-name text-sm mb-2 tracking-tight">${displayName}</p>
-                    <div class="unit-container">
-                        ${p.s1 && p.h1 > 0 ? `<div id="box-${getSafeId(p.nama, p.s1)}">${renderBtn(p.nama, p.s1, p.h1, 'emerald', p.d1)}</div>` : ''}
-                        ${p.s2 && p.h2 > 0 ? `<div id="box-${getSafeId(p.nama, p.s2)}">${renderBtn(p.nama, p.s2, p.h2, 'orange', p.d2)}</div>` : ''}
-                        ${p.s3 && p.h3 > 0 ? `<div id="box-${getSafeId(p.nama, p.s3)}">${renderBtn(p.nama, p.s3, p.h3, 'blue', p.d3)}</div>` : ''}
-                    </div>
-                </div>`;
-            });
-            katalog.innerHTML = content + `</div>`;
-            updateAZSidebar(data);
-        }
+             const katalog = document.getElementById('katalog');
+             let content = `<div class="flex flex-col">`; // Menggunakan flex col agar margin-bottom card lebih akurat
+             
+             data.forEach(p => {
+                 let displayName = p.nama;
+                 if (query) {
+                     const keywords = query.split(/\s+/);
+                     keywords.forEach(kw => {
+                         if (kw.length > 0) {
+                             const regex = new RegExp(`(${kw})`, 'gi');
+                             displayName = displayName.replace(regex, `<mark>$1</mark>`);
+                         }
+                     });
+                 }
+         
+                 content += `
+                 <div class="product-item product-card rounded-xl" data-nama="${p.nama.toLowerCase()}" data-kat="${p.kategori}">
+                     <p class="product-name text-[13px] tracking-tighter">${displayName}</p>
+                     <div class="unit-container">
+                         ${p.s1 && p.h1 > 0 ? `<div id="box-${getSafeId(p.nama, p.s1)}">${renderBtn(p.nama, p.s1, p.h1, 'emerald', p.d1)}</div>` : ''}
+                         ${p.s2 && p.h2 > 0 ? `<div id="box-${getSafeId(p.nama, p.s2)}">${renderBtn(p.nama, p.s2, p.h2, 'orange', p.d2)}</div>` : ''}
+                         ${p.s3 && p.h3 > 0 ? `<div id="box-${getSafeId(p.nama, p.s3)}">${renderBtn(p.nama, p.s3, p.h3, 'blue', p.d3)}</div>` : ''}
+                     </div>
+                 </div>`;
+             });
+             katalog.innerHTML = content + `</div>`;
+             updateAZSidebar(data);
+         }
 
         // FUNGSI SEARCH FLEXIBLE (UPDATED)
         function filterProducts() {
