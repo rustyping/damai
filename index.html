@@ -99,12 +99,14 @@
             transition: all 0.3s; 
         }
         .cat-btn-active { background: #fb923c !important; border-color: #fb923c !important; box-shadow: 0 10px 15px -3px rgba(251, 146, 60, 0.4); }
-        .product-name { 
+         .product-name { 
              color: #0f172a; 
              font-weight: 800; 
              text-transform: uppercase;
-             margin-bottom: 6px !important; /* Jarak teks ke bubble diperkecil */
+             margin-bottom: 6px !important; 
              line-height: 1.2;
+             font-size: 15px !important; /* Ukuran diperbesar agar lebih jelas (sebelumnya ~13px) */
+             letter-spacing: -0.01em; /* Sedikit lebih rapat agar tetap muat di satu baris */
          }
         .sticky-all { position: sticky; left: 0; z-index: 20; background: #075E54; padding-right: 12px; }
         input[type=number]::-webkit-inner-spin-button, 
@@ -291,8 +293,9 @@
          
                  content += `
                  <div class="product-item product-card rounded-xl" data-nama="${p.nama.toLowerCase()}" data-kat="${p.kategori}">
-                     <p class="product-name text-[13px] tracking-tighter">${displayName}</p>
-                     <div class="unit-container">
+                      <p class="product-name tracking-tight">${displayName}</p> 
+                      <div class="unit-container">
+
                          ${p.s1 && p.h1 > 0 ? `<div id="box-${getSafeId(p.nama, p.s1)}">${renderBtn(p.nama, p.s1, p.h1, 'emerald', p.d1)}</div>` : ''}
                          ${p.s2 && p.h2 > 0 ? `<div id="box-${getSafeId(p.nama, p.s2)}">${renderBtn(p.nama, p.s2, p.h2, 'orange', p.d2)}</div>` : ''}
                          ${p.s3 && p.h3 > 0 ? `<div id="box-${getSafeId(p.nama, p.s3)}">${renderBtn(p.nama, p.s3, p.h3, 'blue', p.d3)}</div>` : ''}
