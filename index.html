@@ -14,6 +14,31 @@
             background: linear-gradient(135deg, #ffffff 0%, #f0f4f8 100%); 
             background-attachment: fixed; 
         }
+
+         /* Penyesuaian Header v1.8.2 */
+         header {
+             padding: 14px 16px 8px 16px !important; 
+         }
+         
+         #searchInput {
+             margin-bottom: 10px !important; /* Jarak bawah ditambah sedikit */
+             padding: 12px 16px !important; /* Dipertebal sedikit dari sebelumnya */
+             font-size: 16px !important; /* Teks di dalam kotak cari lebih besar */
+             border-radius: 14px;
+         }
+         
+         .header-title-area {
+             margin-bottom: 10px !important; /* Jarak Judul ke Box Cari diperlebar sedikit */
+         }
+         
+         /* Judul Toko */
+         .title-main {
+             font-size: 28px !important; /* Diperbesar agar tetap ikonik */
+             line-height: 1;
+         }
+         
+
+             
         #scroll-progress { 
             position: fixed; top: 0; left: 0; width: 0%; height: 4px; 
             background: #fb923c; z-index: 100; transition: width 0.1s; 
@@ -141,29 +166,29 @@
          <header class="header-bg sticky top-0 z-50 shadow-2xl">
              <div class="header-title-area">
                  <div class="flex justify-between items-center">
-                     <div class="flex items-center gap-3">
+                     <div class="flex items-center gap-4">
                          <div>
-                             <h1 class="text-2xl font-black italic tracking-tighter leading-none">TOKO DAMAI</h1>
-                             <p class="text-[10px] font-bold opacity-90 mt-0.5 uppercase">
+                             <h1 class="title-main font-black italic tracking-tighter">TOKO DAMAI</h1>
+                             <p class="text-[10px] font-bold opacity-90 mt-1 uppercase">
                                 Malang <span id="header-update-date" class="ml-1 border-l border-white/30 pl-1"></span>
                              </p>
                          </div>
-                         <button onclick="showPromo()" class="btn-promo active:scale-90 transition-transform flex items-center gap-2 py-1 px-3">
-                             <i class="fas fa-fire-alt animate-bounce text-[10px]"></i> <span class="text-[10px]">PROMO</span>
+                         <button onclick="showPromo()" class="btn-promo active:scale-90 transition-transform flex items-center gap-2 py-1.5 px-4">
+                             <i class="fas fa-fire-alt animate-bounce text-[11px]"></i> <span class="text-[11px]">PROMO</span>
                          </button>
                      </div>
-                     <div id="status" class="text-[8px] bg-black/20 px-2 py-1 rounded-md font-black uppercase border border-white/10 tracking-widest">...</div>
+                     <div id="status" class="text-[9px] bg-black/20 px-2 py-1 rounded-md font-black uppercase border border-white/10 tracking-widest">...</div>
                  </div>
              </div>
          
              <input type="text" id="searchInput" oninput="filterProducts()" onfocus="resetToAll()" placeholder="Cari nama barang..." class="w-full rounded-xl text-gray-900 font-bold outline-none shadow-inner">
          
              <div class="flex items-center overflow-hidden">
-                 <div class="sticky-all"><button id="btn-all" onclick="filterByCategory('SEMUA')" class="cat-btn cat-btn-active py-1.5 px-3">SEMUA</button></div>
+                 <div class="sticky-all"><button id="btn-all" onclick="filterByCategory('SEMUA')" class="cat-btn cat-btn-active py-1.5 px-4">SEMUA</button></div>
                  <div id="category-bar" class="flex overflow-x-auto category-scroll gap-2 py-1"></div>
              </div>
          </header>
-
+         
     <div id="az-sidebar" class="az-sidebar"></div>
 
     <main id="katalog" class="p-4 max-w-xl mx-auto"></main>
