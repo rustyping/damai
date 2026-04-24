@@ -242,9 +242,11 @@
     </div>
 
     <script>
-        const githubUrl = "https://raw.githubusercontent.com/rustyping/damai/main/listDamaiFull.csv?v=" + Date.now();
-        const promoUrl = "https://raw.githubusercontent.com/rustyping/damai/main/promo.csv?v=" + Date.now();
-        let productsData = [], cart = {}, currentCategory = "SEMUA", searchTimeout;
+         const githubUrl = "https://raw.githubusercontent.com/rustyping/damai/main/listDamaiFull.csv?v=" + Date.now();
+         const promoUrl = "https://raw.githubusercontent.com/rustyping/damai/main/promo.csv?v=" + Date.now();
+         const stokUrl = "https://raw.githubusercontent.com/rustyping/damai/main/stock.csv?v=" + Date.now(); // <-- TAMBAHKAN INI
+         
+         let productsData = [], stokMap = {}, cart = {}, currentCategory = "SEMUA", searchTimeout; // <-- TAMBAHKAN stokMap di sini
 
         // Progress Bar
         window.onscroll = function() {
@@ -255,77 +257,91 @@
         };
 
         // Load Data Utama
-        async function loadData() {
-            try {
-                const response = await fetch(githubUrl);
-                const csvText = await response.text();
-                const rows = csvText.split(/\r?\n/).filter(row => row.trim() !== "");
-                let catSet = new Set();
-                
-                productsData = rows.slice(1).map(row => {
-                    const cols = row.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
-                    const nama = cols[2] || "";
-                    // Filter Baris Sampah
-                    if (!nama || nama.toLowerCase().includes("nama barang") || nama.toLowerCase().includes("xxx") || 
-                        nama.includes("___") || nama.toLowerCase().includes("ongkos kirim")) return null;
-
-                    catSet.add(cols[4] || "UMUM");
-                    return { 
-                        nama: nama, kategori: cols[4] || "UMUM", 
-                        s1: cols[6], s2: cols[7], s3: cols[8],
-                        d1: cols[10] || "1", d2: cols[11] || "1", d3: cols[12] || "1",
-                        h1: parseInt(cols[19]) || 0, h2: parseInt(cols[22]) || 0, h3: parseInt(cols[25]) || 0 
-                    };
-                }).filter(Boolean);
-
-                // Sorting Alfabet & Numerik
-                productsData.sort((a, b) => {
-                    const nameA = a.nama.toUpperCase();
-                    const nameB = b.nama.toUpperCase();
-                    const isLetterA = /^[A-Z]/.test(nameA);
-                    const isLetterB = /^[A-Z]/.test(nameB);
-                    if (isLetterA && !isLetterB) return -1;
-                    if (!isLetterA && isLetterB) return 1;
-                    return nameA.localeCompare(nameB, 'id', { numeric: true });
-                });
-
-                const b = document.getElementById('category-bar');
-                b.innerHTML = "";
-                Array.from(catSet).sort().forEach(c => {
-                    b.innerHTML += `<button onclick="filterByCategory('${c}')" class="cat-btn">${c}</button>`;
-                });
-
-                renderKatalog(productsData);
-                document.getElementById('status').innerText = productsData.length + " ITEM";
-            } catch (e) { console.error(e); }
-        }
+         async function loadData() {
+             try {
+                 // --- PROSES DATA STOK DULU ---
+                 const resStok = await fetch(stokUrl);
+                 const csvStok = await resStok.text();
+                 const rowsStok = csvStok.split(/\r?\n/).filter(row => row.trim() !== "");
+                 rowsStok.forEach(row => {
+                     const cols = row.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+                     if (cols[2]) { // Kolom C (Index 2) adalah Nama Barang
+                         stokMap[cols[2].toLowerCase()] = {
+                             qty: cols[3] || "0",    // Kolom D (Index 3)
+                             satuan: cols[4] || ""    // Kolom E (Index 4)
+                         };
+                     }
+                 });
+         
+                 // --- PROSES DATA PRODUK (Tetap Seperti Sebelumnya) ---
+                 const response = await fetch(githubUrl);
+                 const csvText = await response.text();
+                 const rows = csvText.split(/\r?\n/).filter(row => row.trim() !== "");
+                 let catSet = new Set();
+                 
+                 productsData = rows.slice(1).map(row => {
+                     const cols = row.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+                     const nama = cols[2] || "";
+                     if (!nama || nama.toLowerCase().includes("nama barang") || nama.toLowerCase().includes("xxx") || 
+                         nama.includes("___") || nama.toLowerCase().includes("ongkos kirim")) return null;
+         
+                     catSet.add(cols[4] || "UMUM");
+                     return { 
+                         nama: nama, kategori: cols[4] || "UMUM", 
+                         s1: cols[6], s2: cols[7], s3: cols[8],
+                         d1: cols[10] || "1", d2: cols[11] || "1", d3: cols[12] || "1",
+                         h1: parseInt(cols[19]) || 0, h2: parseInt(cols[22]) || 0, h3: parseInt(cols[25]) || 0 
+                     };
+                 }).filter(Boolean);
+         
+                 productsData.sort((a, b) => a.nama.localeCompare(b.nama, 'id', { numeric: true }));
+         
+                 const b = document.getElementById('category-bar');
+                 b.innerHTML = "";
+                 Array.from(catSet).sort().forEach(c => {
+                     b.innerHTML += `<button onclick="filterByCategory('${c}')" class="cat-btn">${c}</button>`;
+                 });
+         
+                 renderKatalog(productsData);
+                 document.getElementById('status').innerText = productsData.length + " ITEM";
+             } catch (e) { console.error(e); }
+         }
 
         // Render Katalog ke Layar
-        function renderKatalog(data, query = "") {
+         function renderKatalog(data, query = "") {
              const katalog = document.getElementById('katalog');
-             let content = `<div class="flex flex-col">`; // Menggunakan flex col agar margin-bottom card lebih akurat
+             let content = `<div class="flex flex-col">`;
              
              data.forEach(p => {
                  let displayName = p.nama;
                  if (query) {
                      const keywords = query.split(/\s+/);
-                     keywords.forEach(kw => {
-                         if (kw.length > 0) {
-                             const regex = new RegExp(`(${kw})`, 'gi');
-                             displayName = displayName.replace(regex, `<mark>$1</mark>`);
-                         }
-                     });
+                     keywords.forEach(kw => { if (kw.length > 0) {
+                         const regex = new RegExp(`(${kw})`, 'gi');
+                         displayName = displayName.replace(regex, `<mark>$1</mark>`);
+                     }});
                  }
+         
+                 // --- AMBIL DATA STOK DARI MAP ---
+                 const infoStok = stokMap[p.nama.toLowerCase()];
+                 const stokText = infoStok ? `${infoStok.qty} ${infoStok.satuan}` : "0";
+                 // Merah jika stok 5 kebawah, hijau jika lebih
+                 const stokColor = (infoStok && parseInt(infoStok.qty) > 5) ? "text-emerald-600" : "text-red-500";
          
                  content += `
                  <div class="product-item product-card rounded-xl" data-nama="${p.nama.toLowerCase()}" data-kat="${p.kategori}">
-                      <p class="product-name tracking-tight">${displayName}</p> 
+                      <div class="flex justify-between items-start gap-2 mb-1">
+                          <p class="product-name tracking-tight flex-1">${displayName}</p>
+                          <span class="text-[9px] font-black ${stokColor} bg-slate-50 border border-slate-200 px-2 py-0.5 rounded shadow-sm whitespace-nowrap mt-1">
+                             S: ${stokText}
+                          </span>
+                      </div>
+                      
                       <div class="unit-container">
-
-                         ${p.s1 && p.h1 > 0 ? `<div id="box-${getSafeId(p.nama, p.s1)}">${renderBtn(p.nama, p.s1, p.h1, 'emerald', p.d1)}</div>` : ''}
-                         ${p.s2 && p.h2 > 0 ? `<div id="box-${getSafeId(p.nama, p.s2)}">${renderBtn(p.nama, p.s2, p.h2, 'orange', p.d2)}</div>` : ''}
-                         ${p.s3 && p.h3 > 0 ? `<div id="box-${getSafeId(p.nama, p.s3)}">${renderBtn(p.nama, p.s3, p.h3, 'blue', p.d3)}</div>` : ''}
-                     </div>
+                          ${p.s1 && p.h1 > 0 ? `<div id="box-${getSafeId(p.nama, p.s1)}">${renderBtn(p.nama, p.s1, p.h1, 'emerald', p.d1)}</div>` : ''}
+                          ${p.s2 && p.h2 > 0 ? `<div id="box-${getSafeId(p.nama, p.s2)}">${renderBtn(p.nama, p.s2, p.h2, 'orange', p.d2)}</div>` : ''}
+                          ${p.s3 && p.h3 > 0 ? `<div id="box-${getSafeId(p.nama, p.s3)}">${renderBtn(p.nama, p.s3, p.h3, 'blue', p.d3)}</div>` : ''}
+                      </div>
                  </div>`;
              });
              katalog.innerHTML = content + `</div>`;
