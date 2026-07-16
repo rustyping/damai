@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blind Opname Stok - Toko Damai</title>
+    <title>Opname Stok - Toko Damai</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -26,14 +26,14 @@
     <header class="sticky top-0 z-50 shadow-lg">
         <div class="mb-2 flex justify-between items-center">
             <div>
-                <h1 class="text-xl font-black italic tracking-tighter">BLIND OPNAME DAMAI</h1>
+                <h1 class="text-xl font-black italic tracking-tighter">OPNAME TOKO DAMAI</h1>
                 <p class="text-[9px] font-bold opacity-80 uppercase">Perhitungan Fisik Murni</p>
             </div>
             <button onclick="resetOpname()" class="text-[10px] bg-red-600 px-2 py-1 rounded font-black tracking-wider uppercase active:scale-95 transition-all">
                 <i class="fas fa-trash-alt"></i> Reset
             </button>
         </div>
-        <input type="text" id="searchInput" oninput="filterOpname()" placeholder="Cari nama barang...">
+        <input type="text" id="searchInput" oninput="handleSearchInput()" placeholder="Cari nama barang...">
         <div class="flex items-center overflow-hidden">
             <button id="btn-all" onclick="filterByCategory('SEMUA')" class="cat-btn cat-btn-active mr-2">SEMUA</button>
             <div id="category-bar" class="flex overflow-x-auto gap-2 py-1"></div>
@@ -110,7 +110,14 @@
                 productsData = rows.slice(1).map(row => {
                     const c = row.split(',').map(v => v.trim().replace(/^"|"$/g, ''));
                     const nama = c[2];
-                    if (!nama || nama.toLowerCase().includes("nama barang") || nama.includes("___")) return null;
+                    
+                    // Filter pembersihan: nama kosong, judul kolom, ___, atau xxx dilewati
+                    if (!nama || 
+                        nama.toLowerCase().includes("nama barang") || 
+                        nama.includes("___") || 
+                        nama.toLowerCase().includes("xxx")) {
+                        return null;
+                    }
                     
                     catSet.add(c[4] || "UMUM");
 
@@ -293,6 +300,15 @@
             }
         }
 
+        // Fungsi penanganan search agar otomatis mengembalikan filter kategori ke "SEMUA"
+        function handleSearchInput() {
+            currentCategory = "SEMUA";
+            document.querySelectorAll('.cat-btn, #btn-all').forEach(b => {
+                b.classList.toggle('cat-btn-active', b.innerText === "SEMUA");
+            });
+            filterOpname();
+        }
+
         function filterOpname() {
             const q = document.getElementById('searchInput').value.toLowerCase().trim();
             const filtered = productsData.filter(p => (currentCategory === "SEMUA" || p.kat === currentCategory) && p.nama.toLowerCase().includes(q));
@@ -360,7 +376,7 @@
                 return;
             }
 
-            let pesan = `*LAPORAN FISIK OPNAME (BLIND)*\n👤 Pengecek: *${namaPengecek}*\n📅 Tanggal: *${new Date().toLocaleDateString('id-ID')}*\n\n`;
+            let pesan = `*LAPORAN FISIK OPNAME*\n👤 Pengecek: *${namaPengecek}*\n📅 Tanggal: *${new Date().toLocaleDateString('id-ID')}*\n\n`;
             let adaData = false;
             let totalBarang = 0;
             
