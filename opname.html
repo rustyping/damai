@@ -270,48 +270,48 @@
             document.body.removeChild(link);
         }
 
-                function kirimHasilWA() {
-            const namaPengecek = document.getElementById('checkerInput').value.trim();
-            if(!namaPengecek) {
-                alert("Mohon isi Nama Pengecek terlebih dahulu di bagian atas, Pak.");
-                document.getElementById('checkerInput').focus();
-                return;
-            }
-        
-            let pesan = `*LAPORAN FISIK OPNAME (BLIND)*\n👤 Pengecek: *${namaPengecek}*\n📅 Tanggal: *${new Date().toLocaleDateString('id-ID')}*\n\n`;
-            let adaData = false;
-            let totalBarang = 0;
-            
-            productsData.forEach(p => {
-                const kb = p.nama.toLowerCase();
-                const v1 = opnameCache[`${kb}_u1`] || 0;
-                const v2 = opnameCache[`${kb}_u2`] || 0;
-                const v3 = opnameCache[`${kb}_u3`] || 0;
-                let total = (v1 * p.d[0]) + (v2 * p.d[1]) + (v3 * p.d[2]);
-        
-                if (v1 > 0 || v2 > 0 || v3 > 0) {
-                    adaData = true;
-                    totalBarang++;
-                    let detail = [];
-                    if(v1 > 0) detail.push(`${v1} ${p.s[0]}`);
-                    if(v2 > 0) detail.push(`${v2} ${p.s[1]}`);
-                    if(v3 > 0) detail.push(`${v3} ${p.s[2]}`);
-                    
-                    // Logika Penentuan Satuan Terkecil yang Benar
-                    const satuanTerkecil = p.s[2] || p.s[1] || p.s[0] || "Pcs";
-                    
-                    pesan += `📦 *${p.nama}*\n  Fisik: ${detail.join(' + ')} \n  *Total: ${total} ${satuanTerkecil}*\n\n`;
+         function kirimHasilWA() {
+                const namaPengecek = document.getElementById('checkerInput').value.trim();
+                if(!namaPengecek) {
+                    alert("Mohon isi Nama Pengecek terlebih dahulu di bagian atas, Pak.");
+                    document.getElementById('checkerInput').focus();
+                    return;
                 }
-            });
-        
-            if (!adaData) return alert("Belum ada data fisik barang yang diisi!");
-        
-            pesan += `*----------------------------------*\n`;
-            pesan += `📊 *RINGKASAN AKHIR:*\n`;
-            pesan += `Total Macam Barang Dihitung: *${totalBarang} item*\n`;
-        
-            window.open(`https://wa.me/6285815022210?text=${encodeURIComponent(pesan)}`);
-        }
+            
+                let pesan = `*LAPORAN FISIK OPNAME (BLIND)*\n👤 Pengecek: *${namaPengecek}*\n📅 Tanggal: *${new Date().toLocaleDateString('id-ID')}*\n\n`;
+                let adaData = false;
+                let totalBarang = 0;
+                
+                productsData.forEach(p => {
+                    const kb = p.nama.toLowerCase();
+                    const v1 = opnameCache[`${kb}_u1`] || 0;
+                    const v2 = opnameCache[`${kb}_u2`] || 0;
+                    const v3 = opnameCache[`${kb}_u3`] || 0;
+                    let total = (v1 * p.d[0]) + (v2 * p.d[1]) + (v3 * p.d[2]);
+            
+                    if (v1 > 0 || v2 > 0 || v3 > 0) {
+                        adaData = true;
+                        totalBarang++;
+                        let detail = [];
+                        if(v1 > 0) detail.push(`${v1} ${p.s[0]}`);
+                        if(v2 > 0) detail.push(`${v2} ${p.s[1]}`);
+                        if(v3 > 0) detail.push(`${v3} ${p.s[2]}`);
+                        
+                        // Dikunci selalu menggunakan Satuan 1 (p.s[0])
+                        const namaSatuan1 = p.s[0] || "Pcs";
+                        
+                        pesan += `📦 *${p.nama}*\n  Fisik: ${detail.join(' + ')} \n  *Total: ${total} ${namaSatuan1}*\n\n`;
+                    }
+                });
+            
+                if (!adaData) return alert("Belum ada data fisik barang yang diisi!");
+            
+                pesan += `*----------------------------------*\n`;
+                pesan += `📊 *RINGKASAN AKHIR:*\n`;
+                pesan += `Total Macam Barang Dihitung: *${totalBarang} item*\n`;
+            
+                window.open(`https://wa.me/6285815022210?text=${encodeURIComponent(pesan)}`);
+            }
 
         initOpname();
     </script>
