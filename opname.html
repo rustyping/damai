@@ -44,10 +44,10 @@
 
     <main id="katalog-opname" class="p-4 max-w-xl mx-auto"></main>
 
-    <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-2xl z-40">
+   <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-2xl z-40">
         <div class="bg-slate-100 px-4 py-2 border-b border-slate-200 text-xs font-bold text-slate-700 flex justify-between items-center max-w-xl mx-auto">
             <div>Items Dihitung: <span id="summary-items" class="text-blue-600 font-black">0</span></div>
-            <div>Total Qty (Terkecil): <span id="summary-qty" class="text-emerald-600 font-black">0</span></div>
+            <div></div>
         </div>
         
         <div class="p-4 max-w-xl mx-auto">
@@ -190,15 +190,18 @@
         function renderInputBox(nama, satuanLabel, idx, nilai) {
             if (!satuanLabel) return "";
             const key = `${nama.toLowerCase()}_u${idx}`;
+            // Jika nilai kosong atau undefined, biarkan kosong agar placeholder 0 yang muncul (warna bawaan placeholder otomatis abu-abu samar)
+            const displayValue = (nilai === undefined || nilai === "") ? "" : nilai;
+            
             return `
             <div>
                 <span class="unit-label">${satuanLabel}</span>
                 <input type="number" 
                        inputmode="numeric"
-                       value="${nilai}" 
+                       value="${displayValue}" 
                        placeholder="0"
                        onkeyup="debounceSave('${key}', this.value, '${nama.toLowerCase()}')" 
-                       class="opname-input">
+                       class="opname-input placeholder-slate-400/60">
             </div>`;
         }
 
