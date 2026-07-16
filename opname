@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Opname Stok - Toko Damai</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #f8fafc; }
+        header { padding: 10px 16px 6px 16px !important; background: #1e293b; color: white; }
+        #searchInput { margin-bottom: 6px !important; padding: 10px 16px !important; font-size: 16px !important; border-radius: 12px; width: 100%; color: black; outline: none; }
+        .product-card { background: white; border: 1px solid #e2e8f0; margin-bottom: 0.3rem; padding: 10px !important; border-radius: 12px; }
+        .product-name { color: #0f172a; font-weight: 850; text-transform: uppercase; line-height: 1.2; font-size: 14px; }
+        .opname-input { width: 75px; text-align: center; font-weight: 900; border: 2px solid #cbd5e1; border-radius: 8px; padding: 4px 0; font-size: 14px; }
+        .opname-input:focus { border-color: #3b82f6; outline: none; background: #eff6ff; }
+        .cat-btn { white-space: nowrap; padding: 6px 16px; border-radius: 12px; font-size: 11px; font-weight: 800; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); }
+        .cat-btn-active { background: #3b82f6 !important; border-color: #3b82f6 !important; }
+    </style>
+</head>
+<body class="pb-36">
+
+    <header class="sticky top-0 z-50 shadow-lg">
+        <div class="mb-2 flex justify-between items-center">
+            <div>
+                <h1 class="text-xl font-black italic tracking-tighter">OPNAME STOK DAMAI</h1>
+                <p class="text-[9px] font-bold opacity-80 uppercase">Mode Input Lapangan</p>
+            </div>
+            <button onclick="resetOpname()" class="text-[10px] bg-red-600 px-2 py-1 rounded font-black tracking-wider uppercase active:scale-95 transition-all">
+                <i class="fas fa-trash-alt"></i> Reset Data
+            </button>
+        </div>
+        <input type="text" id="searchInput" oninput="filterOpname()" placeholder="Cari nama barang...">
+        <div class="flex items-center overflow-hidden">
+            <button id="btn-all" onclick="filterByCategory('SEMUA')" class="cat-btn cat-btn-active mr-2">SEMUA</button>
+            <div id="category-bar" class="flex overflow-x-auto gap-2 py-1"></div>
+        </div>
+    </header>
+
+    <main id="katalog-opname" class="p-4 max-w-xl mx-auto"></main>
+
+    <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-2xl z-40">
+        <div class="max-w-xl mx-auto flex gap-3">
+            <button onclick="downloadCSV()" class="flex-1 bg-slate-800 text-white font-black py-4 rounded-xl flex justify-center items-center gap-2 shadow-md text-sm active:scale-95 transition-all">
+                <i class="fas fa-file-download text-lg"></i> SIMPAN FILE CSV
+            </button>
+            <button onclick="kirimHasilWA()" class="flex-1 bg-[#25D366] text-white font-black py-4 rounded-xl flex justify-center items-center gap-2 shadow-md text-sm active:scale-95 transition-all">
+                <i class="fab fa-whatsapp text-xl"></i> LAPOR KE WA
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Sesuaikan URL ini dengan sumber data internet/lokal Bapak
+        const githubUrl = "https://raw.githubusercontent.com/rustyping/damai/main/listDamaiFull.csv?v=" + Date.now();
+        const stokUrl = "https://raw.githubusercontent.com/rustyping/damai/main/stock.csv?v=" + Date.now();
+        
+        let productsData = [], stokMap = {}, opnameCache = {}, currentCategory = "SEMUA";
+
+        async function initOpname() {
+            try {
+                // 1. Muat Cache Data dari LocalStorage (Fitur Anti-Hilang)
+                if (localStorage.getItem('opname_cache_damai')) {
+                    opnameCache = JSON.parse(localStorage.getItem('opname_cache_damai'));
+                }
+
+                // 2. Load File Stok Sistem
+                const resS = await fetch(stokUrl);
+                const csvS = await resS.text();
+                csvS.split(/\r?\n/).forEach(row => {
+                    const c = row.split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+                    if (c[2]) {
+                        stokMap[c[2].toLowerCase()] = {
+                            qty: Math.floor(parseFloat(c[3])) || 0,
+                            sat: c[4] || "PCS"
+                        };
+                    }
+                });
+
+                // 3. Load File Produk Utama untuk Kategori
+                const resP = await fetch(githubUrl);
+                const csvP = await resP.text();
+                const rows = csvP.split(/\r?\n/).filter(r => r.trim() !== "");
+                let catSet = new Set();
+
+                productsData = rows.slice(1).map(row => {
+                    const c = row.split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+                    const nama = c[2];
+                    if (!nama || nama.toLowerCase().includes("nama barang") || nama.includes("___")) return null;
+                    
+                    catSet.add(c[4] || "UMUM");
+                    const infoStok = stokMap[nama.toLowerCase()];
+
+                    return {
+                        nama: nama,
+                        kat: c[4] || "UMUM",
+                        stokSistem: infoStok ? infoStok.qty : 0,
+                        satuan: infoStok ? infoStok.sat : "PCS"
+                    };
+                }).filter(Boolean);
+
+                // Buat daftar kategori unik (unik per nama barang)
+                let uniqueProducts = [];
+                let seen = new Set();
+                productsData.forEach(p => {
+                    if (!seen.has(p.nama.toLowerCase())) {
+                        seen.add(p.nama.toLowerCase());
+                        uniqueProducts.push(p);
+                    }
+                });
+                productsData = uniqueProducts.sort((a, b) => a.nama.localeCompare(b.nama, 'id', { numeric: true }));
+
+                const cb = document.getElementById('category-bar');
+                Array.from(catSet).sort().forEach(c => {
+                    cb.innerHTML += `<button onclick="filterByCategory('${c}')" class="cat-btn">${c}</button>`;
+                });
+
+                renderOpname(productsData);
+            } catch (e) { console.error("Gagal memuat data opname:", e); }
+        }
+
+        function renderOpname(data, query = "") {
+            const container = document.getElementById('katalog-opname');
+            let html = "";
+
+            data.forEach(p => {
+                const cleanName = p.nama.toLowerCase();
+                // Ambil nilai riil dari cache localstorage jika ada, jika tidak kosongkan
+                const nilaiRiil = opnameCache[cleanName] !== undefined ? opnameCache[cleanName] : "";
+                
+                // Hitung selisih
+                let selisihText = "-";
+                let selisihColor = "text-slate-400";
+                if (nilaiRiil !== "") {
+                    const selisih = parseInt(nilaiRiil) - p.stokSistem;
+                    if (selisih === 0) {
+                        selisihText = "Cocok (0)";
+                        selisihColor = "text-emerald-600 font-bold";
+                    } else if (selisih < 0) {
+                        selisihText = `Kurang (${selisih})`;
+                        selisihColor = "text-red-600 font-bold";
+                    } else {
+                        selisihText = `Lebih (+${selisih})`;
+                        selisihColor = "text-blue-600 font-bold";
+                    }
+                }
+
+                html += `
+                <div class="product-card flex justify-between items-center gap-4">
+                    <div class="flex-1">
+                        <p class="product-name">${p.nama}</p>
+                        <p class="text-[11px] text-slate-500 mt-0.5">Stok Sistem: <span class="font-bold text-slate-700">${p.stokSistem} ${p.satuan}</span></p>
+                        <p class="text-[11px] ${selisihColor} mt-0.5">Status: ${selisihText}</p>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <input type="number" 
+                               value="${nilaiRiil}" 
+                               placeholder="0"
+                               oninput="saveProgress('${cleanName}', this.value)" 
+                               class="opname-input text-slate-800">
+                        <span class="text-xs font-bold text-slate-400 uppercase w-8">${p.satuan}</span>
+                    </div>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        // FUNGSI UTAMA AUTO-SAVE
+        function saveProgress(namaBarang, nilai) {
+            if (nilai.trim() === "") {
+                delete opnameCache[namaBarang];
+            } else {
+                opnameCache[namaBarang] = parseInt(nilai) || 0;
+            }
+            // Simpan langsung ke penyimpanan internal HP/Browser saat itu juga
+            localStorage.setItem('opname_cache_damai', JSON.stringify(opnameCache));
+            
+            // Update tampilan status selisih secara instant tanpa refresh total halaman
+            filterOpname();
+        }
+
+        function filterOpname() {
+            const q = document.getElementById('searchInput').value.toLowerCase().trim();
+            const filtered = productsData.filter(p => (currentCategory === "SEMUA" || p.kat === currentCategory) && p.nama.toLowerCase().includes(q));
+            renderOpname(filtered, q);
+        }
+
+        function filterByCategory(c) {
+            currentCategory = c;
+            document.querySelectorAll('.cat-btn, #btn-all').forEach(b => b.classList.toggle('cat-btn-active', b.innerText === c));
+            filterOpname();
+        }
+
+        function resetOpname() {
+            if (confirm("Apakah Bapak yakin ingin menghapus SEMUA data inputan opname yang berjalan?")) {
+                opnameCache = {};
+                localStorage.removeItem('opname_cache_damai');
+                filterOpname();
+            }
+        }
+
+        // Ekspor Hasil Menjadi CSV Siap Pakai
+        function downloadCSV() {
+            let csvContent = "data:text/csv;charset=utf-8,NAMA BARANG,STOK SISTEM,STOK RIIL,SELISIH\n";
+            productsData.forEach(p => {
+                const riil = opnameCache[p.nama.toLowerCase()] !== undefined ? opnameCache[p.nama.toLowerCase()] : "";
+                const selisih = riil !== "" ? riil - p.stokSistem : "";
+                csvContent += `"${p.nama}",${p.stokSistem},${riil},${selisih}\n`;
+            });
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `Hasil_Opname_Damai_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Kirim Ringkasan Barang yang Selisih/Kurang ke WA Toko
+        function kirimHasilWA() {
+            let pesan = `*LAPORAN HASIL OPNAME STOK*\n📅 Tanggal: *${new Date().toLocaleDateString('id-ID')}*\n\n`;
+            let adaData = false;
+            
+            productsData.forEach(p => {
+                const riil = opnameCache[p.nama.toLowerCase()];
+                if (riil !== undefined) {
+                    const selisih = riil - p.stokSistem;
+                    if (selisih !== 0) {
+                        adaData = true;
+                        pesan += `⚠️ *${p.nama}*\n  Sistem: ${p.stokSistem} | Riil: ${riil} (*Selisih: ${selisih > 0 ? '+' : ''}${selisih}*)\n`;
+                    }
+                }
+            });
+
+            if (!adaData) return alert("Belum ada data barang berselisih yang diisi!");
+            window.open(`https://wa.me/6285815022210?text=${encodeURIComponent(pesan)}`);
+        }
+
+        initOpname();
+    </script>
+</body>
+</html>
