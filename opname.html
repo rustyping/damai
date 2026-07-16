@@ -10,7 +10,8 @@
         body { font-family: 'Inter', sans-serif; background: #f8fafc; }
         header { padding: 10px 16px 6px 16px !important; background: #0f172a; color: white; }
         #searchInput { margin-bottom: 6px !important; padding: 10px 16px !important; font-size: 16px !important; border-radius: 12px; width: 100%; color: black; outline: none; }
-        #checkerInput { margin-bottom: 6px !important; padding: 8px 16px !important; font-size: 14px !important; border-radius: 10px; width: 100%; color: black; outline: none; font-weight: 700; }
+        #checkerInput { padding: 12px 16px !important; font-size: 14px !important; border-radius: 10px; width: 100%; color: black; outline: none; font-weight: 700; border: 2px solid #cbd5e1; }
+        #checkerInput:focus { border-color: #0f172a; }
         .product-card { background: white; border: 1px solid #e2e8f0; margin-bottom: 0.4rem; padding: 12px !important; border-radius: 14px; }
         .product-name { color: #0f172a; font-weight: 850; text-transform: uppercase; line-height: 1.2; font-size: 14px; }
         .opname-input { width: 65px; text-align: center; font-weight: 900; border: 2px solid #cbd5e1; border-radius: 8px; padding: 6px 0; font-size: 14px; background: #f8fafc; }
@@ -20,7 +21,7 @@
         .unit-label { font-size: 9px; font-weight: 900; color: #64748b; text-transform: uppercase; text-align: center; margin-bottom: 2px; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 65px; }
     </style>
 </head>
-<body class="pb-52">
+<body class="pb-32">
 
     <header class="sticky top-0 z-50 shadow-lg">
         <div class="mb-2 flex justify-between items-center">
@@ -32,7 +33,6 @@
                 <i class="fas fa-trash-alt"></i> Reset
             </button>
         </div>
-        <input type="text" id="checkerInput" placeholder="Masukkan Nama Pengecek..." oninput="saveCheckerName(this.value)">
         <input type="text" id="searchInput" oninput="filterOpname()" placeholder="Cari nama barang...">
         <div class="flex items-center overflow-hidden">
             <button id="btn-all" onclick="filterByCategory('SEMUA')" class="cat-btn cat-btn-active mr-2">SEMUA</button>
@@ -42,21 +42,49 @@
 
     <main id="katalog-opname" class="p-4 max-w-xl mx-auto"></main>
 
-    <!-- Bottom Action & Summary Bar -->
     <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-2xl z-40">
-        <!-- Ringkasan/Summary Sebelum Kirim -->
         <div class="bg-slate-100 px-4 py-2 border-b border-slate-200 text-xs font-bold text-slate-700 flex justify-between items-center max-w-xl mx-auto">
             <div>Items Dihitung: <span id="summary-items" class="text-blue-600 font-black">0</span></div>
             <div>Total Qty (Terkecil): <span id="summary-qty" class="text-emerald-600 font-black">0</span></div>
         </div>
         
-        <div class="p-4 max-w-xl mx-auto flex gap-3">
-            <button onclick="downloadCSV()" class="flex-1 bg-slate-800 text-white font-black py-4 rounded-xl flex justify-center items-center gap-2 shadow-md text-sm active:scale-95 transition-all">
-                <i class="fas fa-file-download text-lg"></i> SIMPAN FILE CSV
+        <div class="p-4 max-w-xl mx-auto">
+            <button onclick="toggleSummaryWindow()" class="w-full bg-slate-900 text-white font-black py-4 rounded-xl flex justify-center items-center gap-2 shadow-md text-sm uppercase tracking-wider active:scale-95 transition-all">
+                <i class="fas fa-clipboard-list text-lg"></i> Lihat Ringkasan Opname
             </button>
-            <button onclick="kirimHasilWA()" class="flex-1 bg-[#25D366] text-white font-black py-4 rounded-xl flex justify-center items-center gap-2 shadow-md text-sm active:scale-95 transition-all">
-                <i class="fab fa-whatsapp text-xl"></i> LAPOR KE WA
-            </button>
+        </div>
+    </div>
+
+    <div id="summary-window" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden flex items-end">
+        <div class="w-full bg-white rounded-t-[2.5rem] p-6 shadow-2xl max-h-[85vh] overflow-y-auto">
+            <div class="max-w-xl mx-auto">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-black text-xl italic text-slate-800 tracking-tight">RINGKASAN HASIL OPNAME</h3>
+                    <button onclick="toggleSummaryWindow()" class="text-3xl text-slate-400">&times;</button>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nama Pengecek / Checker:</label>
+                    <input type="text" id="checkerInput" placeholder="TULIS NAMA CHECKER..." oninput="saveCheckerName(this.value)">
+                </div>
+
+                <div class="border border-slate-100 rounded-2xl max-h-[30vh] overflow-y-auto p-3 bg-slate-50 mb-4 divide-y divide-slate-200 text-xs font-medium text-slate-700 shadow-inner" id="summary-list-items">
+                    </div>
+
+                <div class="p-4 bg-slate-900 text-white rounded-2xl mb-4 flex justify-between items-center">
+                    <span class="font-bold text-xs uppercase text-slate-400">Total Macam Item</span>
+                    <span class="font-black text-lg text-emerald-400"><span id="window-total-items">0</span> Item</span>
+                </div>
+
+                <div class="flex gap-3">
+                    <button onclick="downloadCSV()" class="flex-1 bg-slate-800 text-white font-black py-4 rounded-xl flex justify-center items-center gap-2 shadow-md text-sm active:scale-95 transition-all">
+                        <i class="fas fa-file-download text-lg"></i> SIMPAN CSV
+                    </button>
+                    <button onclick="kirimHasilWA()" class="flex-1 bg-[#25D366] text-white font-black py-4 rounded-xl flex justify-center items-center gap-2 shadow-md text-sm active:scale-95 transition-all">
+                        <i class="fab fa-whatsapp text-xl"></i> LAPOR KE WA
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -125,7 +153,7 @@
                 const val3 = opnameCache[`${keyBase}_u3`] !== undefined ? opnameCache[`${keyBase}_u3`] : "";
 
                 let totalTerkecil = (Number(val1) * p.d[0]) + (Number(val2) * p.d[1]) + (Number(val3) * p.d[2]);
-                const labelTerkecil = p.s[2] || p.s[1] || p.s[0] || "Pcs";
+                const labelTerkecil = p.s[0] || "Pcs"; // Dikunci visual ke Satuan 1 sesuai request sebelumnya
 
                 html += `
                 <div class="product-card">
@@ -164,9 +192,7 @@
             </div>`;
         }
 
-        // PERBAIKAN UTAMA: DELAY SINKRONISASI 1 DETIK (DEBOUNCE)
         function debounceSave(key, value, nameKey) {
-            // Bersihkan timeout lama jika pengguna masih mengetik
             clearTimeout(saveTimeout);
             
             if (value.trim() === "") {
@@ -175,7 +201,6 @@
                 opnameCache[key] = parseInt(value) || 0;
             }
 
-            // Hitung total instant di memori saja untuk kenyamanan visual angka berjalan
             const prod = productsData.find(p => p.nama.toLowerCase() === nameKey);
             if (prod) {
                 const v1 = opnameCache[`${nameKey}_u1`] || 0;
@@ -187,7 +212,6 @@
                 if (el) el.innerText = instanTotal;
             }
 
-            // Jalankan penyimpanan permanen dan kalkulasi global hanya jika berhenti mengetik selama 1000ms (1 detik)
             saveTimeout = setTimeout(() => {
                 localStorage.setItem('blind_opname_cache', JSON.stringify(opnameCache));
                 updateSummary();
@@ -198,7 +222,6 @@
             localStorage.setItem('opname_checker_name', val);
         }
 
-        // FUNGSI UPDATE RINGKASAN DATA (SUMMARY)
         function updateSummary() {
             let totalItemsDihitung = 0;
             let totalKuantitasKecil = 0;
@@ -220,6 +243,55 @@
             document.getElementById('summary-qty').innerText = totalKuantitasKecil;
         }
 
+        // FUNGSI PENGISI DETAIL DI JENDELA MODAL
+        function renderSummaryListWindow() {
+            const listContainer = document.getElementById('summary-list-items');
+            let html = "";
+            let counter = 0;
+
+            productsData.forEach(p => {
+                const kb = p.nama.toLowerCase();
+                const v1 = opnameCache[`${kb}_u1`] || 0;
+                const v2 = opnameCache[`${kb}_u2`] || 0;
+                const v3 = opnameCache[`${kb}_u3`] || 0;
+                let total = (v1 * p.d[0]) + (v2 * p.d[1]) + (v3 * p.d[2]);
+
+                if (v1 > 0 || v2 > 0 || v3 > 0) {
+                    counter++;
+                    let detail = [];
+                    if(v1 > 0) detail.push(`${v1} ${p.s[0]}`);
+                    if(v2 > 0) detail.push(`${v2} ${p.s[1]}`);
+                    if(v3 > 0) detail.push(`${v3} ${p.s[2]}`);
+
+                    html += `
+                    <div class="py-2 flex justify-between items-center gap-2">
+                        <div class="flex-1 pr-1">
+                            <p class="font-bold text-slate-800 uppercase tracking-tight">${p.nama}</p>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase">${detail.join(' + ')}</p>
+                        </div>
+                        <div class="text-right font-black text-slate-800 whitespace-nowrap bg-slate-200/60 px-2 py-1 rounded">
+                            ${total} ${p.s[0] || 'Pcs'}
+                        </div>
+                    </div>`;
+                }
+            });
+
+            if(counter === 0) {
+                listContainer.innerHTML = `<p class="text-center py-6 text-slate-400 font-bold uppercase tracking-wider">Belum ada fisik barang dihitung</p>`;
+            } else {
+                listContainer.innerHTML = html;
+            }
+            document.getElementById('window-total-items').innerText = counter;
+        }
+
+        function toggleSummaryWindow() {
+            const win = document.getElementById('summary-window');
+            win.classList.toggle('hidden');
+            if(!win.classList.contains('hidden')) {
+                renderSummaryListWindow();
+            }
+        }
+
         function filterOpname() {
             const q = document.getElementById('searchInput').value.toLowerCase().trim();
             const filtered = productsData.filter(p => (currentCategory === "SEMUA" || p.kat === currentCategory) && p.nama.toLowerCase().includes(q));
@@ -232,10 +304,13 @@
             filterOpname();
         }
 
+        // Tetap menghapus cache inputan & cache nama checker
         function resetOpname() {
             if (confirm("Apakah Bapak yakin ingin menghapus SEMUA hasil hitungan fisik di layar?")) {
                 opnameCache = {};
                 localStorage.removeItem('blind_opname_cache');
+                localStorage.removeItem('opname_checker_name');
+                document.getElementById('checkerInput').value = "";
                 filterOpname();
                 updateSummary();
             }
@@ -270,48 +345,46 @@
             document.body.removeChild(link);
         }
 
-         function kirimHasilWA() {
-                const namaPengecek = document.getElementById('checkerInput').value.trim();
-                if(!namaPengecek) {
-                    alert("Mohon isi Nama Pengecek terlebih dahulu di bagian atas, Pak.");
-                    document.getElementById('checkerInput').focus();
-                    return;
-                }
-            
-                let pesan = `*LAPORAN FISIK OPNAME (BLIND)*\n👤 Pengecek: *${namaPengecek}*\n📅 Tanggal: *${new Date().toLocaleDateString('id-ID')}*\n\n`;
-                let adaData = false;
-                let totalBarang = 0;
-                
-                productsData.forEach(p => {
-                    const kb = p.nama.toLowerCase();
-                    const v1 = opnameCache[`${kb}_u1`] || 0;
-                    const v2 = opnameCache[`${kb}_u2`] || 0;
-                    const v3 = opnameCache[`${kb}_u3`] || 0;
-                    let total = (v1 * p.d[0]) + (v2 * p.d[1]) + (v3 * p.d[2]);
-            
-                    if (v1 > 0 || v2 > 0 || v3 > 0) {
-                        adaData = true;
-                        totalBarang++;
-                        let detail = [];
-                        if(v1 > 0) detail.push(`${v1} ${p.s[0]}`);
-                        if(v2 > 0) detail.push(`${v2} ${p.s[1]}`);
-                        if(v3 > 0) detail.push(`${v3} ${p.s[2]}`);
-                        
-                        // Dikunci selalu menggunakan Satuan 1 (p.s[0])
-                        const namaSatuan1 = p.s[0] || "Pcs";
-                        
-                        pesan += `📦 *${p.nama}*\n  Fisik: ${detail.join(' + ')} \n  *Total: ${total} ${namaSatuan1}*\n\n`;
-                    }
-                });
-            
-                if (!adaData) return alert("Belum ada data fisik barang yang diisi!");
-            
-                pesan += `*----------------------------------*\n`;
-                pesan += `📊 *RINGKASAN AKHIR:*\n`;
-                pesan += `Total Macam Barang Dihitung: *${totalBarang} item*\n`;
-            
-                window.open(`https://wa.me/6285815022210?text=${encodeURIComponent(pesan)}`);
+        function kirimHasilWA() {
+            const namaPengecek = document.getElementById('checkerInput').value.trim();
+            if(!namaPengecek) {
+                alert("Mohon isi Nama Pengecek terlebih dahulu, Pak.");
+                document.getElementById('checkerInput').focus();
+                return;
             }
+
+            let pesan = `*LAPORAN FISIK OPNAME (BLIND)*\n👤 Pengecek: *${namaPengecek}*\n📅 Tanggal: *${new Date().toLocaleDateString('id-ID')}*\n\n`;
+            let adaData = false;
+            let totalBarang = 0;
+            
+            productsData.forEach(p => {
+                const kb = p.nama.toLowerCase();
+                const v1 = opnameCache[`${kb}_u1`] || 0;
+                const v2 = opnameCache[`${kb}_u2`] || 0;
+                const v3 = opnameCache[`${kb}_u3`] || 0;
+                let total = (v1 * p.d[0]) + (v2 * p.d[1]) + (v3 * p.d[2]);
+
+                if (v1 > 0 || v2 > 0 || v3 > 0) {
+                    adaData = true;
+                    totalBarang++;
+                    let detail = [];
+                    if(v1 > 0) detail.push(`${v1} ${p.s[0]}`);
+                    if(v2 > 0) detail.push(`${v2} ${p.s[1]}`);
+                    if(v3 > 0) detail.push(`${v3} ${p.s[2]}`);
+                    
+                    const namaSatuan1 = p.s[0] || "Pcs";
+                    pesan += `📦 *${p.nama}*\n  Fisik: ${detail.join(' + ')} \n  *Total: ${total} ${namaSatuan1}*\n\n`;
+                }
+            });
+
+            if (!adaData) return alert("Belum ada data fisik barang yang diisi!");
+
+            pesan += `*----------------------------------*\n`;
+            pesan += `📊 *RINGKASAN AKHIR:*\n`;
+            pesan += `Total Macam Barang Dihitung: *${totalBarang} item*\n`;
+
+            window.open(`https://wa.me/6285815022210?text=${encodeURIComponent(pesan)}`);
+        }
 
         initOpname();
     </script>
