@@ -10,6 +10,7 @@
         body { font-family: 'Inter', sans-serif; background: #f8fafc; }
         header { padding: 10px 16px 6px 16px !important; background: #0f172a; color: white; }
         #searchInput { margin-bottom: 6px !important; padding: 10px 16px !important; font-size: 16px !important; border-radius: 12px; width: 100%; color: black; outline: none; }
+        #checkerInput { margin-bottom: 6px !important; padding: 8px 16px !important; font-size: 14px !important; border-radius: 10px; width: 100%; color: black; outline: none; font-weight: 700; }
         .product-card { background: white; border: 1px solid #e2e8f0; margin-bottom: 0.4rem; padding: 12px !important; border-radius: 14px; }
         .product-name { color: #0f172a; font-weight: 850; text-transform: uppercase; line-height: 1.2; font-size: 14px; }
         .opname-input { width: 65px; text-align: center; font-weight: 900; border: 2px solid #cbd5e1; border-radius: 8px; padding: 6px 0; font-size: 14px; background: #f8fafc; }
@@ -19,7 +20,7 @@
         .unit-label { font-size: 9px; font-weight: 900; color: #64748b; text-transform: uppercase; text-align: center; margin-bottom: 2px; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 65px; }
     </style>
 </head>
-<body class="pb-36">
+<body class="pb-52">
 
     <header class="sticky top-0 z-50 shadow-lg">
         <div class="mb-2 flex justify-between items-center">
@@ -31,6 +32,7 @@
                 <i class="fas fa-trash-alt"></i> Reset
             </button>
         </div>
+        <input type="text" id="checkerInput" placeholder="Masukkan Nama Pengecek..." oninput="saveCheckerName(this.value)">
         <input type="text" id="searchInput" oninput="filterOpname()" placeholder="Cari nama barang...">
         <div class="flex items-center overflow-hidden">
             <button id="btn-all" onclick="filterByCategory('SEMUA')" class="cat-btn cat-btn-active mr-2">SEMUA</button>
@@ -40,9 +42,15 @@
 
     <main id="katalog-opname" class="p-4 max-w-xl mx-auto"></main>
 
-    <!-- Bottom Action Bar -->
-    <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-2xl z-40">
-        <div class="max-w-xl mx-auto flex gap-3">
+    <!-- Bottom Action & Summary Bar -->
+    <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-2xl z-40">
+        <!-- Ringkasan/Summary Sebelum Kirim -->
+        <div class="bg-slate-100 px-4 py-2 border-b border-slate-200 text-xs font-bold text-slate-700 flex justify-between items-center max-w-xl mx-auto">
+            <div>Items Dihitung: <span id="summary-items" class="text-blue-600 font-black">0</span></div>
+            <div>Total Qty (Terkecil): <span id="summary-qty" class="text-emerald-600 font-black">0</span></div>
+        </div>
+        
+        <div class="p-4 max-w-xl mx-auto flex gap-3">
             <button onclick="downloadCSV()" class="flex-1 bg-slate-800 text-white font-black py-4 rounded-xl flex justify-center items-center gap-2 shadow-md text-sm active:scale-95 transition-all">
                 <i class="fas fa-file-download text-lg"></i> SIMPAN FILE CSV
             </button>
@@ -55,12 +63,15 @@
     <script>
         const githubUrl = "https://raw.githubusercontent.com/rustyping/damai/main/listDamaiFull.csv?v=" + Date.now();
         
-        let productsData = [], opnameCache = {}, currentCategory = "SEMUA";
+        let productsData = [], opnameCache = {}, currentCategory = "SEMUA", saveTimeout = null;
 
         async function initOpname() {
             try {
                 if (localStorage.getItem('blind_opname_cache')) {
                     opnameCache = JSON.parse(localStorage.getItem('blind_opname_cache'));
+                }
+                if (localStorage.getItem('opname_checker_name')) {
+                    document.getElementById('checkerInput').value = localStorage.getItem('opname_checker_name');
                 }
 
                 const resP = await fetch(githubUrl);
@@ -78,12 +89,11 @@
                     return {
                         nama: nama,
                         kat: c[4] || "UMUM",
-                        s: [c[6] || "", c[7] || "", c[8] || ""], // Satuan 1, 2, 3
-                        d: [parseInt(c[10]) || 1, parseInt(c[11]) || 1, parseInt(c[12]) || 1] // Pengali Isi Satuan 1, 2, 3
+                        s: [c[6] || "", c[7] || "", c[8] || ""],
+                        d: [parseInt(c[10]) || 1, parseInt(c[11]) || 1, parseInt(c[12]) || 1]
                     };
                 }).filter(Boolean);
 
-                // Hilangkan duplikasi barang
                 let uniqueProducts = [];
                 let seen = new Set();
                 productsData.forEach(p => {
@@ -100,6 +110,7 @@
                 });
 
                 renderOpname(productsData);
+                updateSummary();
             } catch (e) { console.error("Gagal memuat data:", e); }
         }
 
@@ -113,10 +124,7 @@
                 const val2 = opnameCache[`${keyBase}_u2`] !== undefined ? opnameCache[`${keyBase}_u2`] : "";
                 const val3 = opnameCache[`${keyBase}_u3`] !== undefined ? opnameCache[`${keyBase}_u3`] : "";
 
-                // Hitung total dalam satuan terkecil (PCS/terkecil)
                 let totalTerkecil = (Number(val1) * p.d[0]) + (Number(val2) * p.d[1]) + (Number(val3) * p.d[2]);
-                
-                // Gunakan nama satuan ke-3 sebagai penanda satuan terkecil, jika kosong pakai 'Pcs'
                 const labelTerkecil = p.s[2] || p.s[1] || p.s[0] || "Pcs";
 
                 html += `
@@ -126,17 +134,15 @@
                     </div>
                     
                     <div class="flex items-end justify-between gap-2 bg-slate-50 p-2 rounded-xl border border-dashed border-slate-200">
-                        <!-- Input Grid untuk Satuan 1, 2, 3 -->
                         <div class="flex gap-2">
                             ${renderInputBox(p.nama, p.s[0], 1, val1)}
                             ${renderInputBox(p.nama, p.s[1], 2, val2)}
                             ${renderInputBox(p.nama, p.s[2], 3, val3)}
                         </div>
 
-                        <!-- Kolom Total Satuan Terkecil -->
                         <div class="text-right min-w-[90px] pr-1">
                             <span class="text-[9px] font-black text-slate-400 uppercase block leading-none mb-1">TOTAL (${labelTerkecil})</span>
-                            <span class="text-base font-black text-slate-800">${totalTerkecil}</span>
+                            <span id="total-render-${keyBase.replace(/[^a-z0-9]/g, '')}" class="text-base font-black text-slate-800">${totalTerkecil}</span>
                         </div>
                     </div>
                 </div>`;
@@ -145,7 +151,7 @@
         }
 
         function renderInputBox(nama, satuanLabel, idx, nilai) {
-            if (!satuanLabel) return ""; // Jika kolom satuan di CSV kosong, jangan tampilkan box inputnya
+            if (!satuanLabel) return "";
             const key = `${nama.toLowerCase()}_u${idx}`;
             return `
             <div>
@@ -153,23 +159,65 @@
                 <input type="number" 
                        value="${nilai}" 
                        placeholder="0"
-                       oninput="saveProgress('${key}', this.value)" 
+                       oninput="debounceSave('${key}', this.value, '${nama.toLowerCase()}')" 
                        class="opname-input">
             </div>`;
         }
 
-        function saveProgress(key, value) {
+        // PERBAIKAN UTAMA: DELAY SINKRONISASI 1 DETIK (DEBOUNCE)
+        function debounceSave(key, value, nameKey) {
+            // Bersihkan timeout lama jika pengguna masih mengetik
+            clearTimeout(saveTimeout);
+            
             if (value.trim() === "") {
                 delete opnameCache[key];
             } else {
                 opnameCache[key] = parseInt(value) || 0;
             }
-            localStorage.setItem('blind_opname_cache', JSON.stringify(opnameCache));
-            
-            // Kalkulasi ulang total terkecil di layar secara real-time
-            const q = document.getElementById('searchInput').value.toLowerCase().trim();
-            const filtered = productsData.filter(p => (currentCategory === "SEMUA" || p.kat === currentCategory) && p.nama.toLowerCase().includes(q));
-            renderOpname(filtered, q);
+
+            // Hitung total instant di memori saja untuk kenyamanan visual angka berjalan
+            const prod = productsData.find(p => p.nama.toLowerCase() === nameKey);
+            if (prod) {
+                const v1 = opnameCache[`${nameKey}_u1`] || 0;
+                const v2 = opnameCache[`${nameKey}_u2`] || 0;
+                const v3 = opnameCache[`${nameKey}_u3`] || 0;
+                let instanTotal = (v1 * prod.d[0]) + (v2 * prod.d[1]) + (v3 * prod.d[2]);
+                const elementId = `total-render-${nameKey.replace(/[^a-z0-9]/g, '')}`;
+                const el = document.getElementById(elementId);
+                if (el) el.innerText = instanTotal;
+            }
+
+            // Jalankan penyimpanan permanen dan kalkulasi global hanya jika berhenti mengetik selama 1000ms (1 detik)
+            saveTimeout = setTimeout(() => {
+                localStorage.setItem('blind_opname_cache', JSON.stringify(opnameCache));
+                updateSummary();
+            }, 1000);
+        }
+
+        function saveCheckerName(val) {
+            localStorage.setItem('opname_checker_name', val);
+        }
+
+        // FUNGSI UPDATE RINGKASAN DATA (SUMMARY)
+        function updateSummary() {
+            let totalItemsDihitung = 0;
+            let totalKuantitasKecil = 0;
+
+            productsData.forEach(p => {
+                const kb = p.nama.toLowerCase();
+                const v1 = opnameCache[`${kb}_u1`] || 0;
+                const v2 = opnameCache[`${kb}_u2`] || 0;
+                const v3 = opnameCache[`${kb}_u3`] || 0;
+                let total = (v1 * p.d[0]) + (v2 * p.d[1]) + (v3 * p.d[2]);
+
+                if (v1 > 0 || v2 > 0 || v3 > 0) {
+                    totalItemsDihitung++;
+                    totalKuantitasKecil += total;
+                }
+            });
+
+            document.getElementById('summary-items').innerText = totalItemsDihitung;
+            document.getElementById('summary-qty').innerText = totalKuantitasKecil;
         }
 
         function filterOpname() {
@@ -189,11 +237,15 @@
                 opnameCache = {};
                 localStorage.removeItem('blind_opname_cache');
                 filterOpname();
+                updateSummary();
             }
         }
 
         function downloadCSV() {
-            let csvContent = "data:text/csv;charset=utf-8,NAMA BARANG,INPUT SATUAN 1,INPUT SATUAN 2,INPUT SATUAN 3,TOTAL SATUAN TERKECIL\n";
+            const namaPengecek = document.getElementById('checkerInput').value.trim() || "Tanpa Nama";
+            let csvContent = `data:text/csv;charset=utf-8,PENGECEK: ${namaPengecek}\nNAMA BARANG,INPUT SATUAN 1,INPUT SATUAN 2,INPUT SATUAN 3,TOTAL SATUAN TERKECIL\n`;
+            
+            let adaData = false;
             productsData.forEach(p => {
                 const kb = p.nama.toLowerCase();
                 const v1 = opnameCache[`${kb}_u1`] || 0;
@@ -201,23 +253,34 @@
                 const v3 = opnameCache[`${kb}_u3`] || 0;
                 let total = (v1 * p.d[0]) + (v2 * p.d[1]) + (v3 * p.d[2]);
                 
-                // Hanya masukkan ke CSV jika barang tersebut memang ada isinya (tidak mengotori file dengan angka 0)
                 if(v1 > 0 || v2 > 0 || v3 > 0) {
+                    adaData = true;
                     csvContent += `"${p.nama}",${v1},${v2},${v3},${total}\n`;
                 }
             });
+            
+            if (!adaData) return alert("Belum ada data fisik barang yang diisi!");
+
             const encodedUri = encodeURI(csvContent);
             const link = document.createElement("a");
             link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `Hasil_Blind_Opname_Damai_${new Date().toISOString().split('T')[0]}.csv`);
+            link.setAttribute("download", `Opname_${namaPengecek}_${new Date().toISOString().split('T')[0]}.csv`);
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
         }
 
         function kirimHasilWA() {
-            let pesan = `*LAPORAN FISIK OPNAME (BLIND)*\n📅 Tanggal: *${new Date().toLocaleDateString('id-ID')}*\n\n`;
+            const namaPengecek = document.getElementById('checkerInput').value.trim();
+            if(!namaPengecek) {
+                alert("Mohon isi Nama Pengecek terlebih dahulu di bagian atas, Pak.");
+                document.getElementById('checkerInput').focus();
+                return;
+            }
+
+            let pesan = `*LAPORAN FISIK OPNAME (BLIND)*\n👤 Pengecek: *${namaPengecek}*\n📅 Tanggal: *${new Date().toLocaleDateString('id-ID')}*\n\n`;
             let adaData = false;
+            let totalBarang = 0;
             
             productsData.forEach(p => {
                 const kb = p.nama.toLowerCase();
@@ -228,14 +291,19 @@
 
                 if (v1 > 0 || v2 > 0 || v3 > 0) {
                     adaData = true;
+                    totalBarang++;
                     let detail = [];
                     if(v1 > 0) detail.push(`${v1} ${p.s[0]}`);
                     if(v2 > 0) detail.push(`${v2} ${p.s[1]}`);
                     if(v3 > 0) detail.push(`${v3} ${p.s[2]}`);
                     
-                    pesan += `📦 *${p.nama}*\n  Fisik: ${detail.join(' + ')} \n  *Total Terkecil: ${total} ${p.s[2]||'Pcs'}*\n\n`;
+                    pesan += `📦 *${p.nama}*\n  Fisik: ${detail.join(' + ')} \n  *Total: ${total} ${p.s[2]||'Pcs'}*\n\n`;
                 }
             });
+
+            pesan += `*----------------------------------*\n`;
+            pesan += `📊 *RINGKASAN AKHIR:*\n`;
+            pesan += `Total Macam Barang Dihitung: *${totalBarang} item*\n`;
 
             if (!adaData) return alert("Belum ada data fisik barang yang diisi!");
             window.open(`https://wa.me/6285815022210?text=${encodeURIComponent(pesan)}`);
