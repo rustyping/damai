@@ -170,7 +170,6 @@
                         <p class="product-name">${p.nama}</p>
                     </div>
                     
-                    <!-- Perubahan warna bubble di bawah ini: diubah dari bg-slate-50 menjadi bg-blue-50/80 dan border-blue-200 cerah -->
                     <div class="flex items-end justify-between gap-2 bg-blue-50/80 p-2 rounded-xl border border-dashed border-blue-200">
                         <div class="flex gap-2">
                             ${renderInputBox(p.nama, p.s[0], 1, val1)}
@@ -233,7 +232,6 @@
             localStorage.setItem('opname_checker_name', val);
         }
 
-         Newark
         function updateSummary() {
             let totalItemsDihitung = 0;
             let totalKuantitasKecil = 0;
@@ -295,7 +293,6 @@
             document.getElementById('window-total-items').innerText = counter;
         }
 
-         Newark
         function toggleSummaryWindow() {
             const win = document.getElementById('summary-window');
             win.classList.toggle('hidden');
@@ -347,7 +344,6 @@
             let csvContent = `data:text/csv;charset=utf-8,PENGECEK: ${namaPengecek}\nNAMA BARANG,INPUT SATUAN 1,INPUT SATUAN 2,INPUT SATUAN 3,TOTAL SATUAN TERKECIL\n`;
             
             let adaData = false;
- Newark
             productsData.forEach(p => {
                 const kb = p.nama.toLowerCase();
                 const v1 = opnameCache[`${kb}_u1`] || 0;
@@ -374,7 +370,6 @@
 
         function kirimHasilWA() {
             const namaPengecek = document.getElementById('checkerInput').value.trim();
-             Newark
             if(!namaPengecek) {
                 alert("Mohon isi Nama Pengecek terlebih dahulu, Pak.");
                 document.getElementById('checkerInput').focus();
@@ -385,7 +380,7 @@
             let adaData = false;
             let totalBarang = 0;
             
-            productsData.forEach(p => { Newark
+            productsData.forEach(p => {
                 const kb = p.nama.toLowerCase();
                 const v1 = opnameCache[`${kb}_u1`] || 0;
                 const v2 = opnameCache[`${kb}_u2`] || 0;
