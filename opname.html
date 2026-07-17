@@ -89,7 +89,7 @@
     </div>
 
     <script>
-        // Silakan ganti ID_SPREADSHEET_ANDA di bawah ini
+        // PENTING: Ganti ID_SPREADSHEET_ANDA di bawah dengan ID Google Sheet Toko Damai
         const sheetUrl = "https://docs.google.com/spreadsheets/d/ID_SPREADSHEET_ANDA/export?format=csv&gid=0&v=" + Date.now();
         
         let productsData = [], opnameCache = {}, currentCategory = "SEMUA", saveTimeout = null;
@@ -105,11 +105,17 @@
 
                 const resP = await fetch(sheetUrl);
                 const csvP = await resP.text();
+
+                // Pengaman: Jika yang didapat adalah kode HTML/Webpage login Google
+                if (csvP.includes("<!DOCTYPE html>") || csvP.includes("<html>") || sheetUrl.includes("ID_SPREADSHEET_ANDA")) {
+                    alert("⚠️ ERROR: Data gagal dimuat!\n\nKemungkinan Penyebab:\n1. Anda belum mengganti 'ID_SPREADSHEET_ANDA' di dalam kode script.\n2. Google Sheet belum diatur ke 'Anyone with the link can view' (Siapa saja pemilik link dapat melihat).");
+                    return;
+                }
+
                 const rows = csvP.split(/\r?\n/).filter(r => r.trim() !== "");
                 let catSet = new Set();
 
                 productsData = rows.slice(1).map(row => {
-                    // Penanganan pemisahan kolom CSV yang aman dari Google Sheets
                     const c = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.trim().replace(/^"|"$/g, ''));
                     const nama = c[2];
                     
@@ -148,7 +154,10 @@
 
                 renderOpname(productsData);
                 updateSummary();
-            } catch (e) { console.error("Gagal memuat data:", e); }
+            } catch (e) { 
+                console.error("Gagal memuat data:", e);
+                alert("Gagal menyambungkan ke Google Sheets. Periksa koneksi internet atau format link.");
+            }
         }
 
         function renderOpname(data, query = "") {
@@ -343,8 +352,6 @@
                 return false;
             }
         });
-
-        font-black;
 
         function downloadCSV() {
             const namaPengecek = document.getElementById('checkerInput').value.trim() || "Tanpa Nama";
