@@ -89,8 +89,8 @@
     </div>
 
     <script>
-        // PENTING: Ganti ID_SPREADSHEET_ANDA di bawah dengan ID Google Sheet Toko Damai
-        const sheetUrl = "https://docs.google.com/spreadsheets/d/ID_SPREADSHEET_ANDA/export?format=csv&gid=0&v=" + Date.now();
+        // Menggunakan link Publish CSV Toko Damai yang baru, ditambahkan bypass cache dinamis
+        const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSTkd4mFoUG-6rZ9doVT93RfCFfcqIz0o2-lVrT-9AmYrWs9-gRBXuUM-Bt7XGsHOSK-WBEV7tAQZFJ/pub?gid=0&single=true&output=csv&v=" + Date.now();
         
         let productsData = [], opnameCache = {}, currentCategory = "SEMUA", saveTimeout = null;
 
@@ -106,17 +106,20 @@
                 const resP = await fetch(sheetUrl);
                 const csvP = await resP.text();
 
-                // Pengaman: Jika yang didapat adalah kode HTML/Webpage login Google
-                if (csvP.includes("<!DOCTYPE html>") || csvP.includes("<html>") || sheetUrl.includes("ID_SPREADSHEET_ANDA")) {
-                    alert("⚠️ ERROR: Data gagal dimuat!\n\nKemungkinan Penyebab:\n1. Anda belum mengganti 'ID_SPREADSHEET_ANDA' di dalam kode script.\n2. Google Sheet belum diatur ke 'Anyone with the link can view' (Siapa saja pemilik link dapat melihat).");
+                // Deteksi jika respon tidak berisi data tabel sembako
+                if (!csvP || csvP.includes("<!DOCTYPE html>") || csvP.includes("<html>")) {
+                    alert("⚠️ ERROR: Link lembar kerja tidak mengembalikan format CSV valid. Mohon pastikan pengaturan 'Publikasikan ke Web' di Google Sheets sudah benar.");
                     return;
                 }
 
                 const rows = csvP.split(/\r?\n/).filter(r => r.trim() !== "");
                 let catSet = new Set();
 
+                // Mengurai data baris demi baris menggunakan Regex aman untuk format data CSV Google Sheets
                 productsData = rows.slice(1).map(row => {
                     const c = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.trim().replace(/^"|"$/g, ''));
+                    
+                    // Kolom 2 biasanya berisi Nama Barang
                     const nama = c[2];
                     
                     if (!nama || 
@@ -126,16 +129,18 @@
                         return null;
                     }
                     
+                    // Kolom 4 berisi Kategori barang
                     catSet.add(c[4] || "UMUM");
 
                     return {
                         nama: nama,
                         kat: c[4] || "UMUM",
-                        s: [c[6] || "", c[7] || "", c[8] || ""],
-                        d: [parseInt(c[10]) || 1, parseInt(c[11]) || 1, parseInt(c[12]) || 1]
+                        s: [c[6] || "", c[7] || "", c[8] || ""], // Satuan 1, 2, 3
+                        d: [parseInt(c[10]) || 1, parseInt(c[11]) || 1, parseInt(c[12]) || 1] // Isi Konversi Satuan
                     };
                 }).filter(Boolean);
 
+                // Menghilangkan duplikasi data barang
                 let uniqueProducts = [];
                 let seen = new Set();
                 productsData.forEach(p => {
@@ -146,6 +151,7 @@
                 });
                 productsData = uniqueProducts.sort((a, b) => a.nama.localeCompare(b.nama, 'id', { numeric: true }));
 
+                // Memasukkan daftar kategori ke bagian filter atas
                 const cb = document.getElementById('category-bar');
                 cb.innerHTML = "";
                 Array.from(catSet).sort().forEach(c => {
@@ -156,7 +162,7 @@
                 updateSummary();
             } catch (e) { 
                 console.error("Gagal memuat data:", e);
-                alert("Gagal menyambungkan ke Google Sheets. Periksa koneksi internet atau format link.");
+                alert("Gagal memuat data dari tautan Google Sheets. Silakan cek sambungan internet Anda.");
             }
         }
 
