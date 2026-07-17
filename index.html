@@ -241,7 +241,7 @@
          const stokUrl   = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSTkd4mFoUG-6rZ9doVT93RfCFfcqIz0o2-lVrT-9AmYrWs9-gRBXuUM-Bt7XGsHOSK-WBEV7tAQZFJ/pub?gid=615135187&single=true&output=csv" + "&v=" + Date.now();
          const promoUrl  = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSTkd4mFoUG-6rZ9doVT93RfCFfcqIz0o2-lVrT-9AmYrWs9-gRBXuUM-Bt7XGsHOSK-WBEV7tAQZFJ/pub?gid=468445490&single=true&output=csv" + "&v=" + Date.now();
          
-         let productsData = [], stokMap = {}, cart = {}, currentCategory = "SEMUA", searchTimeout;
+        let productsData = [], stokMap = {}, cart = {}, currentCategory = "SEMUA", searchTimeout, qtyInputTimeout;
 
         // Progress Bar
         window.onscroll = function() {
@@ -514,11 +514,26 @@
         }
 
         function editQty(nama, satuan, val, harga, warna, detail) {
-            if (val === "") return; // Jika kosong karena dihapus, abaikan agar tidak langsung terhapus
-            const qty = parseInt(val);
-            const key = `${nama} (${satuan})`;
-            const currentQty = cart[key] ? cart[key].qty : 0;
-            updateCart(nama, satuan, harga, warna, (isNaN(qty) || qty <= 0 ? -currentQty : qty - currentQty), detail);
+            if (val === "") return; // Jika kosong karena dihapus, abaikan sementara
+            
+            // Hapus timeout sebelumnya agar tidak mengeksekusi angka setengah (misal: baru ketik 5 dari 500)
+            clearTimeout(qtyInputTimeout);
+            
+            // Setel delay 1000ms (1 detik) sebelum perubahan diproses ke sistem utama
+            qtyInputTimeout = setTimeout(() => {
+                const qty = parseInt(val);
+                const key = `${nama} (${satuan})`;
+                const currentQty = cart[key] ? cart[key].qty : 0;
+                
+                updateCart(
+                    nama, 
+                    satuan, 
+                    harga, 
+                    warna, 
+                    (isNaN(qty) || qty <= 0 ? -currentQty : qty - currentQty), 
+                    detail
+                );
+            }, 1000); // 1000ms = 1 detik. Silakan sesuaikan jika dirasa terlalu lambat/cepat.
         }
 
         function toggleCart() { document.getElementById('cart-footer').classList.toggle('hidden'); if(!document.getElementById('cart-footer').classList.contains('hidden')) renderCartList(); }
