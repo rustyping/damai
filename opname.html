@@ -14,12 +14,10 @@
         #checkerInput:focus { border-color: #0f172a; }
         .product-card { background: white; border: 1px solid #e2e8f0; margin-bottom: 0.4rem; padding: 12px !important; border-radius: 14px; }
         .product-name { color: #0f172a; font-weight: 850; text-transform: uppercase; line-height: 1.2; font-size: 14px; }
-        /* Mengubah border input satuan agar senada dengan nuansa biru kontras */
         .opname-input { width: 65px; text-align: center; font-weight: 900; border: 2px solid #93c5fd; border-radius: 8px; padding: 6px 0; font-size: 14px; background: #fff; color: #1e3a8a; }
         .opname-input:focus { border-color: #1e40af; outline: none; background: #fff; }
         .cat-btn { white-space: nowrap; padding: 6px 16px; border-radius: 12px; font-size: 11px; font-weight: 800; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); }
         .cat-btn-active { background: #3b82f6 !important; border-color: #3b82f6 !important; }
-        /* Mengubah warna label teks satuan menjadi biru tua tegas */
         .unit-label { font-size: 9px; font-weight: 950; color: #1e40af; text-transform: uppercase; text-align: center; margin-bottom: 2px; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 65px; }
     </style>
 </head>
@@ -44,7 +42,7 @@
 
     <main id="katalog-opname" class="p-4 max-w-xl mx-auto"></main>
 
-   <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-2xl z-40">
+    <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-2xl z-40">
         <div class="bg-slate-100 px-4 py-2 border-b border-slate-200 text-xs font-bold text-slate-700 flex justify-between items-center max-w-xl mx-auto">
             <div>Items Dihitung: <span id="summary-items" class="text-blue-600 font-black">0</span></div>
             <div></div>
@@ -91,7 +89,10 @@
     </div>
 
     <script>
-        const githubUrl = "https://raw.githubusercontent.com/rustyping/damai/main/listDamaiFull.csv?v=" + Date.now();
+        // ==========================================
+        // SILAKAN GANTI URL DI BAWAH INI DENGAN URL GOOGLE SHEET ANDA
+        // ==========================================
+        const sheetUrl = "https://docs.google.com/spreadsheets/d/ID_SPREADSHEET_ANDA/export?format=csv&gid=0&v=" + Date.now();
         
         let productsData = [], opnameCache = {}, currentCategory = "SEMUA", saveTimeout = null;
 
@@ -104,13 +105,15 @@
                     document.getElementById('checkerInput').value = localStorage.getItem('opname_checker_name');
                 }
 
-                const resP = await fetch(githubUrl);
+                // Mengambil data dari Google Sheet (CSV format)
+                const resP = await fetch(sheetUrl);
                 const csvP = await resP.text();
                 const rows = csvP.split(/\r?\n/).filter(r => r.trim() !== "");
                 let catSet = new Set();
 
                 productsData = rows.slice(1).map(row => {
-                    const c = row.split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+                    // Penanganan pemisahan kolom CSV yang aman jika ada karakter tanda kutip
+                    const c = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.trim().replace(/^"|"$/g, ''));
                     const nama = c[2];
                     
                     if (!nama || 
@@ -148,7 +151,7 @@
 
                 renderOpname(productsData);
                 updateSummary();
-            } catch (e) { console.error("Gagal memuat data:", e); }
+            } catch (e) { console.error("Gagal memuat data dari Google Sheet:", e); }
         }
 
         function renderOpname(data, query = "") {
@@ -252,7 +255,12 @@
             });
 
             document.getElementById('summary-items').innerText = totalItemsDihitung;
-            document.getElementById('summary-qty').innerText = totalKuantitasKecil;
+            
+            // Pengaman agar tidak terjadi error jika elemen tidak ada di halaman HTML
+            const elQty = document.getElementById('summary-qty');
+            if (elQty) {
+                elQty.innerText = totalKuantitasKecil;
+            }
         }
 
         function renderSummaryListWindow() {
