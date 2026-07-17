@@ -378,8 +378,8 @@
                     <button onclick="updateCart('${esc}', '${satuan}', ${harga}, '${warna}', -1, '${detail}')" class="w-10 h-12 font-black text-xl active:bg-black/20">-</button>
                     
                     <div class="flex flex-col items-center justify-center leading-none">
-                        <span class="text-base font-black">${qty}</span>
-                        <span class="text-[9px] font-black opacity-90 uppercase tracking-tighter">${satuan}</span>
+                        <input type="number" value="${qty}" oninput="editQty('${esc}', '${satuan}', this.value, ${harga}, '${warna}', '${detail}')" class="w-12 bg-transparent text-center font-black text-base text-white outline-none appearance-none">
+                        <span class="text-[9px] font-black opacity-90 uppercase tracking-tighter mt-1">${satuan}</span>
                     </div>
         
                     <button onclick="updateCart('${esc}', '${satuan}', ${harga}, '${warna}', 1, '${detail}')" class="w-10 h-12 font-black text-xl active:bg-black/20">+</button>
