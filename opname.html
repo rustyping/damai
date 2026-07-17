@@ -1,833 +1,422 @@
 <!DOCTYPE html>
-
 <html lang="id">
-
 <head>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Opname Stok - Toko Damai</title>
-
     <script src="https://cdn.tailwindcss.com"></script>
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
     <style>
-
         body { font-family: 'Inter', sans-serif; background: #f8fafc; }
-
         header { padding: 10px 16px 6px 16px !important; background: #0f172a; color: white; }
-
         #searchInput { margin-bottom: 6px !important; padding: 10px 16px !important; font-size: 16px !important; border-radius: 12px; width: 100%; color: black; outline: none; }
-
         #checkerInput { padding: 12px 16px !important; font-size: 14px !important; border-radius: 10px; width: 100%; color: black; outline: none; font-weight: 700; border: 2px solid #cbd5e1; }
-
         #checkerInput:focus { border-color: #0f172a; }
-
         .product-card { background: white; border: 1px solid #e2e8f0; margin-bottom: 0.4rem; padding: 12px !important; border-radius: 14px; }
-
         .product-name { color: #0f172a; font-weight: 850; text-transform: uppercase; line-height: 1.2; font-size: 14px; }
-
-        /* Mengubah border input satuan agar senada dengan nuansa biru kontras */
-
         .opname-input { width: 65px; text-align: center; font-weight: 900; border: 2px solid #93c5fd; border-radius: 8px; padding: 6px 0; font-size: 14px; background: #fff; color: #1e3a8a; }
-
         .opname-input:focus { border-color: #1e40af; outline: none; background: #fff; }
-
         .cat-btn { white-space: nowrap; padding: 6px 16px; border-radius: 12px; font-size: 11px; font-weight: 800; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); }
-
         .cat-btn-active { background: #3b82f6 !important; border-color: #3b82f6 !important; }
-
-        /* Mengubah warna label teks satuan menjadi biru tua tegas */
-
         .unit-label { font-size: 9px; font-weight: 950; color: #1e40af; text-transform: uppercase; text-align: center; margin-bottom: 2px; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 65px; }
-
     </style>
-
 </head>
-
 <body class="pb-32">
 
-
-
     <header class="sticky top-0 z-50 shadow-lg">
-
         <div class="mb-2 flex justify-between items-center">
-
             <div>
-
                 <h1 class="text-xl font-black italic tracking-tighter">OPNAME TOKO DAMAI</h1>
-
                 <p class="text-[9px] font-bold opacity-80 uppercase">Perhitungan Fisik Murni</p>
-
             </div>
-
             <button onclick="resetOpname()" class="text-[10px] bg-red-600 px-2 py-1 rounded font-black tracking-wider uppercase active:scale-95 transition-all">
-
                 <i class="fas fa-trash-alt"></i> Reset
-
             </button>
-
         </div>
-
         <input type="text" id="searchInput" oninput="handleSearchInput()" placeholder="Cari nama barang...">
-
         <div class="flex items-center overflow-hidden">
-
             <button id="btn-all" onclick="filterByCategory('SEMUA')" class="cat-btn cat-btn-active mr-2">SEMUA</button>
-
             <div id="category-bar" class="flex overflow-x-auto gap-2 py-1"></div>
-
         </div>
-
     </header>
-
-
 
     <main id="katalog-opname" class="p-4 max-w-xl mx-auto"></main>
 
-
-
-   <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-2xl z-40">
-
+    <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-2xl z-40">
         <div class="bg-slate-100 px-4 py-2 border-b border-slate-200 text-xs font-bold text-slate-700 flex justify-between items-center max-w-xl mx-auto">
-
             <div>Items Dihitung: <span id="summary-items" class="text-blue-600 font-black">0</span></div>
-
-            <div></div>
-
+            <div>Total Qty (Pcs): <span id="summary-qty" class="text-emerald-600 font-black">0</span></div>
         </div>
-
         
-
         <div class="p-4 max-w-xl mx-auto">
-
             <button onclick="toggleSummaryWindow()" class="w-full bg-slate-900 text-white font-black py-4 rounded-xl flex justify-center items-center gap-2 shadow-md text-sm uppercase tracking-wider active:scale-95 transition-all">
-
                 <i class="fas fa-clipboard-list text-lg"></i> Lihat Ringkasan Opname
-
             </button>
-
         </div>
-
     </div>
-
-
 
     <div id="summary-window" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden flex items-end">
-
         <div class="w-full bg-white rounded-t-[2.5rem] p-6 shadow-2xl max-h-[85vh] overflow-y-auto">
-
             <div class="max-w-xl mx-auto">
-
                 <div class="flex justify-between items-center mb-4">
-
                     <h3 class="font-black text-xl italic text-slate-800 tracking-tight">RINGKASAN HASIL OPNAME</h3>
-
                     <button onclick="toggleSummaryWindow()" class="text-3xl text-slate-400">&times;</button>
-
                 </div>
-
-
 
                 <div class="mb-4">
-
                     <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nama Pengecek / Checker:</label>
-
                     <input type="text" id="checkerInput" placeholder="TULIS NAMA CHECKER..." oninput="saveCheckerName(this.value)">
-
                 </div>
-
-
 
                 <div class="border border-slate-100 rounded-2xl max-h-[30vh] overflow-y-auto p-3 bg-slate-50 mb-4 divide-y divide-slate-200 text-xs font-medium text-slate-700 shadow-inner" id="summary-list-items">
-
                 </div>
-
-
 
                 <div class="p-4 bg-slate-900 text-white rounded-2xl mb-4 flex justify-between items-center">
-
                     <span class="font-bold text-xs uppercase text-slate-400">Total Macam Item</span>
-
                     <span class="font-black text-lg text-emerald-400"><span id="window-total-items">0</span> Item</span>
-
                 </div>
-
-
 
                 <div class="flex gap-3">
-
                     <button onclick="downloadCSV()" class="flex-1 bg-slate-800 text-white font-black py-4 rounded-xl flex justify-center items-center gap-2 shadow-md text-sm active:scale-95 transition-all">
-
                         <i class="fas fa-file-download text-lg"></i> SIMPAN CSV
-
                     </button>
-
                     <button onclick="kirimHasilWA()" class="flex-1 bg-[#25D366] text-white font-black py-4 rounded-xl flex justify-center items-center gap-2 shadow-md text-sm active:scale-95 transition-all">
-
                         <i class="fab fa-whatsapp text-xl"></i> LAPOR KE WA
-
                     </button>
-
                 </div>
-
             </div>
-
         </div>
-
     </div>
 
-
-
     <script>
-
-        const githubUrl = "https://docs.google.com/spreadsheets/d/ID_SPREADSHEET_ANDA/export?format=csv&gid=0&v=" + Date.now();
-
+        // Silakan ganti ID_SPREADSHEET_ANDA di bawah ini
+        const sheetUrl = "https://docs.google.com/spreadsheets/d/ID_SPREADSHEET_ANDA/export?format=csv&gid=0&v=" + Date.now();
         
-
         let productsData = [], opnameCache = {}, currentCategory = "SEMUA", saveTimeout = null;
 
-
-
         async function initOpname() {
-
             try {
-
                 if (localStorage.getItem('blind_opname_cache')) {
-
                     opnameCache = JSON.parse(localStorage.getItem('blind_opname_cache'));
-
                 }
-
                 if (localStorage.getItem('opname_checker_name')) {
-
                     document.getElementById('checkerInput').value = localStorage.getItem('opname_checker_name');
-
                 }
 
-
-
-                const resP = await fetch(githubUrl);
-
+                const resP = await fetch(sheetUrl);
                 const csvP = await resP.text();
-
                 const rows = csvP.split(/\r?\n/).filter(r => r.trim() !== "");
-
                 let catSet = new Set();
 
-
-
                 productsData = rows.slice(1).map(row => {
-
-                    const c = row.split(',').map(v => v.trim().replace(/^"|"$/g, ''));
-
+                    // Penanganan pemisahan kolom CSV yang aman dari Google Sheets
+                    const c = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.trim().replace(/^"|"$/g, ''));
                     const nama = c[2];
-
                     
-
                     if (!nama || 
-
                         nama.toLowerCase().includes("nama barang") || 
-
                         nama.includes("___") || 
-
                         nama.toLowerCase().includes("xxx")) {
-
                         return null;
-
                     }
-
                     
-
                     catSet.add(c[4] || "UMUM");
 
-
-
                     return {
-
                         nama: nama,
-
                         kat: c[4] || "UMUM",
-
                         s: [c[6] || "", c[7] || "", c[8] || ""],
-
                         d: [parseInt(c[10]) || 1, parseInt(c[11]) || 1, parseInt(c[12]) || 1]
-
                     };
-
                 }).filter(Boolean);
 
-
-
                 let uniqueProducts = [];
-
                 let seen = new Set();
-
                 productsData.forEach(p => {
-
                     if (!seen.has(p.nama.toLowerCase())) {
-
                         seen.add(p.nama.toLowerCase());
-
                         uniqueProducts.push(p);
-
                     }
-
                 });
-
                 productsData = uniqueProducts.sort((a, b) => a.nama.localeCompare(b.nama, 'id', { numeric: true }));
 
-
-
                 const cb = document.getElementById('category-bar');
-
                 cb.innerHTML = "";
-
                 Array.from(catSet).sort().forEach(c => {
-
                     cb.innerHTML += `<button onclick="filterByCategory('${c}')" class="cat-btn">${c}</button>`;
-
                 });
 
-
-
                 renderOpname(productsData);
-
                 updateSummary();
-
             } catch (e) { console.error("Gagal memuat data:", e); }
-
         }
-
-
 
         function renderOpname(data, query = "") {
-
             const container = document.getElementById('katalog-opname');
-
             let html = "";
-
-
 
             data.forEach(p => {
-
                 const keyBase = p.nama.toLowerCase();
-
                 const val1 = opnameCache[`${keyBase}_u1`] !== undefined ? opnameCache[`${keyBase}_u1`] : "";
-
                 const val2 = opnameCache[`${keyBase}_u2`] !== undefined ? opnameCache[`${keyBase}_u2`] : "";
-
                 const val3 = opnameCache[`${keyBase}_u3`] !== undefined ? opnameCache[`${keyBase}_u3`] : "";
 
-
-
                 let totalTerkecil = (Number(val1) * p.d[0]) + (Number(val2) * p.d[1]) + (Number(val3) * p.d[2]);
-
                 const labelTerkecil = p.s[0] || "Pcs";
 
-
-
                 html += `
-
                 <div class="product-card">
-
                     <div class="mb-2">
-
                         <p class="product-name">${p.nama}</p>
-
                     </div>
-
                     
-
                     <div class="flex items-end justify-between gap-2 bg-blue-50/80 p-2 rounded-xl border border-dashed border-blue-200">
-
                         <div class="flex gap-2">
-
                             ${renderInputBox(p.nama, p.s[0], 1, val1)}
-
                             ${renderInputBox(p.nama, p.s[1], 2, val2)}
-
                             ${renderInputBox(p.nama, p.s[2], 3, val3)}
-
                         </div>
-
-
 
                         <div class="text-right min-w-[90px] pr-1">
-
                             <span class="text-[9px] font-black text-blue-400 uppercase block leading-none mb-1">TOTAL (${labelTerkecil})</span>
-
                             <span id="total-render-${keyBase.replace(/[^a-z0-9]/g, '')}" class="text-base font-black text-slate-800">${totalTerkecil}</span>
-
                         </div>
-
                     </div>
-
                 </div>`;
-
             });
-
             container.innerHTML = html;
-
         }
-
-
 
         function renderInputBox(nama, satuanLabel, idx, nilai) {
-
             if (!satuanLabel) return "";
-
             const key = `${nama.toLowerCase()}_u${idx}`;
-
             const displayValue = (nilai === undefined || nilai === "") ? "" : nilai;
-
             
-
             return `
-
             <div>
-
                 <span class="unit-label">${satuanLabel}</span>
-
                 <input type="number" 
-
                        inputmode="numeric"
-
                        value="${displayValue}" 
-
                        placeholder="_"
-
                        onkeyup="debounceSave('${key}', this.value, '${nama.toLowerCase()}')" 
-
                        class="opname-input [&&]:placeholder:text-slate-300/40">
-
             </div>`;
-
         }
-
-
 
         function debounceSave(key, value, nameKey) {
-
             clearTimeout(saveTimeout);
-
             
-
             const prod = productsData.find(p => p.nama.toLowerCase() === nameKey);
-
             if (prod) {
-
                 if (value.trim() === "") {
-
                     delete opnameCache[key];
-
                 } else {
-
                     opnameCache[key] = parseInt(value) || 0;
-
                 }
-
-
 
                 const v1 = opnameCache[`${nameKey}_u1`] || 0;
-
                 const v2 = opnameCache[`${nameKey}_u2`] || 0;
-
                 const v3 = opnameCache[`${nameKey}_u3`] || 0;
-
                 let instanTotal = (v1 * prod.d[0]) + (v2 * prod.d[1]) + (v3 * prod.d[2]);
-
                 const elementId = `total-render-${nameKey.replace(/[^a-z0-9]/g, '')}`;
-
                 const el = document.getElementById(elementId);
-
                 if (el) el.innerText = instanTotal;
-
             }
-
-
 
             saveTimeout = setTimeout(() => {
-
                 localStorage.setItem('blind_opname_cache', JSON.stringify(opnameCache));
-
                 updateSummary();
-
             }, 1000);
-
         }
-
-
 
         function saveCheckerName(val) {
-
             localStorage.setItem('opname_checker_name', val);
-
         }
-
-
 
         function updateSummary() {
-
             let totalItemsDihitung = 0;
-
             let totalKuantitasKecil = 0;
 
-
-
             productsData.forEach(p => {
-
                 const kb = p.nama.toLowerCase();
-
                 const v1 = opnameCache[`${kb}_u1`] || 0;
-
                 const v2 = opnameCache[`${kb}_u2`] || 0;
-
                 const v3 = opnameCache[`${kb}_u3`] || 0;
-
                 let total = (v1 * p.d[0]) + (v2 * p.d[1]) + (v3 * p.d[2]);
 
-
-
                 if (v1 > 0 || v2 > 0 || v3 > 0) {
-
                     totalItemsDihitung++;
-
                     totalKuantitasKecil += total;
-
                 }
-
             });
 
-
-
-            document.getElementById('summary-items').innerText = totalItemsDihitung;
-
-            document.getElementById('summary-qty').innerText = totalKuantitasKecil;
-
+            const elItems = document.getElementById('summary-items');
+            if (elItems) elItems.innerText = totalItemsDihitung;
+            
+            const elQty = document.getElementById('summary-qty');
+            if (elQty) elQty.innerText = totalKuantitasKecil;
         }
-
-
 
         function renderSummaryListWindow() {
-
             const listContainer = document.getElementById('summary-list-items');
-
             let html = "";
-
             let counter = 0;
 
-
-
             productsData.forEach(p => {
-
                 const kb = p.nama.toLowerCase();
-
                 const v1 = opnameCache[`${kb}_u1`] || 0;
-
                 const v2 = opnameCache[`${kb}_u2`] || 0;
-
                 const v3 = opnameCache[`${kb}_u3`] || 0;
-
                 let total = (v1 * p.d[0]) + (v2 * p.d[1]) + (v3 * p.d[2]);
 
-
-
                 if (v1 > 0 || v2 > 0 || v3 > 0) {
-
                     counter++;
-
                     let detail = [];
-
                     if(v1 > 0) detail.push(`${v1} ${p.s[0]}`);
-
                     if(v2 > 0) detail.push(`${v2} ${p.s[1]}`);
-
                     if(v3 > 0) detail.push(`${v3} ${p.s[2]}`);
-
-
 
                     html += `
-
                     <div class="py-2 flex justify-between items-center gap-2">
-
                         <div class="flex-1 pr-1">
-
                             <p class="font-bold text-slate-800 uppercase tracking-tight">${p.nama}</p>
-
                             <p class="text-[10px] text-slate-400 font-bold uppercase">${detail.join(' + ')}</p>
-
                         </div>
-
                         <div class="text-right font-black text-slate-800 whitespace-nowrap bg-slate-200/60 px-2 py-1 rounded">
-
                             ${total} ${p.s[0] || 'Pcs'}
-
                         </div>
-
                     </div>`;
-
                 }
-
             });
-
-
 
             if(counter === 0) {
-
                 listContainer.innerHTML = `<p class="text-center py-6 text-slate-400 font-bold uppercase tracking-wider">Belum ada fisik barang dihitung</p>`;
-
             } else {
-
                 listContainer.innerHTML = html;
-
             }
-
             document.getElementById('window-total-items').innerText = counter;
-
         }
-
-
 
         function toggleSummaryWindow() {
-
             const win = document.getElementById('summary-window');
-
             win.classList.toggle('hidden');
-
             if(!win.classList.contains('hidden')) {
-
                 renderSummaryListWindow();
-
             }
-
         }
-
-
 
         function handleSearchInput() {
-
             currentCategory = "SEMUA";
-
             document.querySelectorAll('.cat-btn, #btn-all').forEach(b => {
-
                 b.classList.toggle('cat-btn-active', b.innerText === "SEMUA");
-
             });
-
             filterOpname();
-
         }
-
-
 
         function filterOpname() {
-
             const q = document.getElementById('searchInput').value.toLowerCase().trim();
-
             const filtered = productsData.filter(p => (currentCategory === "SEMUA" || p.kat === currentCategory) && p.nama.toLowerCase().includes(q));
-
             renderOpname(filtered, q);
-
         }
-
-
 
         function filterByCategory(c) {
-
             currentCategory = c;
-
             document.querySelectorAll('.cat-btn, #btn-all').forEach(b => b.classList.toggle('cat-btn-active', b.innerText === c));
-
             filterOpname();
-
         }
-
-
 
         function resetOpname() {
-
             if (confirm("Apakah Bapak yakin ingin menghapus SEMUA hasil hitungan fisik di layar?")) {
-
                 opnameCache = {};
-
                 localStorage.removeItem('blind_opname_cache');
-
                 localStorage.removeItem('opname_checker_name');
-
                 document.getElementById('checkerInput').value = "";
-
                 filterOpname();
-
                 updateSummary();
-
             }
-
         }
-
-
 
         document.addEventListener('keydown', function(event) {
-
             if (event.key === 'Enter') {
-
                 event.preventDefault();
-
                 return false;
-
             }
-
         });
 
-
+        font-black;
 
         function downloadCSV() {
-
             const namaPengecek = document.getElementById('checkerInput').value.trim() || "Tanpa Nama";
-
             let csvContent = `data:text/csv;charset=utf-8,PENGECEK: ${namaPengecek}\nNAMA BARANG,INPUT SATUAN 1,INPUT SATUAN 2,INPUT SATUAN 3,TOTAL SATUAN TERKECIL\n`;
-
             
-
             let adaData = false;
-
             productsData.forEach(p => {
-
                 const kb = p.nama.toLowerCase();
-
                 const v1 = opnameCache[`${kb}_u1`] || 0;
-
                 const v2 = opnameCache[`${kb}_u2`] || 0;
-
                 const v3 = opnameCache[`${kb}_u3`] || 0;
-
                 let total = (v1 * p.d[0]) + (v2 * p.d[1]) + (v3 * p.d[2]);
-
                 
-
                 if(v1 > 0 || v2 > 0 || v3 > 0) {
-
                     adaData = true;
-
                     csvContent += `"${p.nama}",${v1},${v2},${v3},${total}\n`;
-
                 }
-
             });
-
             
-
             if (!adaData) return alert("Belum ada data fisik barang yang diisi!");
-
-
 
             const encodedUri = encodeURI(csvContent);
-
             const link = document.createElement("a");
-
             link.setAttribute("href", encodedUri);
-
             link.setAttribute("download", `Opname_${namaPengecek}_${new Date().toISOString().split('T')[0]}.csv`);
-
             document.body.appendChild(link);
-
             link.click();
-
             document.body.removeChild(link);
-
         }
 
-
-
         function kirimHasilWA() {
-
             const namaPengecek = document.getElementById('checkerInput').value.trim();
-
             if(!namaPengecek) {
-
                 alert("Mohon isi Nama Pengecek terlebih dahulu, Pak.");
-
                 document.getElementById('checkerInput').focus();
-
                 return;
-
             }
 
-
-
             let pesan = `*LAPORAN FISIK OPNAME*\n👤 Pengecek: *${namaPengecek}*\n📅 Tanggal: *${new Date().toLocaleDateString('id-ID')}*\n\n`;
-
             let adaData = false;
-
             let totalBarang = 0;
-
             
-
             productsData.forEach(p => {
-
                 const kb = p.nama.toLowerCase();
-
                 const v1 = opnameCache[`${kb}_u1`] || 0;
-
                 const v2 = opnameCache[`${kb}_u2`] || 0;
-
                 const v3 = opnameCache[`${kb}_u3`] || 0;
-
                 let total = (v1 * p.d[0]) + (v2 * p.d[1]) + (v3 * p.d[2]);
 
-
-
                 if (v1 > 0 || v2 > 0 || v3 > 0) {
-
                     adaData = true;
-
                     totalBarang++;
-
                     let detail = [];
-
                     if(v1 > 0) detail.push(`${v1} ${p.s[0]}`);
-
                     if(v2 > 0) detail.push(`${v2} ${p.s[1]}`);
-
                     if(v3 > 0) detail.push(`${v3} ${p.s[2]}`);
-
                     
-
                     const namaSatuan1 = p.s[0] || "Pcs";
-
                     pesan += `📦 *${p.nama}*\n  Fisik: ${detail.join(' + ')} \n  *Total: ${total} ${namaSatuan1}*\n\n`;
-
                 }
-
             });
-
-
 
             if (!adaData) return alert("Belum ada data fisik barang yang diisi!");
 
-
-
             pesan += `*----------------------------------*\n`;
-
             pesan += `📊 *RINGKASAN AKHIR:*\n`;
-
             pesan += `Total Macam Barang Dihitung: *${totalBarang} item*\n`;
 
-
-
             window.open(`https://wa.me/6285815022210?text=${encodeURIComponent(pesan)}`);
-
         }
 
-
-
         initOpname();
-
     </script>
-
 </body>
-
 </html>
