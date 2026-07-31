@@ -546,7 +546,8 @@
             let total = 0, p = `*ORDER TOKO DAMAI*\n👤 Nama: *${name.toUpperCase()}*\n\n`;
             for (let k in cart) {
                 let sub = cart[k].qty * cart[k].harga;
-                p += `✅ *${cart[k].namaAsli}*\n   ${cart[k].qty} ${cart[k].satuanAsli} (${cart[k].detail}) = *Rp ${formatRupiah(sub)}*\n`;
+                // Modifikasi penambahan x harga satuan di bawah ini
+                p += `✅ *${cart[k].namaAsli}*\n   ${cart[k].qty} ${cart[k].satuanAsli} (${cart[k].detail}) x ${formatRupiah(cart[k].harga)} = *Rp ${formatRupiah(sub)}*\n`;
                 total += sub;
             }
             p += `\n💰 *TOTAL: Rp ${formatRupiah(total)}*\n\n_Catatan: Harga dapat berubah sewaktu-waktu._`;
