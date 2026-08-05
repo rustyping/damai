@@ -554,25 +554,26 @@
             window.open(`https://wa.me/6285815022210?text=${encodeURIComponent(p)}`);
         }
 
-async function fetchUpdateDate() {
+    async function fetchUpdateDate() {
             try {
-                // Tetap menggunakan promoUrl
-                const response = await fetch(promoUrl + "?v=" + Date.now()); 
+                // Mengambil data dari stokUrl (sheet stock)
+                const response = await fetch(stokUrl + "&v=" + Date.now()); 
                 const csvText = await response.text();
                 const rows = csvText.split(/\r?\n/).filter(row => row.trim() !== "");
                 
-                // Pastikan datanya memiliki minimal 2 baris (A1 dan A2)
                 if (rows.length > 1) {
-                    // Ambil data dari baris KEDUA (indeks 1) kolom pertama
-                    let tglAsli = rows[1].split(',')[0].trim().replace(/^"|"$/g, '') || "Terbaru";
+                    // Ambil baris ke-2 (indeks 1) yaitu sel A2
+                    let tglAsli = rows[1].split(',')[0].replace(/^"|"$/g, '').trim();
                     
-                    // Hapus kata "s.d " dan bersihkan sisa spasi
-                    let tglBersih = tglAsli.replace("s.d ", "").trim();
+                    // Hapus kata "s.d " (baik huruf kecil maupun besar)
+                    let tglBersih = tglAsli.replace(/s\.d\s*/i, "").trim();
                     
-                    // Tampilkan ke layar
+                    // Tampilkan ke header
                     document.getElementById('header-update-date').innerText = "Update: " + tglBersih;
                 }
-            } catch (e) {}
+            } catch (e) {
+                console.error(e);
+            }
         }
 
         loadData();
