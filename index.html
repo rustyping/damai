@@ -556,12 +556,19 @@
 
         async function fetchUpdateDate() {
             try {
-                const response = await fetch(promoUrl + "?v=" + Date.now()); 
+                // 1. Ubah promoUrl menjadi URL sheet stock Bapak (misalnya stockUrl)
+                const response = await fetch(stockUrl + "?v=" + Date.now()); 
                 const csvText = await response.text();
                 const rows = csvText.split(/\r?\n/).filter(row => row.trim() !== "");
                 if (rows.length > 0) {
-                    const tgl = rows[0].split(',')[0].trim().replace(/^"|"$/g, '') || "Terbaru";
-                    document.getElementById('header-update-date').innerText = "Update: " + tgl;
+                    // Ambil data asli dari sel pertama
+                    let tglAsli = rows[1].split(',')[0].trim().replace(/^"|"$/g, '') || "Terbaru";
+                    
+                    // 2. Hapus kata "s.d " dan bersihkan sisa spasinya
+                    let tglBersih = tglAsli.replace("s.d ", "").trim();
+                    
+                    // Tampilkan ke layar
+                    document.getElementById('header-update-date').innerText = "Update: " + tglBersih;
                 }
             } catch (e) {}
         }
