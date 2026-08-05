@@ -554,17 +554,19 @@
             window.open(`https://wa.me/6285815022210?text=${encodeURIComponent(p)}`);
         }
 
-        async function fetchUpdateDate() {
+async function fetchUpdateDate() {
             try {
-                // 1. Ubah promoUrl menjadi URL sheet stock Bapak (misalnya stockUrl)
-                const response = await fetch(stockUrl + "?v=" + Date.now()); 
+                // Tetap menggunakan promoUrl
+                const response = await fetch(promoUrl + "?v=" + Date.now()); 
                 const csvText = await response.text();
                 const rows = csvText.split(/\r?\n/).filter(row => row.trim() !== "");
-                if (rows.length > 0) {
-                    // Ambil data asli dari sel pertama
+                
+                // Pastikan datanya memiliki minimal 2 baris (A1 dan A2)
+                if (rows.length > 1) {
+                    // Ambil data dari baris KEDUA (indeks 1) kolom pertama
                     let tglAsli = rows[1].split(',')[0].trim().replace(/^"|"$/g, '') || "Terbaru";
                     
-                    // 2. Hapus kata "s.d " dan bersihkan sisa spasinya
+                    // Hapus kata "s.d " dan bersihkan sisa spasi
                     let tglBersih = tglAsli.replace("s.d ", "").trim();
                     
                     // Tampilkan ke layar
