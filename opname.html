@@ -155,7 +155,7 @@
                     cb.innerHTML += `<button onclick="filterByCategory('${c}')" class="cat-btn">${c}</button>`;
                 });
 
-                renderOpname(productsData);
+                filterOpname();
                 updateSummary();
             } catch (e) { 
                 console.error("Gagal memuat data:", e);
@@ -163,7 +163,7 @@
             }
         }
 
-        function renderOpname(data, query = "") {
+        function renderOpname(data) {
             const container = document.getElementById('katalog-opname');
             let html = "";
 
@@ -173,7 +173,6 @@
                 const val2 = opnameCache[`${keyBase}_u2`] !== undefined ? opnameCache[`${keyBase}_u2`] : "";
                 const val3 = opnameCache[`${keyBase}_u3`] !== undefined ? opnameCache[`${keyBase}_u3`] : "";
                 
-                // Ambil daftar Meta (Array berisi {exp: '', note: ''})
                 let metaList = opnameCache[`${keyBase}_meta`];
                 if (!Array.isArray(metaList) || metaList.length === 0) {
                     metaList = [{ exp: "", note: "" }];
@@ -216,10 +215,11 @@
                     
                     <div class="bg-blue-50/80 p-2 rounded-xl border border-dashed border-blue-200">
                         <div class="flex items-end justify-between gap-2 mb-2">
+                            <!-- URUTAN INPUT DIBALIK JADI 3, 2, 1 (Terbesar ke Terkecil) -->
                             <div class="flex gap-2">
-                                ${renderInputBox(p.nama, p.s[0], 1, val1)}
-                                ${renderInputBox(p.nama, p.s[1], 2, val2)}
                                 ${renderInputBox(p.nama, p.s[2], 3, val3)}
+                                ${renderInputBox(p.nama, p.s[1], 2, val2)}
+                                ${renderInputBox(p.nama, p.s[0], 1, val1)}
                             </div>
 
                             <div class="text-right min-w-[90px] pr-1">
@@ -228,7 +228,6 @@
                             </div>
                         </div>
 
-                        <!-- BARIS EXP & KETERANGAN DENGAN TOMBOL TAMBAH (+) -->
                         <div class="pt-2 border-t border-blue-200/60">
                             ${metaRowsHtml}
                         </div>
@@ -255,7 +254,6 @@
             </div>`;
         }
 
-        // --- MANAJEMEN EXP DATE & KETERANGAN DINAMIS ---
         function updateMeta(nameKey, idx, field, value) {
             const metaKey = `${nameKey}_meta`;
             if (!Array.isArray(opnameCache[metaKey])) {
@@ -381,9 +379,9 @@
                 if (v1 > 0 || v2 > 0 || v3 > 0) {
                     counter++;
                     let detail = [];
-                    if(v1 > 0) detail.push(`${v1} ${p.s[0]}`);
-                    if(v2 > 0) detail.push(`${v2} ${p.s[1]}`);
                     if(v3 > 0) detail.push(`${v3} ${p.s[2]}`);
+                    if(v2 > 0) detail.push(`${v2} ${p.s[1]}`);
+                    if(v1 > 0) detail.push(`${v1} ${p.s[0]}`);
 
                     html += `
                     <div class="py-2 flex justify-between items-center gap-2">
@@ -426,7 +424,7 @@
         function filterOpname() {
             const q = document.getElementById('searchInput').value.toLowerCase().trim();
             const filtered = productsData.filter(p => (currentCategory === "SEMUA" || p.kat === currentCategory) && p.nama.toLowerCase().includes(q));
-            renderOpname(filtered, q);
+            renderOpname(filtered);
         }
 
         function filterByCategory(c) {
@@ -455,7 +453,7 @@
 
         function downloadCSV() {
             const namaPengecek = document.getElementById('checkerInput').value.trim() || "Tanpa Nama";
-            let csvContent = `data:text/csv;charset=utf-8,PENGECEK: ${namaPengecek}\nNAMA BARANG,INPUT SATUAN 1,INPUT SATUAN 2,INPUT SATUAN 3,TOTAL SATUAN TERKECIL,EXP DATE,KETERANGAN\n`;
+            let csvContent = `data:text/csv;charset=utf-8,PENGECEK: ${namaPengecek}\nNAMA BARANG,INPUT SATUAN 3,INPUT SATUAN 2,INPUT SATUAN 1,TOTAL SATUAN TERKECIL,EXP DATE,KETERANGAN\n`;
             
             let adaData = false;
             productsData.forEach(p => {
@@ -478,7 +476,7 @@
                 
                 if(v1 > 0 || v2 > 0 || v3 > 0) {
                     adaData = true;
-                    csvContent += `"${p.nama}",${v1},${v2},${v3},${total},"${expList.join(' | ')}","${noteList.join(' | ')}"\n`;
+                    csvContent += `"${p.nama}",${v3},${v2},${v1},${total},"${expList.join(' | ')}","${noteList.join(' | ')}"\n`;
                 }
             });
             
@@ -528,9 +526,9 @@
                     adaData = true;
                     totalBarang++;
                     let detail = [];
-                    if(v1 > 0) detail.push(`${v1} ${p.s[0]}`);
-                    if(v2 > 0) detail.push(`${v2} ${p.s[1]}`);
                     if(v3 > 0) detail.push(`${v3} ${p.s[2]}`);
+                    if(v2 > 0) detail.push(`${v2} ${p.s[1]}`);
+                    if(v1 > 0) detail.push(`${v1} ${p.s[0]}`);
                     
                     const namaSatuan1 = p.s[0] || "Pcs";
                     pesan += `📦 *${p.nama}*\n  Fisik: ${detail.join(' + ')} \n  *Total: ${total} ${namaSatuan1}*`;
