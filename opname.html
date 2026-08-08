@@ -165,6 +165,12 @@
 
         function renderOpname(data) {
             const container = document.getElementById('katalog-opname');
+            
+            if (data.length === 0) {
+                container.innerHTML = `<div class="text-center py-10 text-slate-400 font-bold uppercase tracking-wider text-xs">Barang tidak ditemukan</div>`;
+                return;
+            }
+
             let html = "";
 
             data.forEach(p => {
@@ -215,7 +221,6 @@
                     
                     <div class="bg-blue-50/80 p-2 rounded-xl border border-dashed border-blue-200">
                         <div class="flex items-end justify-between gap-2 mb-2">
-                            <!-- URUTAN INPUT DIBALIK JADI 3, 2, 1 (Terbesar ke Terkecil) -->
                             <div class="flex gap-2">
                                 ${renderInputBox(p.nama, p.s[2], 3, val3)}
                                 ${renderInputBox(p.nama, p.s[1], 2, val2)}
@@ -421,9 +426,23 @@
             filterOpname();
         }
 
+        // FUNGSI PENCARIAN YANG DIBERBAIKI (MULTI-TOKEN)
         function filterOpname() {
             const q = document.getElementById('searchInput').value.toLowerCase().trim();
-            const filtered = productsData.filter(p => (currentCategory === "SEMUA" || p.kat === currentCategory) && p.nama.toLowerCase().includes(q));
+            
+            // Pecah input pencarian menjadi kata-kata terpisah
+            const keywords = q.split(/\s+/).filter(k => k.length > 0);
+
+            const filtered = productsData.filter(p => {
+                const matchesCategory = (currentCategory === "SEMUA" || p.kat === currentCategory);
+                const namaLower = p.nama.toLowerCase();
+
+                // Pastikan SEMUA kata kunci ada di dalam nama barang
+                const matchesSearch = keywords.every(kw => namaLower.includes(kw));
+
+                return matchesCategory && matchesSearch;
+            });
+
             renderOpname(filtered);
         }
 
