@@ -1,435 +1,912 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Opname Stok - Toko Damai</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        body { font-family: 'Inter', sans-serif; background: #f8fafc; }
-        header { padding: 10px 16px 6px 16px !important; background: #0f172a; color: white; }
-        #searchInput { margin-bottom: 6px !important; padding: 10px 16px !important; font-size: 16px !important; border-radius: 12px; width: 100%; color: black; outline: none; }
-        #checkerInput { padding: 12px 16px !important; font-size: 14px !important; border-radius: 10px; width: 100%; color: black; outline: none; font-weight: 700; border: 2px solid #cbd5e1; }
-        #checkerInput:focus { border-color: #0f172a; }
-        .product-card { background: white; border: 1px solid #e2e8f0; margin-bottom: 0.4rem; padding: 12px !important; border-radius: 14px; }
-        .product-name { color: #0f172a; font-weight: 850; text-transform: uppercase; line-height: 1.2; font-size: 14px; }
-        .opname-input { width: 65px; text-align: center; font-weight: 900; border: 2px solid #93c5fd; border-radius: 8px; padding: 6px 0; font-size: 14px; background: #fff; color: #1e3a8a; }
-        .opname-input:focus { border-color: #1e40af; outline: none; background: #fff; }
-        .cat-btn { white-space: nowrap; padding: 6px 16px; border-radius: 12px; font-size: 11px; font-weight: 800; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); }
-        .cat-btn-active { background: #3b82f6 !important; border-color: #3b82f6 !important; }
-        .unit-label { font-size: 9px; font-weight: 950; color: #1e40af; text-transform: uppercase; text-align: center; margin-bottom: 2px; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 65px; }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Stok Opname - Toko Damai</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --accent-light: #eff6ff;
+      --radius: 12px;
+      --whatsapp: #25d366;
+    }
+
+    * { box-sizing: border-box; font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 0; }
+    body { background-color: var(--bg); color: var(--text); padding: 12px; padding-bottom: 90px; -webkit-tap-highlight-color: transparent; }
+    .app-container { max-width: 600px; margin: 0 auto; }
+    
+    .header-card { 
+      background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); 
+      color: #ffffff; 
+      border-radius: var(--radius); 
+      padding: 16px; 
+      margin-bottom: 10px; 
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25); 
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .header-info h1 { font-size: 18px; font-weight: 700; margin-bottom: 2px; }
+    .header-info p { font-size: 11px; opacity: 0.9; }
+    
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .version-badge {
+      background: rgba(255, 255, 255, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      color: #ffffff;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      backdrop-filter: blur(4px);
+    }
+    
+    .btn-reset-top {
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      color: #ffffff;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      backdrop-filter: blur(4px);
+      transition: all 0.2s ease;
+    }
+    .btn-reset-top:active { background: rgba(255, 255, 255, 0.4); }
+
+    .card { background: var(--card-bg); border-radius: var(--radius); padding: 14px; margin-bottom: 10px; border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04); }
+    .section-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 10px; }
+    
+    .info-petugas-card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      margin-bottom: 10px;
+      border: 1px solid var(--border);
+    }
+    .info-petugas-grid {
+      display: flex;
+      gap: 8px;
+    }
+    .info-petugas-grid .form-group {
+      margin-bottom: 0;
+      flex: 1;
+    }
+    .info-petugas-grid label {
+      display: block;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 3px;
+      text-transform: uppercase;
+    }
+    .info-petugas-grid input {
+      width: 100%;
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 12px;
+      color: var(--text);
+      background-color: #f8fafc;
+      outline: none;
+      height: 34px;
+    }
+    .info-petugas-grid input:focus {
+      border-color: var(--primary);
+      background-color: #ffffff;
+    }
+
+    .item-card { 
+      background: var(--card-bg); 
+      border: 1px solid var(--border); 
+      border-radius: 10px; 
+      padding: 10px 12px; 
+      margin-bottom: 8px; 
+    }
+    .item-card.filled { 
+      border-color: #93c5fd; 
+      background-color: #f0f9ff; 
+    }
+    .item-header { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      margin-bottom: 8px; 
+    }
+    .item-name { 
+      font-weight: 600; 
+      font-size: 13px; 
+      color: var(--text); 
+    }
+    .category-badge { 
+      font-size: 9px; 
+      font-weight: 700; 
+      padding: 2px 6px; 
+      border-radius: 12px; 
+      background-color: var(--accent-light); 
+      color: var(--primary); 
+      text-transform: uppercase; 
+    }
+
+    .item-body-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .inputs-flex { 
+      display: flex; 
+      flex-wrap: wrap; 
+      gap: 8px; 
+      flex: 1;
+    }
+
+    .input-unit-wrapper { 
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 72px;
+    }
+
+    .unit-tag { 
+      font-size: 10px; 
+      font-weight: 700; 
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      text-align: center;
+      width: 100%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .unit-tag-3 { background-color: #dbeafe; color: #1e40af; }
+    .unit-tag-2 { background-color: #fef3c7; color: #92400e; }
+    .unit-tag-1 { background-color: #e0e7ff; color: #3730a3; }
+
+    .input-with-tag { 
+      width: 100%;
+      padding: 6px; 
+      font-weight: 700; 
+      font-size: 13px; 
+      height: 36px;
+      text-align: center;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background-color: #f8fafc;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+    .input-with-tag:focus {
+      border-color: var(--primary);
+      background-color: #ffffff;
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+    }
+
+    /* Style Multiple Exp Date */
+    .exp-date-container {
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px dashed var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .exp-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .exp-date-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    /* Custom Wrapper Format DD/MM/YYYY */
+    .exp-date-wrapper {
+      position: relative;
+      flex: 1;
+      display: flex;
+      align-items: center;
+    }
+    .exp-date-input {
+      width: 100%;
+      padding: 4px 6px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 11px;
+      color: var(--text);
+      background-color: #f8fafc;
+      outline: none;
+      height: 30px;
+    }
+    .exp-date-picker-hidden {
+      position: absolute;
+      opacity: 0;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      cursor: pointer;
+    }
+
+    .exp-qty-input {
+      padding: 4px 6px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 11px;
+      color: var(--text);
+      background-color: #f8fafc;
+      outline: none;
+      height: 30px;
+      width: 85px;
+    }
+    .btn-exp-add {
+      background: #dbeafe;
+      color: #1e40af;
+      border: 1px solid #bfdbfe;
+      border-radius: 6px;
+      width: 28px;
+      height: 28px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .btn-exp-remove {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fecaca;
+      border-radius: 6px;
+      width: 28px;
+      height: 28px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .calc-result-side { 
+      background: transparent; 
+      padding: 0; 
+      text-align: right;
+      white-space: nowrap;
+      min-width: 65px;
+    }
+    .calc-result-side .total-label {
+      display: block;
+      font-size: 9px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    .calc-result-side .total-val {
+      color: var(--primary-dark); 
+      font-weight: 700; 
+      font-size: 13px;
+    }
+
+    .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); padding: 12px 16px; border-top: 1px solid var(--border); z-index: 100; }
+    .bottom-bar-inner { max-width: 600px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .summary-info { font-size: 12px; color: var(--text-muted); }
+    .summary-info strong { color: var(--primary); font-size: 15px; }
+    .btn-submit { background-color: var(--primary); color: #ffffff; border: none; padding: 12px 20px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; flex: 1; max-width: 200px; }
+    
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 16px; }
+    .modal-overlay.active { display: flex; }
+    .modal-box { background: #ffffff; width: 100%; max-width: 480px; max-height: 85vh; border-radius: var(--radius); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2); }
+    .modal-header { padding: 16px; background: #f8fafc; border-bottom: 1px solid var(--border); }
+    .modal-header h3 { font-size: 16px; font-weight: 700; color: var(--text); }
+    .modal-header p { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .modal-body { padding: 16px; overflow-y: auto; flex: 1; }
+    .summary-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .summary-table th { text-align: left; padding: 8px; background: #f1f5f9; color: var(--text-muted); font-size: 11px; text-transform: uppercase; }
+    .summary-table td { padding: 10px 8px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: top; }
+    .summary-table td.qty-col { text-align: right; }
+
+    .modal-footer { padding: 12px 16px; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; background: #f8fafc; }
+    .btn-cancel { background: #e2e8f0; color: #334155; border: none; padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
+    .btn-confirm-wa { background: var(--whatsapp); color: #ffffff; border: none; padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+
+    .loading-state { text-align: center; padding: 30px 10px; color: var(--text-muted); font-size: 13px; }
+    .spinner { border: 3px solid #f3f3f3; border-top: 3px solid var(--primary); border-radius: 50%; width: 24px; height: 24px; animation: spin 0.8s linear infinite; margin: 0 auto 10px auto; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  </style>
 </head>
-<body class="pb-32">
+<body>
 
-    <header class="sticky top-0 z-50 shadow-lg">
-        <div class="mb-2 flex justify-between items-center">
-            <div>
-                <h1 class="text-xl font-black italic tracking-tighter">OPNAME TOKO DAMAI</h1>
-                <p class="text-[9px] font-bold opacity-80 uppercase">Perhitungan Fisik Murni</p>
-            </div>
-            <button onclick="resetOpname()" class="text-[10px] bg-red-600 px-2 py-1 rounded font-black tracking-wider uppercase active:scale-95 transition-all">
-                <i class="fas fa-trash-alt"></i> Reset
-            </button>
-        </div>
-        <input type="text" id="searchInput" oninput="handleSearchInput()" placeholder="Cari nama barang...">
-        <div class="flex items-center overflow-hidden">
-            <button id="btn-all" onclick="filterByCategory('SEMUA')" class="cat-btn cat-btn-active mr-2">SEMUA</button>
-            <div id="category-bar" class="flex overflow-x-auto gap-2 py-1"></div>
-        </div>
-    </header>
+<div class="app-container">
+  <div class="header-card">
+    <div class="header-info">
+      <h1>Stok Opname Toko Damai</h1>
+      <p id="currentDateTime">Memuat tanggal & waktu...</p>
+    </div>
+    <div class="header-actions">
+      <span class="version-badge">v1.8.3</span>
+      <button type="button" class="btn-reset-top" onclick="resetAllInputs()">🔄 Reset</button>
+    </div>
+  </div>
 
-    <main id="katalog-opname" class="p-4 max-w-xl mx-auto"></main>
-
-    <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-2xl z-40">
-        <div class="bg-slate-100 px-4 py-2 border-b border-slate-200 text-xs font-bold text-slate-700 flex justify-between items-center max-w-xl mx-auto">
-            <div>Items Dihitung: <span id="summary-items" class="text-blue-600 font-black">0</span></div>
-            <div>Total Qty (Pcs): <span id="summary-qty" class="text-emerald-600 font-black">0</span></div>
+  <form id="opnameForm">
+    <div class="info-petugas-card">
+      <div class="info-petugas-grid">
+        <div class="form-group">
+          <label for="checker">Petugas / Checker *</label>
+          <input type="text" id="checker" required placeholder="Nama Anda" oninput="saveDraft()">
         </div>
-        
-        <div class="p-4 max-w-xl mx-auto">
-            <button onclick="toggleSummaryWindow()" class="w-full bg-slate-900 text-white font-black py-4 rounded-xl flex justify-center items-center gap-2 shadow-md text-sm uppercase tracking-wider active:scale-95 transition-all">
-                <i class="fas fa-clipboard-list text-lg"></i> Lihat Ringkasan Opname
-            </button>
+        <div class="form-group">
+          <label for="catatanUmum">Catatan Gudang</label>
+          <input type="text" id="catatanUmum" placeholder="Opsional..." oninput="saveDraft()">
         </div>
+      </div>
     </div>
 
-    <div id="summary-window" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden flex items-end">
-        <div class="w-full bg-white rounded-t-[2.5rem] p-6 shadow-2xl max-h-[85vh] overflow-y-auto">
-            <div class="max-w-xl mx-auto">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="font-black text-xl italic text-slate-800 tracking-tight">RINGKASAN HASIL OPNAME</h3>
-                    <button onclick="toggleSummaryWindow()" class="text-3xl text-slate-400">&times;</button>
-                </div>
+    <div class="card">
+      <div class="section-title">📦 Input Stok Barang / Sembako</div>
+      <div style="margin-bottom: 10px;">
+        <input type="text" id="searchInput" placeholder="🔍 Cari nama barang..." oninput="filterKatalog()" style="padding:8px 12px; font-size:13px; width:100%; border:1px solid var(--border); border-radius:8px;">
+      </div>
 
-                <div class="mb-4">
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nama Pengecek / Checker:</label>
-                    <input type="text" id="checkerInput" placeholder="TULIS NAMA CHECKER..." oninput="saveCheckerName(this.value)">
-                </div>
-
-                <div class="border border-slate-100 rounded-2xl max-h-[30vh] overflow-y-auto p-3 bg-slate-50 mb-4 divide-y divide-slate-200 text-xs font-medium text-slate-700 shadow-inner" id="summary-list-items">
-                </div>
-
-                <div class="p-4 bg-slate-900 text-white rounded-2xl mb-4 flex justify-between items-center">
-                    <span class="font-bold text-xs uppercase text-slate-400">Total Macam Item</span>
-                    <span class="font-black text-lg text-emerald-400"><span id="window-total-items">0</span> Item</span>
-                </div>
-
-                <div class="flex gap-3">
-                    <button onclick="downloadCSV()" class="flex-1 bg-slate-800 text-white font-black py-4 rounded-xl flex justify-center items-center gap-2 shadow-md text-sm active:scale-95 transition-all">
-                        <i class="fas fa-file-download text-lg"></i> SIMPAN CSV
-                    </button>
-                    <button onclick="kirimHasilWA()" class="flex-1 bg-[#25D366] text-white font-black py-4 rounded-xl flex justify-center items-center gap-2 shadow-md text-sm active:scale-95 transition-all">
-                        <i class="fab fa-whatsapp text-xl"></i> LAPOR KE WA
-                    </button>
-                </div>
-            </div>
+      <div id="katalogContainer">
+        <div class="loading-state">
+          <div class="spinner"></div>
+          Mengambil data barang Toko Damai...
         </div>
+      </div>
     </div>
 
-    <script>
-        // Menggunakan link Publish CSV Toko Damai yang baru, ditambahkan bypass cache dinamis
-        const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSTkd4mFoUG-6rZ9doVT93RfCFfcqIz0o2-lVrT-9AmYrWs9-gRBXuUM-Bt7XGsHOSK-WBEV7tAQZFJ/pub?gid=0&single=true&output=csv&v=" + Date.now();
+    <div class="bottom-bar">
+      <div class="bottom-bar-inner">
+        <div class="summary-info">
+          Terisi: <strong id="filledCount">0</strong> item
+        </div>
+        <button type="button" class="btn-submit" id="btnPreview" onclick="showConfirmationModal()">Cek Ringkasan</button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<!-- MODAL POPUP KONFIRMASI -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>Konfirmasi Opname Toko Damai</h3>
+      <p id="modalMeta">Checker: -</p>
+    </div>
+    <div class="modal-body">
+      <table class="summary-table">
+        <thead>
+          <tr>
+            <th>Barang & Rincian Input</th>
+            <th style="text-align: right;">Total Hasil</th>
+          </tr>
+        </thead>
+        <tbody id="summaryTableBody">
+          <!-- Item terisi disisipkan via JavaScript -->
+        </tbody>
+      </table>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn-cancel" onclick="closeConfirmationModal()">Batal / Edit</button>
+      <button type="button" class="btn-confirm-wa" id="btnFinalSubmit" onclick="submitFinalData()">
+        📱 Simpan & Lapor WA
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz9AibDxDF8kFUFW6hvZvDBsDEMzIghv6_KfmNPOpihTioMhSJs7VzUPH8_JB2xx6Yv/exec"; 
+  const STORAGE_KEY = "damai_stok_opname_draft";
+  const TARGET_WA_NUMBER = "6285815022210"; 
+  let rawKatalog = [];
+  let processedKatalog = [];
+  let currentPayload = null;
+
+  function updateTime() {
+    const now = new Date();
+    const options = { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+    document.getElementById('currentDateTime').innerText = now.toLocaleDateString('id-ID', options);
+  }
+  updateTime();
+
+  window.onload = function() {
+    fetch(SCRIPT_URL + "?action=getKatalog&v=" + Date.now())
+      .then(res => res.json())
+      .then(res => {
+        if (res.status === 'success') {
+          processKatalogUnits(res.data);
+          renderKatalog();
+          loadDraft();
+        } else {
+          throw new Error("Gagal mengambil data katalog Toko Damai");
+        }
+      })
+      .catch(err => {
+        document.getElementById('katalogContainer').innerHTML = 
+          '<div style="color:var(--primary); text-align:center; padding:15px; font-size:13px;">Gagal memuat katalog: ' + err.message + '</div>';
+      });
+  };
+
+  function processKatalogUnits(data) {
+    rawKatalog = data || [];
+    processedKatalog = rawKatalog.map(item => {
+      let rawUnits = [];
+      if (item.satuan3 && item.konversi3 > 0) rawUnits.push({ id: 3, label: item.satuan3, factor: Number(item.konversi3) });
+      if (item.satuan2 && item.konversi2 > 0) rawUnits.push({ id: 2, label: item.satuan2, factor: Number(item.konversi2) });
+      rawUnits.push({ id: 1, label: item.satuan1 || 'Pcs', factor: Number(item.konversi1 || 1) });
+
+      let uniqueUnits = [];
+      let seenFactors = new Set();
+      rawUnits.sort((a, b) => b.factor - a.factor);
+
+      rawUnits.forEach(u => {
+        if (!seenFactors.has(u.factor)) {
+          seenFactors.add(u.factor);
+          uniqueUnits.push(u);
+        }
+      });
+
+      return { ...item, uniqueUnits: uniqueUnits };
+    });
+  }
+
+  function renderKatalog() {
+    const container = document.getElementById('katalogContainer');
+    if (processedKatalog.length === 0) {
+      container.innerHTML = '<div style="text-align:center; color:var(--text-muted); padding:20px; font-size:13px;">Katalog barang kosong.</div>';
+      return;
+    }
+
+    let html = '';
+    processedKatalog.forEach((item, index) => {
+      let inputsHtml = '';
+      item.uniqueUnits.forEach(u => {
+        const tagClass = `unit-tag-${u.id}`;
+
+        inputsHtml += `
+          <div class="input-unit-wrapper">
+            <span class="unit-tag ${tagClass}">${u.label}</span>
+            <input type="number" step="any" min="0" id="unit_${index}_${u.id}" class="input-with-tag" placeholder="0" oninput="calculateRow(${index})">
+          </div>
+        `;
+      });
+
+      // Fitur Multi Expire Date untuk Semua Barang Toko Damai
+      const topUnitLabel = item.uniqueUnits.length > 0 ? item.uniqueUnits[0].label : 'Dus/Karton';
+      let expHtml = `
+        <div class="exp-date-container" id="exp_container_${index}">
+          <div class="exp-row">
+            <span class="exp-date-label">⏳ Exp:</span>
+            <div class="exp-date-wrapper">
+              <input type="text" class="exp-date-input exp_text_${index}" placeholder="dd/mm/yyyy" readonly>
+              <input type="date" class="exp-date-picker-hidden exp_date_${index}" onchange="handleDateChange(this, ${index})">
+            </div>
+            <input type="text" class="exp-qty-input exp_qty_${index}" placeholder="e.g. 5 ${topUnitLabel}" oninput="saveDraft()">
+            <button type="button" class="btn-exp-add" onclick="addExpRow(${index})">+</button>
+          </div>
+        </div>
+      `;
+
+      html += `
+        <div class="item-card" id="card_${index}">
+          <div class="item-header">
+            <div class="item-name">${item.namaBarang}</div>
+            ${item.kategori ? `<span class="category-badge">${item.kategori}</span>` : ''}
+          </div>
+          <div class="item-body-row">
+            <div class="inputs-flex">${inputsHtml}</div>
+            <div class="calc-result-side">
+              <span class="total-label">Total (${item.satuan1 || 'Pcs'})</span>
+              <span class="total-val" id="totalPcs_${index}">0</span>
+            </div>
+          </div>
+          ${expHtml}
+        </div>
+      `;
+    });
+
+    container.innerHTML = html;
+    updateCounter();
+  }
+
+  // Konversi Format YYYY-MM-DD ke DD/MM/YYYY
+  function formatDateID(dateStr) {
+    if (!dateStr) return '';
+    const parts = dateStr.split('-');
+    if (parts.length === 3) {
+      return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+    return dateStr;
+  }
+
+  // Handler saat Tanggal Dipilih dari Calendar Pop-up
+  function handleDateChange(pickerInput, index) {
+    const wrapper = pickerInput.closest('.exp-date-wrapper');
+    const textInput = wrapper.querySelector('.exp-date-input');
+    if (pickerInput.value) {
+      textInput.value = formatDateID(pickerInput.value);
+    } else {
+      textInput.value = '';
+    }
+    saveDraft();
+  }
+
+  // Fungsi Tambah Baris Exp Date
+  function addExpRow(index, dateValue = '', qtyValue = '') {
+    const container = document.getElementById(`exp_container_${index}`);
+    if (!container) return;
+
+    const item = processedKatalog[index];
+    const topUnitLabel = item.uniqueUnits.length > 0 ? item.uniqueUnits[0].label : 'Dus/Karton';
+    const formattedText = formatDateID(dateValue);
+
+    const div = document.createElement('div');
+    div.className = 'exp-row';
+    div.innerHTML = `
+      <span class="exp-date-label" style="opacity:0;">⏳ Exp:</span>
+      <div class="exp-date-wrapper">
+        <input type="text" class="exp-date-input exp_text_${index}" value="${formattedText}" placeholder="dd/mm/yyyy" readonly>
+        <input type="date" class="exp-date-picker-hidden exp_date_${index}" value="${dateValue}" onchange="handleDateChange(this, ${index})">
+      </div>
+      <input type="text" class="exp-qty-input exp_qty_${index}" value="${qtyValue}" placeholder="e.g. 5 ${topUnitLabel}" oninput="saveDraft()">
+      <button type="button" class="btn-exp-remove" onclick="removeExpRow(this, ${index})">-</button>
+    `;
+    container.appendChild(div);
+  }
+
+  // Fungsi Hapus Baris Exp Date
+  function removeExpRow(btn, index) {
+    btn.closest('.exp-row').remove();
+    saveDraft();
+  }
+
+  // Ambil Rincian Exp Date per Item
+  function getExpDetailsForItem(index) {
+    const textInputs = document.querySelectorAll(`.exp_text_${index}`);
+    const qtyInputs = document.querySelectorAll(`.exp_qty_${index}`);
+    
+    let list = [];
+    textInputs.forEach((inp, i) => {
+      if (inp.value) {
+        const formattedDate = inp.value;
+        const qtyText = qtyInputs[i] ? qtyInputs[i].value.trim() : '';
+        list.push({
+          date: formattedDate,
+          qty: qtyText,
+          displayText: qtyText ? `Exp ${formattedDate} (${qtyText})` : `Exp ${formattedDate}`
+        });
+      }
+    });
+    return list;
+  }
+
+  function calculateRow(index, triggerSave = true) {
+    const item = processedKatalog[index];
+    let totalPcs = 0;
+    let hasValue = false;
+
+    item.uniqueUnits.forEach(u => {
+      const val = parseFloat(document.getElementById(`unit_${index}_${u.id}`)?.value || 0);
+      if (val > 0) {
+        hasValue = true;
+        totalPcs += (val * u.factor);
+      }
+    });
+
+    document.getElementById(`totalPcs_${index}`).innerText = `${totalPcs}`;
+    const card = document.getElementById(`card_${index}`);
+    if (hasValue) card.classList.add('filled');
+    else card.classList.remove('filled');
+
+    updateCounter();
+    if (triggerSave) saveDraft();
+  }
+
+  function filterKatalog() {
+    const keyword = document.getElementById('searchInput').value.toLowerCase();
+    processedKatalog.forEach((item, index) => {
+      const card = document.getElementById(`card_${index}`);
+      if (card) {
+        const match = item.namaBarang.toLowerCase().includes(keyword) || (item.kategori && item.kategori.toLowerCase().includes(keyword));
+        card.style.display = match ? 'block' : 'none';
+      }
+    });
+  }
+
+  function updateCounter() {
+    let count = 0;
+    processedKatalog.forEach((_, index) => {
+      const card = document.getElementById(`card_${index}`);
+      if (card && card.classList.contains('filled')) count++;
+    });
+    document.getElementById('filledCount').innerText = count;
+  }
+
+  function saveDraft() {
+    const draft = {
+      checker: document.getElementById('checker').value,
+      catatanUmum: document.getElementById('catatanUmum').value,
+      inputs: {},
+      expDetails: {}
+    };
+
+    processedKatalog.forEach((item, index) => {
+      let itemInputs = {};
+      let hasValue = false;
+      item.uniqueUnits.forEach(u => {
+        const val = document.getElementById(`unit_${index}_${u.id}`)?.value || '';
+        if (val !== '') {
+          itemInputs[u.id] = val;
+          hasValue = true;
+        }
+      });
+      if (hasValue) draft.inputs[item.namaBarang] = itemInputs;
+
+      const dateInputs = document.querySelectorAll(`.exp_date_${index}`);
+      const qtyInputs = document.querySelectorAll(`.exp_qty_${index}`);
+      let expList = [];
+
+      dateInputs.forEach((inp, i) => {
+        if (inp.value) {
+          expList.push({
+            date: inp.value,
+            qty: qtyInputs[i] ? qtyInputs[i].value : ''
+          });
+        }
+      });
+
+      if (expList.length > 0) {
+        draft.expDetails[item.namaBarang] = expList;
+      }
+    });
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
+  }
+
+  function loadDraft() {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) return;
+
+    try {
+      const draft = JSON.parse(saved);
+      if (draft.checker) document.getElementById('checker').value = draft.checker;
+      if (draft.catatanUmum) document.getElementById('catatanUmum').value = draft.catatanUmum;
+
+      if (draft.inputs) {
+        processedKatalog.forEach((item, index) => {
+          const itemData = draft.inputs[item.namaBarang];
+          if (itemData) {
+            item.uniqueUnits.forEach(u => {
+              if (itemData[u.id] !== undefined) {
+                const el = document.getElementById(`unit_${index}_${u.id}`);
+                if (el) el.value = itemData[u.id];
+              }
+            });
+            calculateRow(index, false);
+          }
+
+          if (draft.expDetails && draft.expDetails[item.namaBarang]) {
+            const expList = draft.expDetails[item.namaBarang];
+            const firstPicker = document.querySelector(`.exp_date_${index}`);
+            const firstQty = document.querySelector(`.exp_qty_${index}`);
+
+            if (firstPicker && expList[0]) {
+              firstPicker.value = expList[0].date;
+              handleDateChange(firstPicker, index);
+            }
+            if (firstQty && expList[0]) firstQty.value = expList[0].qty;
+
+            for (let i = 1; i < expList.length; i++) {
+              addExpRow(index, expList[i].date, expList[i].qty);
+            }
+          }
+        });
+      }
+    } catch(e) {
+      console.error("Gagal memuat draf tersimpan Toko Damai", e);
+    }
+  }
+
+  function resetAllInputs() {
+    if (confirm("Apakah Anda yakin ingin mengosongkan semua inputan stok opname Toko Damai?")) {
+      localStorage.removeItem(STORAGE_KEY);
+      document.getElementById('opnameForm').reset();
+      processedKatalog.forEach((item, index) => {
+        const card = document.getElementById(`card_${index}`);
+        if (card) card.classList.remove('filled');
+        document.getElementById(`totalPcs_${index}`).innerText = `0`;
         
-        let productsData = [], opnameCache = {}, currentCategory = "SEMUA", saveTimeout = null;
+        const container = document.getElementById(`exp_container_${index}`);
+        if (container) {
+          const topUnitLabel = item.uniqueUnits.length > 0 ? item.uniqueUnits[0].label : 'Dus/Karton';
+          container.innerHTML = `
+            <div class="exp-row">
+              <span class="exp-date-label">⏳ Exp:</span>
+              <div class="exp-date-wrapper">
+                <input type="text" class="exp-date-input exp_text_${index}" placeholder="dd/mm/yyyy" readonly>
+                <input type="date" class="exp-date-picker-hidden exp_date_${index}" onchange="handleDateChange(this, ${index})">
+              </div>
+              <input type="text" class="exp-qty-input exp_qty_${index}" placeholder="e.g. 5 ${topUnitLabel}" oninput="saveDraft()">
+              <button type="button" class="btn-exp-add" onclick="addExpRow(${index})">+</button>
+            </div>
+          `;
+        }
+      });
+      updateCounter();
+    }
+  }
 
-        async function initOpname() {
-            try {
-                if (localStorage.getItem('blind_opname_cache')) {
-                    opnameCache = JSON.parse(localStorage.getItem('blind_opname_cache'));
-                }
-                if (localStorage.getItem('opname_checker_name')) {
-                    document.getElementById('checkerInput').value = localStorage.getItem('opname_checker_name');
-                }
+  function showConfirmationModal() {
+    const checker = document.getElementById('checker').value.trim();
+    if (!checker) {
+      alert('Harap isi Nama Petugas / Checker terlebih dahulu!');
+      document.getElementById('checker').focus();
+      return;
+    }
 
-                const resP = await fetch(sheetUrl);
-                const csvP = await resP.text();
+    let itemsPayload = [];
+    let tbodyHtml = '';
 
-                // Deteksi jika respon tidak berisi data tabel sembako
-                if (!csvP || csvP.includes("<!DOCTYPE html>") || csvP.includes("<html>")) {
-                    alert("⚠️ ERROR: Link lembar kerja tidak mengembalikan format CSV valid. Mohon pastikan pengaturan 'Publikasikan ke Web' di Google Sheets sudah benar.");
-                    return;
-                }
+    processedKatalog.forEach((item, index) => {
+      let totalPcs = 0;
+      let rincian = [];
 
-                const rows = csvP.split(/\r?\n/).filter(r => r.trim() !== "");
-                let catSet = new Set();
+      item.uniqueUnits.forEach(u => {
+        const val = parseFloat(document.getElementById(`unit_${index}_${u.id}`)?.value || 0);
+        if (val > 0) {
+          totalPcs += (val * u.factor);
+          rincian.push(`${val} ${u.label}`);
+        }
+      });
 
-                // Mengurai data baris demi baris menggunakan Regex aman untuk format data CSV Google Sheets
-                productsData = rows.slice(1).map(row => {
-                    const c = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.trim().replace(/^"|"$/g, ''));
-                    
-                    // Kolom 2 biasanya berisi Nama Barang
-                    const nama = c[2];
-                    
-                    if (!nama || 
-                        nama.toLowerCase().includes("nama barang") || 
-                        nama.includes("___") || 
-                        nama.toLowerCase().includes("xxx")) {
-                        return null;
-                    }
-                    
-                    // Kolom 4 berisi Kategori barang
-                    catSet.add(c[4] || "UMUM");
-
-                    return {
-                        nama: nama,
-                        kat: c[4] || "UMUM",
-                        s: [c[6] || "", c[7] || "", c[8] || ""], // Satuan 1, 2, 3
-                        d: [parseInt(c[10]) || 1, parseInt(c[11]) || 1, parseInt(c[12]) || 1] // Isi Konversi Satuan
-                    };
-                }).filter(Boolean);
-
-                // Menghilangkan duplikasi data barang
-                let uniqueProducts = [];
-                let seen = new Set();
-                productsData.forEach(p => {
-                    if (!seen.has(p.nama.toLowerCase())) {
-                        seen.add(p.nama.toLowerCase());
-                        uniqueProducts.push(p);
-                    }
-                });
-                productsData = uniqueProducts.sort((a, b) => a.nama.localeCompare(b.nama, 'id', { numeric: true }));
-
-                // Memasukkan daftar kategori ke bagian filter atas
-                const cb = document.getElementById('category-bar');
-                cb.innerHTML = "";
-                Array.from(catSet).sort().forEach(c => {
-                    cb.innerHTML += `<button onclick="filterByCategory('${c}')" class="cat-btn">${c}</button>`;
-                });
-
-                renderOpname(productsData);
-                updateSummary();
-            } catch (e) { 
-                console.error("Gagal memuat data:", e);
-                alert("Gagal memuat data dari tautan Google Sheets. Silakan cek sambungan internet Anda.");
-            }
+      if (totalPcs > 0) {
+        const rincianStr = rincian.join(" ") || `0 ${item.satuan1 || 'Pcs'}`;
+        const expDetails = getExpDetailsForItem(index);
+        let expTextFormatted = expDetails.map(e => e.displayText).join(", ");
+        
+        let expHtmlModal = '';
+        if (expDetails.length > 0) {
+          expHtmlModal = `<div style="font-size:11px; color:#1e40af; margin-top:4px; font-weight:600; line-height:1.4;">⏳ Exp Date:<br>`;
+          expDetails.forEach(e => {
+            expHtmlModal += `• ${e.displayText}<br>`;
+          });
+          expHtmlModal += `</div>`;
         }
 
-        function renderOpname(data, query = "") {
-            const container = document.getElementById('katalog-opname');
-            let html = "";
-
-            data.forEach(p => {
-                const keyBase = p.nama.toLowerCase();
-                const val1 = opnameCache[`${keyBase}_u1`] !== undefined ? opnameCache[`${keyBase}_u1`] : "";
-                const val2 = opnameCache[`${keyBase}_u2`] !== undefined ? opnameCache[`${keyBase}_u2`] : "";
-                const val3 = opnameCache[`${keyBase}_u3`] !== undefined ? opnameCache[`${keyBase}_u3`] : "";
-
-                let totalTerkecil = (Number(val1) * p.d[0]) + (Number(val2) * p.d[1]) + (Number(val3) * p.d[2]);
-                const labelTerkecil = p.s[0] || "Pcs";
-
-                html += `
-                <div class="product-card">
-                    <div class="mb-2">
-                        <p class="product-name">${p.nama}</p>
-                    </div>
-                    
-                    <div class="flex items-end justify-between gap-2 bg-blue-50/80 p-2 rounded-xl border border-dashed border-blue-200">
-                        <div class="flex gap-2">
-                            ${renderInputBox(p.nama, p.s[0], 1, val1)}
-                            ${renderInputBox(p.nama, p.s[1], 2, val2)}
-                            ${renderInputBox(p.nama, p.s[2], 3, val3)}
-                        </div>
-
-                        <div class="text-right min-w-[90px] pr-1">
-                            <span class="text-[9px] font-black text-blue-400 uppercase block leading-none mb-1">TOTAL (${labelTerkecil})</span>
-                            <span id="total-render-${keyBase.replace(/[^a-z0-9]/g, '')}" class="text-base font-black text-slate-800">${totalTerkecil}</span>
-                        </div>
-                    </div>
-                </div>`;
-            });
-            container.innerHTML = html;
+        let rincianLengkap = rincianStr;
+        if (expTextFormatted) {
+          rincianLengkap += `\n   ⏳ ${expTextFormatted}`;
         }
 
-        function renderInputBox(nama, satuanLabel, idx, nilai) {
-            if (!satuanLabel) return "";
-            const key = `${nama.toLowerCase()}_u${idx}`;
-            const displayValue = (nilai === undefined || nilai === "") ? "" : nilai;
-            
-            return `
-            <div>
-                <span class="unit-label">${satuanLabel}</span>
-                <input type="number" 
-                       inputmode="numeric"
-                       value="${displayValue}" 
-                       placeholder="_"
-                       onkeyup="debounceSave('${key}', this.value, '${nama.toLowerCase()}')" 
-                       class="opname-input [&&]:placeholder:text-slate-300/40">
-            </div>`;
-        }
-
-        function debounceSave(key, value, nameKey) {
-            clearTimeout(saveTimeout);
-            
-            const prod = productsData.find(p => p.nama.toLowerCase() === nameKey);
-            if (prod) {
-                if (value.trim() === "") {
-                    delete opnameCache[key];
-                } else {
-                    opnameCache[key] = parseInt(value) || 0;
-                }
-
-                const v1 = opnameCache[`${nameKey}_u1`] || 0;
-                const v2 = opnameCache[`${nameKey}_u2`] || 0;
-                const v3 = opnameCache[`${nameKey}_u3`] || 0;
-                let instanTotal = (v1 * prod.d[0]) + (v2 * prod.d[1]) + (v3 * prod.d[2]);
-                const elementId = `total-render-${nameKey.replace(/[^a-z0-9]/g, '')}`;
-                const el = document.getElementById(elementId);
-                if (el) el.innerText = instanTotal;
-            }
-
-            saveTimeout = setTimeout(() => {
-                localStorage.setItem('blind_opname_cache', JSON.stringify(opnameCache));
-                updateSummary();
-            }, 1000);
-        }
-
-        function saveCheckerName(val) {
-            localStorage.setItem('opname_checker_name', val);
-        }
-
-        function updateSummary() {
-            let totalItemsDihitung = 0;
-            let totalKuantitasKecil = 0;
-
-            productsData.forEach(p => {
-                const kb = p.nama.toLowerCase();
-                const v1 = opnameCache[`${kb}_u1`] || 0;
-                const v2 = opnameCache[`${kb}_u2`] || 0;
-                const v3 = opnameCache[`${kb}_u3`] || 0;
-                let total = (v1 * p.d[0]) + (v2 * p.d[1]) + (v3 * p.d[2]);
-
-                if (v1 > 0 || v2 > 0 || v3 > 0) {
-                    totalItemsDihitung++;
-                    totalKuantitasKecil += total;
-                }
-            });
-
-            const elItems = document.getElementById('summary-items');
-            if (elItems) elItems.innerText = totalItemsDihitung;
-            
-            const elQty = document.getElementById('summary-qty');
-            if (elQty) elQty.innerText = totalKuantitasKecil;
-        }
-
-        function renderSummaryListWindow() {
-            const listContainer = document.getElementById('summary-list-items');
-            let html = "";
-            let counter = 0;
-
-            productsData.forEach(p => {
-                const kb = p.nama.toLowerCase();
-                const v1 = opnameCache[`${kb}_u1`] || 0;
-                const v2 = opnameCache[`${kb}_u2`] || 0;
-                const v3 = opnameCache[`${kb}_u3`] || 0;
-                let total = (v1 * p.d[0]) + (v2 * p.d[1]) + (v3 * p.d[2]);
-
-                if (v1 > 0 || v2 > 0 || v3 > 0) {
-                    counter++;
-                    let detail = [];
-                    if(v1 > 0) detail.push(`${v1} ${p.s[0]}`);
-                    if(v2 > 0) detail.push(`${v2} ${p.s[1]}`);
-                    if(v3 > 0) detail.push(`${v3} ${p.s[2]}`);
-
-                    html += `
-                    <div class="py-2 flex justify-between items-center gap-2">
-                        <div class="flex-1 pr-1">
-                            <p class="font-bold text-slate-800 uppercase tracking-tight">${p.nama}</p>
-                            <p class="text-[11px] text-red-600 font-black uppercase">${detail.join(' + ')}</p>
-                        </div>
-                        <div class="text-right font-black text-slate-800 whitespace-nowrap bg-slate-200/60 px-2 py-1 rounded">
-                            ${total} ${p.s[0] || 'Pcs'}
-                        </div>
-                    </div>`;
-                }
-            });
-
-            if(counter === 0) {
-                listContainer.innerHTML = `<p class="text-center py-6 text-slate-400 font-bold uppercase tracking-wider">Belum ada fisik barang dihitung</p>`;
-            } else {
-                listContainer.innerHTML = html;
-            }
-            document.getElementById('window-total-items').innerText = counter;
-        }
-
-        function toggleSummaryWindow() {
-            const win = document.getElementById('summary-window');
-            win.classList.toggle('hidden');
-            if(!win.classList.contains('hidden')) {
-                renderSummaryListWindow();
-            }
-        }
-
-        function handleSearchInput() {
-            currentCategory = "SEMUA";
-            document.querySelectorAll('.cat-btn, #btn-all').forEach(b => {
-                b.classList.toggle('cat-btn-active', b.innerText === "SEMUA");
-            });
-            filterOpname();
-        }
-
-        function filterOpname() {
-            const q = document.getElementById('searchInput').value.toLowerCase().trim();
-            const filtered = productsData.filter(p => (currentCategory === "SEMUA" || p.kat === currentCategory) && p.nama.toLowerCase().includes(q));
-            renderOpname(filtered, q);
-        }
-
-        function filterByCategory(c) {
-            currentCategory = c;
-            document.querySelectorAll('.cat-btn, #btn-all').forEach(b => b.classList.toggle('cat-btn-active', b.innerText === c));
-            filterOpname();
-        }
-
-        function resetOpname() {
-            if (confirm("Apakah Bapak yakin ingin menghapus SEMUA hasil hitungan fisik di layar?")) {
-                opnameCache = {};
-                localStorage.removeItem('blind_opname_cache');
-                localStorage.removeItem('opname_checker_name');
-                document.getElementById('checkerInput').value = "";
-                filterOpname();
-                updateSummary();
-            }
-        }
-
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                return false;
-            }
+        itemsPayload.push({
+          namaBarang: item.namaBarang,
+          rincianText: rincianLengkap,
+          totalSatuan1: totalPcs + " " + (item.satuan1 || 'Pcs'),
+          expDate: expTextFormatted
         });
 
-        function downloadCSV() {
-            const namaPengecek = document.getElementById('checkerInput').value.trim() || "Tanpa Nama";
-            let csvContent = `data:text/csv;charset=utf-8,PENGECEK: ${namaPengecek}\nNAMA BARANG,INPUT SATUAN 1,INPUT SATUAN 2,INPUT SATUAN 3,TOTAL SATUAN TERKECIL\n`;
-            
-            let adaData = false;
-            productsData.forEach(p => {
-                const kb = p.nama.toLowerCase();
-                const v1 = opnameCache[`${kb}_u1`] || 0;
-                const v2 = opnameCache[`${kb}_u2`] || 0;
-                const v3 = opnameCache[`${kb}_u3`] || 0;
-                let total = (v1 * p.d[0]) + (v2 * p.d[1]) + (v3 * p.d[2]);
-                
-                if(v1 > 0 || v2 > 0 || v3 > 0) {
-                    adaData = true;
-                    csvContent += `"${p.nama}",${v1},${v2},${v3},${total}\n`;
-                }
-            });
-            
-            if (!adaData) return alert("Belum ada data fisik barang yang diisi!");
+        tbodyHtml += `
+          <tr>
+            <td>
+              <div style="font-weight:700; color:var(--text); font-size:13px;">${item.namaBarang}</div>
+              <div style="font-size:12px; color:#475569; margin-top:3px; background:#f1f5f9; padding:2px 6px; border-radius:4px; display:inline-block;">
+                Input: <strong>${rincianStr}</strong>
+              </div>
+              ${expHtmlModal}
+            </td>
+            <td class="qty-col">
+              <span style="font-size:10px; color:var(--text-muted); text-transform:uppercase;">Total</span><br>
+              <strong style="color:var(--primary); font-size:14px;">${totalPcs} ${item.satuan1 || 'Pcs'}</strong>
+            </td>
+          </tr>
+        `;
+      }
+    });
 
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `Opname_${namaPengecek}_${new Date().toISOString().split('T')[0]}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
+    if (itemsPayload.length === 0) {
+      alert('Harap isi minimal 1 barang sebelum menyimpan!');
+      return;
+    }
 
-        function kirimHasilWA() {
-            const namaPengecek = document.getElementById('checkerInput').value.trim();
-            if(!namaPengecek) {
-                alert("Mohon isi Nama Pengecek terlebih dahulu, Pak.");
-                document.getElementById('checkerInput').focus();
-                return;
-            }
+    currentPayload = {
+      checker: checker,
+      catatanUmum: document.getElementById('catatanUmum').value.trim(),
+      items: itemsPayload
+    };
 
-            let pesan = `*LAPORAN FISIK OPNAME*\n👤 Pengecek: *${namaPengecek}*\n📅 Tanggal: *${new Date().toLocaleDateString('id-ID')}*\n\n`;
-            let adaData = false;
-            let totalBarang = 0;
-            
-            productsData.forEach(p => {
-                const kb = p.nama.toLowerCase();
-                const v1 = opnameCache[`${kb}_u1`] || 0;
-                const v2 = opnameCache[`${kb}_u2`] || 0;
-                const v3 = opnameCache[`${kb}_u3`] || 0;
-                let total = (v1 * p.d[0]) + (v2 * p.d[1]) + (v3 * p.d[2]);
+    document.getElementById('modalMeta').innerText = `Checker: ${checker} | Total: ${itemsPayload.length} Item`;
+    document.getElementById('summaryTableBody').innerHTML = tbodyHtml;
+    document.getElementById('confirmModal').classList.add('active');
+  }
 
-                if (v1 > 0 || v2 > 0 || v3 > 0) {
-                    adaData = true;
-                    totalBarang++;
-                    let detail = [];
-                    if(v1 > 0) detail.push(`${v1} ${p.s[0]}`);
-                    if(v2 > 0) detail.push(`${v2} ${p.s[1]}`);
-                    if(v3 > 0) detail.push(`${v3} ${p.s[2]}`);
-                    
-                    const namaSatuan1 = p.s[0] || "Pcs";
-                    pesan += `📦 *${p.nama}*\n  Fisik: ${detail.join(' + ')} \n  *Total: ${total} ${namaSatuan1}*\n\n`;
-                }
-            });
+  function closeConfirmationModal() {
+    document.getElementById('confirmModal').classList.remove('active');
+  }
 
-            if (!adaData) return alert("Belum ada data fisik barang yang diisi!");
+  function submitFinalData() {
+    if (!currentPayload) return;
 
-            pesan += `*----------------------------------*\n`;
-            pesan += `📊 *RINGKASAN AKHIR:*\n`;
-            pesan += `Total Macam Barang Dihitung: *${totalBarang} item*\n`;
+    const btnFinal = document.getElementById('btnFinalSubmit');
+    btnFinal.disabled = true;
+    btnFinal.innerText = "Memproses Laporan...";
 
-            window.open(`https://wa.me/6285815022210?text=${encodeURIComponent(pesan)}`);
-        }
+    // Generasi Pesan Teks WhatsApp Otomatis
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    
+    let waText = `*📋 LAPORAN STOK OPNAME TOKO DAMAI*\n`;
+    waText += `📅 *Waktu:* ${dateStr}\n`;
+    waText += `👤 *Checker:* ${currentPayload.checker}\n`;
+    if (currentPayload.catatanUmum) {
+      waText += `📝 *Catatan:* ${currentPayload.catatanUmum}\n`;
+    }
+    waText += `------------------------------------\n\n`;
 
-        initOpname();
-    </script>
+    currentPayload.items.forEach((item, idx) => {
+      waText += `*${idx + 1}. ${item.namaBarang}*\n`;
+      waText += `   • Input: ${item.rincianText.replace(/\n   /g, '\n     ')}\n`;
+      waText += `   • Total: *${item.totalSatuan1}*\n\n`;
+    });
+
+    waText += `------------------------------------\n`;
+    waText += `_Total ${currentPayload.items.length} item berhasil di-opname._`;
+
+    // Simpan ke Google Sheets (jika backend terhubung)
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify(currentPayload)
+    })
+    .then(res => res.json())
+    .catch(err => {
+      console.warn("Laporan dikirim langsung via WhatsApp tanpa simpan Apps Script:", err);
+    })
+    .finally(() => {
+      localStorage.removeItem(STORAGE_KEY);
+      closeConfirmationModal();
+      document.getElementById('opnameForm').reset();
+      
+      processedKatalog.forEach((item, index) => {
+        const card = document.getElementById(`card_${index}`);
+        if (card) card.classList.remove('filled');
+        document.getElementById(`totalPcs_${index}`).innerText = `0`;
+      });
+      updateCounter();
+
+      // Buka Aplikasi WhatsApp langsung
+      const encodedWaUrl = `https://wa.me/${TARGET_WA_NUMBER}?text=${encodeURIComponent(waText)}`;
+      window.location.href = encodedWaUrl;
+
+      btnFinal.disabled = false;
+      btnFinal.innerHTML = "📱 Simpan & Lapor WA";
+    });
+  }
+</script>
+
 </body>
 </html>
