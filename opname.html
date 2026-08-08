@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Opname Stok - Toko Damai</title>
+    <title>Opname Stok v1.01 - Toko Damai</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -33,9 +33,13 @@
                 <h1 class="text-xl font-black italic tracking-tighter">OPNAME TOKO DAMAI</h1>
                 <p class="text-[9px] font-bold opacity-80 uppercase">Perhitungan Fisik Murni</p>
             </div>
-            <button onclick="resetOpname()" class="text-[10px] bg-red-600 px-2 py-1 rounded font-black tracking-wider uppercase active:scale-95 transition-all">
-                <i class="fas fa-trash-alt"></i> Reset
-            </button>
+            <!-- TULISAN VERSI 1.01 DAN TOMBOL RESET -->
+            <div class="flex items-center gap-2">
+                <span class="text-[10px] font-black bg-slate-800 text-blue-400 px-2 py-1 rounded border border-slate-700 tracking-wider">v1.01</span>
+                <button onclick="resetOpname()" class="text-[10px] bg-red-600 px-2 py-1 rounded font-black tracking-wider uppercase active:scale-95 transition-all">
+                    <i class="fas fa-trash-alt"></i> Reset
+                </button>
+            </div>
         </div>
         <input type="text" id="searchInput" oninput="handleSearchInput()" placeholder="Cari nama barang...">
         <div class="flex items-center overflow-hidden">
@@ -505,7 +509,6 @@
             document.body.removeChild(link);
         }
 
-        // FUNGSI LAPOR KE WA DENGAN FORMAT SETIAP EXP DITAMPILKAN DI BARIS BUAWAH
         function kirimHasilWA() {
             const namaPengecek = document.getElementById('checkerInput').value.trim();
             if(!namaPengecek) {
@@ -548,7 +551,6 @@
                     const namaSatuan1 = p.s[0] || "Pcs";
                     pesan += `📦 *${p.nama}*\n  Fisik: ${detail.join(' + ')} \n  *Total: ${total} ${namaSatuan1}*`;
                     
-                    // Format khusus agar setiap Exp Date berada di baris baru di bawahnya
                     if (metaTextList.length > 0) {
                         pesan += `\n  📝 *Keterangan & Exp:*`;
                         metaTextList.forEach(line => {
