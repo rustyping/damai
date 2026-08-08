@@ -426,18 +426,13 @@
             filterOpname();
         }
 
-        // FUNGSI PENCARIAN YANG DIBERBAIKI (MULTI-TOKEN)
         function filterOpname() {
             const q = document.getElementById('searchInput').value.toLowerCase().trim();
-            
-            // Pecah input pencarian menjadi kata-kata terpisah
             const keywords = q.split(/\s+/).filter(k => k.length > 0);
 
             const filtered = productsData.filter(p => {
                 const matchesCategory = (currentCategory === "SEMUA" || p.kat === currentCategory);
                 const namaLower = p.nama.toLowerCase();
-
-                // Pastikan SEMUA kata kunci ada di dalam nama barang
                 const matchesSearch = keywords.every(kw => namaLower.includes(kw));
 
                 return matchesCategory && matchesSearch;
@@ -510,6 +505,7 @@
             document.body.removeChild(link);
         }
 
+        // FUNGSI LAPOR KE WA DENGAN FORMAT SETIAP EXP DITAMPILKAN DI BARIS BUAWAH
         function kirimHasilWA() {
             const namaPengecek = document.getElementById('checkerInput').value.trim();
             if(!namaPengecek) {
@@ -551,8 +547,13 @@
                     
                     const namaSatuan1 = p.s[0] || "Pcs";
                     pesan += `📦 *${p.nama}*\n  Fisik: ${detail.join(' + ')} \n  *Total: ${total} ${namaSatuan1}*`;
+                    
+                    // Format khusus agar setiap Exp Date berada di baris baru di bawahnya
                     if (metaTextList.length > 0) {
-                        pesan += `\n  📝 *${metaTextList.join(' | ')}*`;
+                        pesan += `\n  📝 *Keterangan & Exp:*`;
+                        metaTextList.forEach(line => {
+                            pesan += `\n  • ${line}`;
+                        });
                     }
                     pesan += `\n\n`;
                 }
