@@ -16,7 +16,7 @@
         .product-name { color: #0f172a; font-weight: 850; text-transform: uppercase; line-height: 1.2; font-size: 14px; }
         .opname-input { width: 65px; text-align: center; font-weight: 900; border: 2px solid #93c5fd; border-radius: 8px; padding: 6px 0; font-size: 14px; background: #fff; color: #1e3a8a; }
         .opname-input:focus { border-color: #1e40af; outline: none; background: #fff; }
-        .exp-input { padding: 4px 8px; font-size: 11px; border-radius: 8px; border: 1.5px solid #cbd5e1; font-weight: 700; color: #334155; background: #fff; outline: none; }
+        .exp-input { padding: 3px 6px; font-size: 11px; border-radius: 6px; border: 1.5px solid #cbd5e1; font-weight: 700; color: #334155; background: #fff; outline: none; }
         .exp-input:focus { border-color: #3b82f6; }
         .cat-btn { white-space: nowrap; padding: 6px 16px; border-radius: 12px; font-size: 11px; font-weight: 800; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); }
         .cat-btn-active { background: #3b82f6 !important; border-color: #3b82f6 !important; }
@@ -91,7 +91,6 @@
     </div>
 
     <script>
-        // Menggunakan link Publish CSV Toko Damai yang baru, ditambahkan bypass cache dinamis
         const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSTkd4mFoUG-6rZ9doVT93RfCFfcqIz0o2-lVrT-9AmYrWs9-gRBXuUM-Bt7XGsHOSK-WBEV7tAQZFJ/pub?gid=0&single=true&output=csv&v=" + Date.now();
         
         let productsData = [], opnameCache = {}, currentCategory = "SEMUA", saveTimeout = null;
@@ -108,7 +107,6 @@
                 const resP = await fetch(sheetUrl);
                 const csvP = await resP.text();
 
-                // Deteksi jika respon tidak berisi data tabel sembako
                 if (!csvP || csvP.includes("<!DOCTYPE html>") || csvP.includes("<html>")) {
                     alert("⚠️ ERROR: Link lembar kerja tidak mengembalikan format CSV valid. Mohon pastikan pengaturan 'Publikasikan ke Web' di Google Sheets sudah benar.");
                     return;
@@ -117,11 +115,9 @@
                 const rows = csvP.split(/\r?\n/).filter(r => r.trim() !== "");
                 let catSet = new Set();
 
-                // Mengurai data baris demi baris menggunakan Regex aman untuk format data CSV Google Sheets
                 productsData = rows.slice(1).map(row => {
                     const c = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.trim().replace(/^"|"$/g, ''));
                     
-                    // Kolom 2 biasanya berisi Nama Barang
                     const nama = c[2];
                     
                     if (!nama || 
@@ -131,18 +127,16 @@
                         return null;
                     }
                     
-                    // Kolom 4 berisi Kategori barang
                     catSet.add(c[4] || "UMUM");
 
                     return {
                         nama: nama,
                         kat: c[4] || "UMUM",
-                        s: [c[6] || "", c[7] || "", c[8] || ""], // Satuan 1, 2, 3
-                        d: [parseInt(c[10]) || 1, parseInt(c[11]) || 1, parseInt(c[12]) || 1] // Isi Konversi Satuan
+                        s: [c[6] || "", c[7] || "", c[8] || ""],
+                        d: [parseInt(c[10]) || 1, parseInt(c[11]) || 1, parseInt(c[12]) || 1]
                     };
                 }).filter(Boolean);
 
-                // Menghilangkan duplikasi data barang
                 let uniqueProducts = [];
                 let seen = new Set();
                 productsData.forEach(p => {
@@ -153,7 +147,6 @@
                 });
                 productsData = uniqueProducts.sort((a, b) => a.nama.localeCompare(b.nama, 'id', { numeric: true }));
 
-                // Memasukkan daftar kategori ke bagian filter atas
                 const cb = document.getElementById('category-bar');
                 cb.innerHTML = "";
                 Array.from(catSet).sort().forEach(c => {
@@ -177,18 +170,35 @@
                 const val1 = opnameCache[`${keyBase}_u1`] !== undefined ? opnameCache[`${keyBase}_u1`] : "";
                 const val2 = opnameCache[`${keyBase}_u2`] !== undefined ? opnameCache[`${keyBase}_u2`] : "";
                 const val3 = opnameCache[`${keyBase}_u3`] !== undefined ? opnameCache[`${keyBase}_u3`] : "";
-                const valExp = opnameCache[`${keyBase}_exp`] !== undefined ? opnameCache[`${keyBase}_exp`] : "";
+                
+                // Ambil daftar Exp Date (Array)
+                let expList = opnameCache[`${keyBase}_exp`];
+                if (!Array.isArray(expList)) {
+                    expList = expList ? [expList] : [""];
+                }
 
                 let totalTerkecil = (Number(val1) * p.d[0]) + (Number(val2) * p.d[1]) + (Number(val3) * p.d[2]);
                 const labelTerkecil = p.s[0] || "Pcs";
+
+                let expInputsHtml = expList.map((expVal, idx) => `
+                    <div class="flex items-center gap-1 mb-1">
+                        <input type="date" value="${expVal}" onchange="updateExpDate('${keyBase}', ${idx}, this.value)" class="exp-input">
+                        ${idx === 0 
+                            ? `<button onclick="addExpDate('${keyBase}')" class="text-xs bg-amber-500 text-white w-5 h-5 rounded-full flex items-center justify-center font-bold">+</button>`
+                            : `<button onclick="removeExpDate('${keyBase}', ${idx})" class="text-xs bg-red-500 text-white w-5 h-5 rounded-full flex items-center justify-center font-bold">&times;</button>`
+                        }
+                    </div>
+                `).join('');
 
                 html += `
                 <div class="product-card">
                     <div class="mb-2 flex justify-between items-start gap-2">
                         <p class="product-name flex-1">${p.nama}</p>
-                        <div class="flex items-center gap-1">
-                            <span class="text-[9px] font-black text-amber-600 uppercase">EXP:</span>
-                            <input type="date" value="${valExp}" onchange="saveExpDate('${keyBase}', this.value)" class="exp-input">
+                        <div class="flex flex-col items-end">
+                            <span class="text-[9px] font-black text-amber-600 uppercase mb-0.5">EXP DATE:</span>
+                            <div id="exp-container-${keyBase.replace(/[^a-z0-9]/g, '')}">
+                                ${expInputsHtml}
+                            </div>
                         </div>
                     </div>
                     
@@ -226,14 +236,43 @@
             </div>`;
         }
 
-        function saveExpDate(nameKey, value) {
+        // --- MANAJEMEN MULTI EXP DATE ---
+        function updateExpDate(nameKey, idx, value) {
             const expKey = `${nameKey}_exp`;
-            if (value.trim() === "") {
+            if (!Array.isArray(opnameCache[expKey])) {
+                opnameCache[expKey] = opnameCache[expKey] ? [opnameCache[expKey]] : [""];
+            }
+            opnameCache[expKey][idx] = value;
+            
+            // Bersihkan jika entri kosong
+            opnameCache[expKey] = opnameCache[expKey].filter(e => e.trim() !== "");
+            if (opnameCache[expKey].length === 0) {
                 delete opnameCache[expKey];
-            } else {
-                opnameCache[expKey] = value;
+            }
+            
+            localStorage.setItem('blind_opname_cache', JSON.stringify(opnameCache));
+        }
+
+        function addExpDate(nameKey) {
+            const expKey = `${nameKey}_exp`;
+            if (!Array.isArray(opnameCache[expKey])) {
+                opnameCache[expKey] = opnameCache[expKey] ? [opnameCache[expKey]] : [""];
+            }
+            opnameCache[expKey].push("");
+            localStorage.setItem('blind_opname_cache', JSON.stringify(opnameCache));
+            filterOpname();
+        }
+
+        function removeExpDate(nameKey, idx) {
+            const expKey = `${nameKey}_exp`;
+            if (Array.isArray(opnameCache[expKey])) {
+                opnameCache[expKey].splice(idx, 1);
+                if (opnameCache[expKey].length === 0) {
+                    delete opnameCache[expKey];
+                }
             }
             localStorage.setItem('blind_opname_cache', JSON.stringify(opnameCache));
+            filterOpname();
         }
 
         function debounceSave(key, value, nameKey) {
@@ -300,7 +339,15 @@
                 const v1 = opnameCache[`${kb}_u1`] || 0;
                 const v2 = opnameCache[`${kb}_u2`] || 0;
                 const v3 = opnameCache[`${kb}_u3`] || 0;
-                const exp = opnameCache[`${kb}_exp`] || "";
+                
+                let expArr = opnameCache[`${kb}_exp`];
+                let expStr = "";
+                if (Array.isArray(expArr)) {
+                    expStr = expArr.filter(e => e.trim() !== "").join(', ');
+                } else if (typeof expArr === 'string') {
+                    expStr = expArr;
+                }
+
                 let total = (v1 * p.d[0]) + (v2 * p.d[1]) + (v3 * p.d[2]);
 
                 if (v1 > 0 || v2 > 0 || v3 > 0) {
@@ -315,7 +362,7 @@
                         <div class="flex-1 pr-1">
                             <p class="font-bold text-slate-800 uppercase tracking-tight">${p.nama}</p>
                             <p class="text-[11px] text-red-600 font-black uppercase">${detail.join(' + ')}</p>
-                            ${exp ? `<p class="text-[10px] text-amber-600 font-bold uppercase">EXP: ${exp}</p>` : ''}
+                            ${expStr ? `<p class="text-[10px] text-amber-600 font-bold uppercase">EXP: ${expStr}</p>` : ''}
                         </div>
                         <div class="text-right font-black text-slate-800 whitespace-nowrap bg-slate-200/60 px-2 py-1 rounded">
                             ${total} ${p.s[0] || 'Pcs'}
@@ -388,12 +435,20 @@
                 const v1 = opnameCache[`${kb}_u1`] || 0;
                 const v2 = opnameCache[`${kb}_u2`] || 0;
                 const v3 = opnameCache[`${kb}_u3`] || 0;
-                const exp = opnameCache[`${kb}_exp`] || "";
+                
+                let expArr = opnameCache[`${kb}_exp`];
+                let expStr = "";
+                if (Array.isArray(expArr)) {
+                    expStr = expArr.filter(e => e.trim() !== "").join(' | ');
+                } else if (typeof expArr === 'string') {
+                    expStr = expArr;
+                }
+
                 let total = (v1 * p.d[0]) + (v2 * p.d[1]) + (v3 * p.d[2]);
                 
                 if(v1 > 0 || v2 > 0 || v3 > 0) {
                     adaData = true;
-                    csvContent += `"${p.nama}",${v1},${v2},${v3},${total},"${exp}"\n`;
+                    csvContent += `"${p.nama}",${v1},${v2},${v3},${total},"${expStr}"\n`;
                 }
             });
             
@@ -425,7 +480,15 @@
                 const v1 = opnameCache[`${kb}_u1`] || 0;
                 const v2 = opnameCache[`${kb}_u2`] || 0;
                 const v3 = opnameCache[`${kb}_u3`] || 0;
-                const exp = opnameCache[`${kb}_exp`] || "";
+                
+                let expArr = opnameCache[`${kb}_exp`];
+                let expStr = "";
+                if (Array.isArray(expArr)) {
+                    expStr = expArr.filter(e => e.trim() !== "").join(', ');
+                } else if (typeof expArr === 'string') {
+                    expStr = expArr;
+                }
+
                 let total = (v1 * p.d[0]) + (v2 * p.d[1]) + (v3 * p.d[2]);
 
                 if (v1 > 0 || v2 > 0 || v3 > 0) {
@@ -438,8 +501,8 @@
                     
                     const namaSatuan1 = p.s[0] || "Pcs";
                     pesan += `📦 *${p.nama}*\n  Fisik: ${detail.join(' + ')} \n  *Total: ${total} ${namaSatuan1}*`;
-                    if (exp) {
-                        pesan += `\n  ⏳ *Exp Date: ${exp}*`;
+                    if (expStr) {
+                        pesan += `\n  ⏳ *Exp Date: ${expStr}*`;
                     }
                     pesan += `\n\n`;
                 }
