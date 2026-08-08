@@ -16,9 +16,9 @@
         .product-name { color: #0f172a; font-weight: 850; text-transform: uppercase; line-height: 1.2; font-size: 14px; }
         .opname-input { width: 65px; text-align: center; font-weight: 900; border: 2px solid #93c5fd; border-radius: 8px; padding: 6px 0; font-size: 14px; background: #fff; color: #1e3a8a; }
         .opname-input:focus { border-color: #1e40af; outline: none; background: #fff; }
-        .exp-input { width: 95px; text-align: center; padding: 4px 6px; font-size: 11px; border-radius: 6px; border: 1.5px solid #cbd5e1; font-weight: 700; color: #334155; background: #fff; outline: none; }
+        .exp-input { padding: 3px 6px; font-size: 11px; border-radius: 6px; border: 1.5px solid #cbd5e1; font-weight: 700; color: #334155; background: #fff; outline: none; }
         .exp-input:focus { border-color: #3b82f6; }
-        .note-input { padding: 4px 8px; font-size: 11px; border-radius: 6px; border: 1.5px solid #cbd5e1; font-weight: 600; color: #334155; background: #fff; outline: none; width: 100%; }
+        .note-input { padding: 3px 6px; font-size: 11px; border-radius: 6px; border: 1.5px solid #cbd5e1; font-weight: 600; color: #334155; background: #fff; outline: none; width: 100%; }
         .note-input:focus { border-color: #3b82f6; }
         .cat-btn { white-space: nowrap; padding: 6px 16px; border-radius: 12px; font-size: 11px; font-weight: 800; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); }
         .cat-btn-active { background: #3b82f6 !important; border-color: #3b82f6 !important; }
@@ -173,11 +173,40 @@
                 const val2 = opnameCache[`${keyBase}_u2`] !== undefined ? opnameCache[`${keyBase}_u2`] : "";
                 const val3 = opnameCache[`${keyBase}_u3`] !== undefined ? opnameCache[`${keyBase}_u3`] : "";
                 
-                const valExp = opnameCache[`${keyBase}_exp`] !== undefined ? opnameCache[`${keyBase}_exp`] : "";
-                const valNote = opnameCache[`${keyBase}_note`] !== undefined ? opnameCache[`${keyBase}_note`] : "";
+                // Ambil daftar Meta (Array berisi {exp: '', note: ''})
+                let metaList = opnameCache[`${keyBase}_meta`];
+                if (!Array.isArray(metaList) || metaList.length === 0) {
+                    metaList = [{ exp: "", note: "" }];
+                }
 
                 let totalTerkecil = (Number(val1) * p.d[0]) + (Number(val2) * p.d[1]) + (Number(val3) * p.d[2]);
                 const labelTerkecil = p.s[0] || "Pcs";
+
+                let metaRowsHtml = metaList.map((item, idx) => `
+                    <div class="flex items-center gap-1.5 mb-1.5">
+                        <div class="flex items-center gap-1">
+                            <span class="text-[9px] font-black text-amber-600 uppercase whitespace-nowrap">EXP:</span>
+                            <input type="date" 
+                                   value="${item.exp || ''}" 
+                                   onchange="updateMeta('${keyBase}', ${idx}, 'exp', this.value)" 
+                                   class="exp-input">
+                        </div>
+
+                        <div class="flex-1 flex items-center gap-1">
+                            <span class="text-[9px] font-black text-slate-500 uppercase whitespace-nowrap">KET:</span>
+                            <input type="text" 
+                                   placeholder="Tulis keterangan..." 
+                                   value="${item.note || ''}" 
+                                   onchange="updateMeta('${keyBase}', ${idx}, 'note', this.value)" 
+                                   class="note-input">
+                        </div>
+
+                        ${idx === 0 
+                            ? `<button onclick="addMetaRow('${keyBase}')" class="text-xs bg-emerald-600 text-white w-6 h-6 rounded-lg flex items-center justify-center font-black active:scale-90 transition-all shrink-0" title="Tambah Baris Keterangan">+</button>`
+                            : `<button onclick="removeMetaRow('${keyBase}', ${idx})" class="text-xs bg-red-500 text-white w-6 h-6 rounded-lg flex items-center justify-center font-black active:scale-90 transition-all shrink-0" title="Hapus Baris">&times;</button>`
+                        }
+                    </div>
+                `).join('');
 
                 html += `
                 <div class="product-card">
@@ -199,27 +228,9 @@
                             </div>
                         </div>
 
-                        <!-- BARIS DIPINDAHKAN KELUAR BUBBLE/PENGINPUTAN SATUAN (EXP & KETERANGAN) -->
-                        <div class="pt-2 border-t border-blue-200/60 flex items-center gap-2">
-                            <div class="flex items-center gap-1">
-                                <span class="text-[9px] font-black text-amber-600 uppercase whitespace-nowrap">EXP:</span>
-                                <input type="text" 
-                                       placeholder="DD/MM/YYYY" 
-                                       maxlength="10"
-                                       value="${valExp}" 
-                                       oninput="formatDateInput(this)"
-                                       onchange="saveExpDate('${keyBase}', this.value)" 
-                                       class="exp-input">
-                            </div>
-
-                            <div class="flex-1 flex items-center gap-1">
-                                <span class="text-[9px] font-black text-slate-500 uppercase whitespace-nowrap">KET:</span>
-                                <input type="text" 
-                                       placeholder="Tulis keterangan..." 
-                                       value="${valNote}" 
-                                       onchange="saveNote('${keyBase}', this.value)" 
-                                       class="note-input">
-                            </div>
+                        <!-- BARIS EXP & KETERANGAN DENGAN TOMBOL TAMBAH (+) -->
+                        <div class="pt-2 border-t border-blue-200/60">
+                            ${metaRowsHtml}
                         </div>
                     </div>
                 </div>`;
@@ -244,36 +255,49 @@
             </div>`;
         }
 
-        function formatDateInput(input) {
-            let v = input.value.replace(/\D/g, '');
-            if (v.length > 8) v = v.substring(0, 8);
-            if (v.length >= 5) {
-                input.value = `${v.substring(0, 2)}/${v.substring(2, 4)}/${v.substring(4)}`;
-            } else if (v.length >= 3) {
-                input.value = `${v.substring(0, 2)}/${v.substring(2)}`;
-            } else {
-                input.value = v;
+        // --- MANAJEMEN EXP DATE & KETERANGAN DINAMIS ---
+        function updateMeta(nameKey, idx, field, value) {
+            const metaKey = `${nameKey}_meta`;
+            if (!Array.isArray(opnameCache[metaKey])) {
+                opnameCache[metaKey] = [{ exp: "", note: "" }];
             }
-        }
-
-        function saveExpDate(nameKey, value) {
-            const expKey = `${nameKey}_exp`;
-            if (value.trim() === "") {
-                delete opnameCache[expKey];
-            } else {
-                opnameCache[expKey] = value;
+            if (!opnameCache[metaKey][idx]) {
+                opnameCache[metaKey][idx] = { exp: "", note: "" };
             }
+            opnameCache[metaKey][idx][field] = value;
+            
             localStorage.setItem('blind_opname_cache', JSON.stringify(opnameCache));
         }
 
-        function saveNote(nameKey, value) {
-            const noteKey = `${nameKey}_note`;
-            if (value.trim() === "") {
-                delete opnameCache[noteKey];
-            } else {
-                opnameCache[noteKey] = value;
+        function addMetaRow(nameKey) {
+            const metaKey = `${nameKey}_meta`;
+            if (!Array.isArray(opnameCache[metaKey])) {
+                opnameCache[metaKey] = [{ exp: "", note: "" }];
+            }
+            opnameCache[metaKey].push({ exp: "", note: "" });
+            localStorage.setItem('blind_opname_cache', JSON.stringify(opnameCache));
+            filterOpname();
+        }
+
+        function removeMetaRow(nameKey, idx) {
+            const metaKey = `${nameKey}_meta`;
+            if (Array.isArray(opnameCache[metaKey])) {
+                opnameCache[metaKey].splice(idx, 1);
+                if (opnameCache[metaKey].length === 0) {
+                    delete opnameCache[metaKey];
+                }
             }
             localStorage.setItem('blind_opname_cache', JSON.stringify(opnameCache));
+            filterOpname();
+        }
+
+        function formatDateDisplay(yyyy_mm_dd) {
+            if (!yyyy_mm_dd) return "";
+            const parts = yyyy_mm_dd.split('-');
+            if (parts.length === 3) {
+                return `${parts[2]}/${parts[1]}/${parts[0]}`;
+            }
+            return yyyy_mm_dd;
         }
 
         function debounceSave(key, value, nameKey) {
@@ -340,8 +364,18 @@
                 const v1 = opnameCache[`${kb}_u1`] || 0;
                 const v2 = opnameCache[`${kb}_u2`] || 0;
                 const v3 = opnameCache[`${kb}_u3`] || 0;
-                const exp = opnameCache[`${kb}_exp`] || "";
-                const note = opnameCache[`${kb}_note`] || "";
+                
+                let metaArr = opnameCache[`${kb}_meta`];
+                let metaTextList = [];
+                if (Array.isArray(metaArr)) {
+                    metaArr.forEach(m => {
+                        let sub = [];
+                        if (m.exp) sub.push(`EXP: ${formatDateDisplay(m.exp)}`);
+                        if (m.note) sub.push(`KET: ${m.note}`);
+                        if (sub.length > 0) metaTextList.push(sub.join(' | '));
+                    });
+                }
+
                 let total = (v1 * p.d[0]) + (v2 * p.d[1]) + (v3 * p.d[2]);
 
                 if (v1 > 0 || v2 > 0 || v3 > 0) {
@@ -356,10 +390,7 @@
                         <div class="flex-1 pr-1">
                             <p class="font-bold text-slate-800 uppercase tracking-tight">${p.nama}</p>
                             <p class="text-[11px] text-red-600 font-black uppercase">${detail.join(' + ')}</p>
-                            <div class="flex gap-2 text-[10px] font-bold uppercase">
-                                ${exp ? `<span class="text-amber-600">EXP: ${exp}</span>` : ''}
-                                ${note ? `<span class="text-slate-500">KET: ${note}</span>` : ''}
-                            </div>
+                            ${metaTextList.length > 0 ? `<p class="text-[10px] text-amber-600 font-bold uppercase">${metaTextList.join(' ; ')}</p>` : ''}
                         </div>
                         <div class="text-right font-black text-slate-800 whitespace-nowrap bg-slate-200/60 px-2 py-1 rounded">
                             ${total} ${p.s[0] || 'Pcs'}
@@ -432,13 +463,22 @@
                 const v1 = opnameCache[`${kb}_u1`] || 0;
                 const v2 = opnameCache[`${kb}_u2`] || 0;
                 const v3 = opnameCache[`${kb}_u3`] || 0;
-                const exp = opnameCache[`${kb}_exp`] || "";
-                const note = opnameCache[`${kb}_note`] || "";
+                
+                let metaArr = opnameCache[`${kb}_meta`];
+                let expList = [];
+                let noteList = [];
+                if (Array.isArray(metaArr)) {
+                    metaArr.forEach(m => {
+                        if (m.exp) expList.push(formatDateDisplay(m.exp));
+                        if (m.note) noteList.push(m.note);
+                    });
+                }
+
                 let total = (v1 * p.d[0]) + (v2 * p.d[1]) + (v3 * p.d[2]);
                 
                 if(v1 > 0 || v2 > 0 || v3 > 0) {
                     adaData = true;
-                    csvContent += `"${p.nama}",${v1},${v2},${v3},${total},"${exp}","${note}"\n`;
+                    csvContent += `"${p.nama}",${v1},${v2},${v3},${total},"${expList.join(' | ')}","${noteList.join(' | ')}"\n`;
                 }
             });
             
@@ -470,8 +510,18 @@
                 const v1 = opnameCache[`${kb}_u1`] || 0;
                 const v2 = opnameCache[`${kb}_u2`] || 0;
                 const v3 = opnameCache[`${kb}_u3`] || 0;
-                const exp = opnameCache[`${kb}_exp`] || "";
-                const note = opnameCache[`${kb}_note`] || "";
+                
+                let metaArr = opnameCache[`${kb}_meta`];
+                let metaTextList = [];
+                if (Array.isArray(metaArr)) {
+                    metaArr.forEach(m => {
+                        let sub = [];
+                        if (m.exp) sub.push(`Exp: ${formatDateDisplay(m.exp)}`);
+                        if (m.note) sub.push(`Ket: ${m.note}`);
+                        if (sub.length > 0) metaTextList.push(sub.join(' - '));
+                    });
+                }
+
                 let total = (v1 * p.d[0]) + (v2 * p.d[1]) + (v3 * p.d[2]);
 
                 if (v1 > 0 || v2 > 0 || v3 > 0) {
@@ -484,11 +534,8 @@
                     
                     const namaSatuan1 = p.s[0] || "Pcs";
                     pesan += `📦 *${p.nama}*\n  Fisik: ${detail.join(' + ')} \n  *Total: ${total} ${namaSatuan1}*`;
-                    if (exp) {
-                        pesan += `\n  ⏳ *Exp Date: ${exp}*`;
-                    }
-                    if (note) {
-                        pesan += `\n  📝 *Ket: ${note}*`;
+                    if (metaTextList.length > 0) {
+                        pesan += `\n  📝 *${metaTextList.join(' | ')}*`;
                     }
                     pesan += `\n\n`;
                 }
