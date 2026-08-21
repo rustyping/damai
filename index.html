@@ -237,82 +237,84 @@
 
     <script>
         // Link data dari Google Sheets Toko Damai (Otomatis Sync)
-        const githubUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSTkd4mFoUG-6rZ9doVT93RfCFfcqIz0o2-lVrT-9AmYrWs9-gRBXuUM-Bt7XGsHOSK-WBEV7tAQZFJ/pub?gid=0&single=true&output=csv" + "&v=" + Date.now();
-        const stokUrl   = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSTkd4mFoUG-6rZ9doVT93RfCFfcqIz0o2-lVrT-9AmYrWs9-gRBXuUM-Bt7XGsHOSK-WBEV7tAQZFJ/pub?gid=615135187&single=true&output=csv" + "&v=" + Date.now();
-        const promoUrl  = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSTkd4mFoUG-6rZ9doVT93RfCFfcqIz0o2-lVrT-9AmYrWs9-gRBXuUM-Bt7XGsHOSK-WBEV7tAQZFJ/pub?gid=468445490&single=true&output=csv" + "&v=" + Date.now();
-        
-        let productsData = [], stokMap = {}, cart = {}, currentCategory = "SEMUA", searchTimeout, qtyInputTimeout;
-        let waNumber = "6285815022210"; // Default cadangan jika cell B7 kosong
-
-        // Progress Bar
-        window.onscroll = function() {
-            let winScroll = document.body.scrollTop || document.documentElement.scrollTop;
-            let height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-            let scrolled = (winScroll / height) * 100;
-            document.getElementById("scroll-progress").style.width = scrolled + "%";
-        };
-
-        // Load Data Utama
-        async function loadData() {
-            try {
-                const resStok = await fetch(stokUrl);
-                const csvStok = await resStok.text();
-                const rowsStok = csvStok.split(/\r?\n/).filter(row => row.trim() !== "");
-                rowsStok.forEach(row => {
-                    const cols = row.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
-                    if (cols[2]) {
-                        stokMap[cols[2].toLowerCase()] = {
-                            qty: cols[3] || "0",
-                            satuan: cols[4] || ""
-                        };
-                    }
-                });
-        
-                const response = await fetch(githubUrl);
-                const csvText = await response.text();
-                const rows = csvText.split(/\r?\n/).filter(row => row.trim() !== "");
-
-                // Ambil Nomor WhatsApp dari Cell B7 (Baris ke-7, Kolom B)
-                if (rows.length >= 7) {
-                    const colsB7 = rows[6].split(',').map(c => c.trim().replace(/^"|"$/g, ''));
-                    if (colsB7[1]) {
-                        let num = colsB7[1].replace(/[^0-9]/g, ''); // Hapus semua karakter selain angka
-                        if (num.startsWith('0')) {
-                            num = '62' + num.substring(1); // Ubah awalan 08xx menjadi 628xx
-                        }
-                        if (num) waNumber = num;
-                    }
-                }
-
-                let catSet = new Set();
-                
-                productsData = rows.slice(1).map(row => {
-                    const cols = row.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
-                    const nama = cols[2] || "";
-                    if (!nama || nama.toLowerCase().includes("nama barang") || nama.toLowerCase().includes("xxx") || 
-                        nama.includes("___") || nama.toLowerCase().includes("ongkos kirim")) return null;
-        
-                    catSet.add(cols[4] || "UMUM");
-                    return { 
-                        nama: nama, kategori: cols[4] || "UMUM", 
-                        s1: cols[6], s2: cols[7], s3: cols[8],
-                        d1: cols[10] || "1", d2: cols[11] || "1", d3: cols[12] || "1",
-                        h1: parseInt(cols[19]) || 0, h2: parseInt(cols[22]) || 0, h3: parseInt(cols[25]) || 0 
+    const githubUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSTkd4mFoUG-6rZ9doVT93RfCFfcqIz0o2-lVrT-9AmYrWs9-gRBXuUM-Bt7XGsHOSK-WBEV7tAQZFJ/pub?gid=0&single=true&output=csv" + "&v=" + Date.now();
+    const stokUrl   = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSTkd4mFoUG-6rZ9doVT93RfCFfcqIz0o2-lVrT-9AmYrWs9-gRBXuUM-Bt7XGsHOSK-WBEV7tAQZFJ/pub?gid=615135187&single=true&output=csv" + "&v=" + Date.now();
+    const promoUrl  = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSTkd4mFoUG-6rZ9doVT93RfCFfcqIz0o2-lVrT-9AmYrWs9-gRBXuUM-Bt7XGsHOSK-WBEV7tAQZFJ/pub?gid=468445490&single=true&output=csv" + "&v=" + Date.now();
+    const dataUrl   = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSTkd4mFoUG-6rZ9doVT93RfCFfcqIz0o2-lVrT-9AmYrWs9-gRBXuUM-Bt7XGsHOSK-WBEV7tAQZFJ/pub?gid=509369213&single=true&output=csv";
+    
+    let productsData = [], stokMap = {}, cart = {}, currentCategory = "SEMUA", searchTimeout, qtyInputTimeout;
+    let waNumber;
+    
+    // Progress Bar
+    window.onscroll = function() {
+        let winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+        let height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        let scrolled = (winScroll / height) * 100;
+        document.getElementById("scroll-progress").style.width = scrolled + "%";
+    };
+    
+    // Load Data Utama
+    async function loadData() {
+        try {
+            // Ambil Nomor WA langsung dari Cell B7 (Baris 7, Kolom B) di tab 'data'
+            const resData = await fetch(dataUrl + "&v=" + Date.now());
+            const csvData = await resData.text();
+            const rowsData = csvData.split(/\r?\n/).filter(r => r.trim() !== "");
+            
+            const colsB7 = rowsData[6].split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+            let num = colsB7[1].replace(/[^0-9]/g, '');
+            if (num.startsWith('0')) num = '62' + num.substring(1);
+            else if (num.startsWith('8')) num = '62' + num;
+            waNumber = num;
+    
+            // Ambil Stok
+            const resStok = await fetch(stokUrl);
+            const csvStok = await resStok.text();
+            const rowsStok = csvStok.split(/\r?\n/).filter(row => row.trim() !== "");
+            rowsStok.forEach(row => {
+                const cols = row.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+                if (cols[2]) {
+                    stokMap[cols[2].toLowerCase()] = {
+                        qty: cols[3] || "0",
+                        satuan: cols[4] || ""
                     };
-                }).filter(Boolean);
-        
-                productsData.sort((a, b) => a.nama.localeCompare(b.nama, 'id', { numeric: true }));
-        
-                const b = document.getElementById('category-bar');
-                b.innerHTML = "";
-                Array.from(catSet).sort().forEach(c => {
-                    b.innerHTML += `<button onclick="filterByCategory('${c}')" class="cat-btn">${c}</button>`;
-                });
-        
-                renderKatalog(productsData);
-                document.getElementById('status').innerText = productsData.length + " ITEM";
-            } catch (e) { console.error(e); }
-        }
+                }
+            });
+    
+            // Ambil Produk dari tab listDamaiFull
+            const response = await fetch(githubUrl);
+            const csvText = await response.text();
+            const rows = csvText.split(/\r?\n/).filter(row => row.trim() !== "");
+    
+            let catSet = new Set();
+            
+            productsData = rows.slice(1).map(row => {
+                const cols = row.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+                const nama = cols[2] || "";
+                if (!nama || nama.toLowerCase().includes("nama barang") || nama.toLowerCase().includes("xxx") || 
+                    nama.includes("___") || nama.toLowerCase().includes("ongkos kirim")) return null;
+    
+                catSet.add(cols[4] || "UMUM");
+                return { 
+                    nama: nama, kategori: cols[4] || "UMUM", 
+                    s1: cols[6], s2: cols[7], s3: cols[8],
+                    d1: cols[10] || "1", d2: cols[11] || "1", d3: cols[12] || "1",
+                    h1: parseInt(cols[19]) || 0, h2: parseInt(cols[22]) || 0, h3: parseInt(cols[25]) || 0 
+                };
+            }).filter(Boolean);
+    
+            productsData.sort((a, b) => a.nama.localeCompare(b.nama, 'id', { numeric: true }));
+    
+            const b = document.getElementById('category-bar');
+            b.innerHTML = "";
+            Array.from(catSet).sort().forEach(c => {
+                b.innerHTML += `<button onclick="filterByCategory('${c}')" class="cat-btn">${c}</button>`;
+            });
+    
+            renderKatalog(productsData);
+            document.getElementById('status').innerText = productsData.length + " ITEM";
+        } catch (e) { console.error(e); }
+    }
 
         // Render Katalog ke Layar
         function renderKatalog(data, query = "") {
