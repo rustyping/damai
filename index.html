@@ -236,12 +236,13 @@
     </div>
 
     <script>
-         // Link data dari Google Sheets Toko Damai (Otomatis Sync)
-         const githubUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSTkd4mFoUG-6rZ9doVT93RfCFfcqIz0o2-lVrT-9AmYrWs9-gRBXuUM-Bt7XGsHOSK-WBEV7tAQZFJ/pub?gid=0&single=true&output=csv" + "&v=" + Date.now();
-         const stokUrl   = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSTkd4mFoUG-6rZ9doVT93RfCFfcqIz0o2-lVrT-9AmYrWs9-gRBXuUM-Bt7XGsHOSK-WBEV7tAQZFJ/pub?gid=615135187&single=true&output=csv" + "&v=" + Date.now();
-         const promoUrl  = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSTkd4mFoUG-6rZ9doVT93RfCFfcqIz0o2-lVrT-9AmYrWs9-gRBXuUM-Bt7XGsHOSK-WBEV7tAQZFJ/pub?gid=468445490&single=true&output=csv" + "&v=" + Date.now();
-         
+        // Link data dari Google Sheets Toko Damai (Otomatis Sync)
+        const githubUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSTkd4mFoUG-6rZ9doVT93RfCFfcqIz0o2-lVrT-9AmYrWs9-gRBXuUM-Bt7XGsHOSK-WBEV7tAQZFJ/pub?gid=0&single=true&output=csv" + "&v=" + Date.now();
+        const stokUrl   = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSTkd4mFoUG-6rZ9doVT93RfCFfcqIz0o2-lVrT-9AmYrWs9-gRBXuUM-Bt7XGsHOSK-WBEV7tAQZFJ/pub?gid=615135187&single=true&output=csv" + "&v=" + Date.now();
+        const promoUrl  = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSTkd4mFoUG-6rZ9doVT93RfCFfcqIz0o2-lVrT-9AmYrWs9-gRBXuUM-Bt7XGsHOSK-WBEV7tAQZFJ/pub?gid=468445490&single=true&output=csv" + "&v=" + Date.now();
+        
         let productsData = [], stokMap = {}, cart = {}, currentCategory = "SEMUA", searchTimeout, qtyInputTimeout;
+        let waNumber = "6285815022210"; // Default cadangan jika cell B7 kosong
 
         // Progress Bar
         window.onscroll = function() {
@@ -252,92 +253,105 @@
         };
 
         // Load Data Utama
-         async function loadData() {
-             try {
-                 const resStok = await fetch(stokUrl);
-                 const csvStok = await resStok.text();
-                 const rowsStok = csvStok.split(/\r?\n/).filter(row => row.trim() !== "");
-                 rowsStok.forEach(row => {
-                     const cols = row.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
-                     if (cols[2]) {
-                         stokMap[cols[2].toLowerCase()] = {
-                             qty: cols[3] || "0",
-                             satuan: cols[4] || ""
-                         };
-                     }
-                 });
-         
-                 const response = await fetch(githubUrl);
-                 const csvText = await response.text();
-                 const rows = csvText.split(/\r?\n/).filter(row => row.trim() !== "");
-                 let catSet = new Set();
-                 
-                 productsData = rows.slice(1).map(row => {
-                     const cols = row.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
-                     const nama = cols[2] || "";
-                     if (!nama || nama.toLowerCase().includes("nama barang") || nama.toLowerCase().includes("xxx") || 
-                         nama.includes("___") || nama.toLowerCase().includes("ongkos kirim")) return null;
-         
-                     catSet.add(cols[4] || "UMUM");
-                     return { 
-                         nama: nama, kategori: cols[4] || "UMUM", 
-                         s1: cols[6], s2: cols[7], s3: cols[8],
-                         d1: cols[10] || "1", d2: cols[11] || "1", d3: cols[12] || "1",
-                         h1: parseInt(cols[19]) || 0, h2: parseInt(cols[22]) || 0, h3: parseInt(cols[25]) || 0 
-                     };
-                 }).filter(Boolean);
-         
-                 productsData.sort((a, b) => a.nama.localeCompare(b.nama, 'id', { numeric: true }));
-         
-                 const b = document.getElementById('category-bar');
-                 b.innerHTML = "";
-                 Array.from(catSet).sort().forEach(c => {
-                     b.innerHTML += `<button onclick="filterByCategory('${c}')" class="cat-btn">${c}</button>`;
-                 });
-         
-                 renderKatalog(productsData);
-                 document.getElementById('status').innerText = productsData.length + " ITEM";
-             } catch (e) { console.error(e); }
-         }
+        async function loadData() {
+            try {
+                const resStok = await fetch(stokUrl);
+                const csvStok = await resStok.text();
+                const rowsStok = csvStok.split(/\r?\n/).filter(row => row.trim() !== "");
+                rowsStok.forEach(row => {
+                    const cols = row.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+                    if (cols[2]) {
+                        stokMap[cols[2].toLowerCase()] = {
+                            qty: cols[3] || "0",
+                            satuan: cols[4] || ""
+                        };
+                    }
+                });
+        
+                const response = await fetch(githubUrl);
+                const csvText = await response.text();
+                const rows = csvText.split(/\r?\n/).filter(row => row.trim() !== "");
+
+                // Ambil Nomor WhatsApp dari Cell B7 (Baris ke-7, Kolom B)
+                if (rows.length >= 7) {
+                    const colsB7 = rows[6].split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+                    if (colsB7[1]) {
+                        let num = colsB7[1].replace(/[^0-9]/g, ''); // Hapus semua karakter selain angka
+                        if (num.startsWith('0')) {
+                            num = '62' + num.substring(1); // Ubah awalan 08xx menjadi 628xx
+                        }
+                        if (num) waNumber = num;
+                    }
+                }
+
+                let catSet = new Set();
+                
+                productsData = rows.slice(1).map(row => {
+                    const cols = row.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+                    const nama = cols[2] || "";
+                    if (!nama || nama.toLowerCase().includes("nama barang") || nama.toLowerCase().includes("xxx") || 
+                        nama.includes("___") || nama.toLowerCase().includes("ongkos kirim")) return null;
+        
+                    catSet.add(cols[4] || "UMUM");
+                    return { 
+                        nama: nama, kategori: cols[4] || "UMUM", 
+                        s1: cols[6], s2: cols[7], s3: cols[8],
+                        d1: cols[10] || "1", d2: cols[11] || "1", d3: cols[12] || "1",
+                        h1: parseInt(cols[19]) || 0, h2: parseInt(cols[22]) || 0, h3: parseInt(cols[25]) || 0 
+                    };
+                }).filter(Boolean);
+        
+                productsData.sort((a, b) => a.nama.localeCompare(b.nama, 'id', { numeric: true }));
+        
+                const b = document.getElementById('category-bar');
+                b.innerHTML = "";
+                Array.from(catSet).sort().forEach(c => {
+                    b.innerHTML += `<button onclick="filterByCategory('${c}')" class="cat-btn">${c}</button>`;
+                });
+        
+                renderKatalog(productsData);
+                document.getElementById('status').innerText = productsData.length + " ITEM";
+            } catch (e) { console.error(e); }
+        }
 
         // Render Katalog ke Layar
-         function renderKatalog(data, query = "") {
-             const katalog = document.getElementById('katalog');
-             let content = `<div class="flex flex-col">`;
-             
-             data.forEach(p => {
-                 let displayName = p.nama;
-                 if (query) {
-                     const keywords = query.split(/\s+/);
-                     keywords.forEach(kw => { if (kw.length > 0) {
-                         const regex = new RegExp(`(${kw})`, 'gi');
-                         displayName = displayName.replace(regex, `<mark>$1</mark>`);
-                     }});
-                 }
-         
-                 const infoStok = stokMap[p.nama.toLowerCase()];
-                 const stokText = infoStok ? `${infoStok.qty} ${infoStok.satuan}` : "0";
-                 const stokColor = (infoStok && parseInt(infoStok.qty) > 5) ? "text-emerald-600" : "text-red-500";
-         
-                 content += `
-                 <div class="product-item product-card rounded-xl" data-nama="${p.nama.toLowerCase()}" data-kat="${p.kategori}">
-                      <div class="flex justify-between items-start gap-2 mb-1">
-                          <p class="product-name tracking-tight flex-1">${displayName}</p>
-                          <span class="text-[9px] font-black ${stokColor} bg-slate-50 border border-slate-200 px-2 py-0.5 rounded shadow-sm whitespace-nowrap mt-1">
-                             Stok: ${stokText}
-                          </span>
-                      </div>
-                      
-                      <div class="unit-container">
-                          ${p.s1 && p.h1 > 0 ? `<div id="box-${getSafeId(p.nama, p.s1)}">${renderBtn(p.nama, p.s1, p.h1, 'emerald', p.d1)}</div>` : ''}
-                          ${p.s2 && p.h2 > 0 ? `<div id="box-${getSafeId(p.nama, p.s2)}">${renderBtn(p.nama, p.s2, p.h2, 'orange', p.d2)}</div>` : ''}
-                          ${p.s3 && p.h3 > 0 ? `<div id="box-${getSafeId(p.nama, p.s3)}">${renderBtn(p.nama, p.s3, p.h3, 'blue', p.d3)}</div>` : ''}
-                      </div>
-                 </div>`;
-             });
-             katalog.innerHTML = content + `</div>`;
-             updateAZSidebar(data);
-         }
+        function renderKatalog(data, query = "") {
+            const katalog = document.getElementById('katalog');
+            let content = `<div class="flex flex-col">`;
+            
+            data.forEach(p => {
+                let displayName = p.nama;
+                if (query) {
+                    const keywords = query.split(/\s+/);
+                    keywords.forEach(kw => { if (kw.length > 0) {
+                        const regex = new RegExp(`(${kw})`, 'gi');
+                        displayName = displayName.replace(regex, `<mark>$1</mark>`);
+                    }});
+                }
+        
+                const infoStok = stokMap[p.nama.toLowerCase()];
+                const stokText = infoStok ? `${infoStok.qty} ${infoStok.satuan}` : "0";
+                const stokColor = (infoStok && parseInt(infoStok.qty) > 5) ? "text-emerald-600" : "text-red-500";
+        
+                content += `
+                <div class="product-item product-card rounded-xl" data-nama="${p.nama.toLowerCase()}" data-kat="${p.kategori}">
+                     <div class="flex justify-between items-start gap-2 mb-1">
+                         <p class="product-name tracking-tight flex-1">${displayName}</p>
+                         <span class="text-[9px] font-black ${stokColor} bg-slate-50 border border-slate-200 px-2 py-0.5 rounded shadow-sm whitespace-nowrap mt-1">
+                            Stok: ${stokText}
+                         </span>
+                     </div>
+                     
+                     <div class="unit-container">
+                         ${p.s1 && p.h1 > 0 ? `<div id="box-${getSafeId(p.nama, p.s1)}">${renderBtn(p.nama, p.s1, p.h1, 'emerald', p.d1)}</div>` : ''}
+                         ${p.s2 && p.h2 > 0 ? `<div id="box-${getSafeId(p.nama, p.s2)}">${renderBtn(p.nama, p.s2, p.h2, 'orange', p.d2)}</div>` : ''}
+                         ${p.s3 && p.h3 > 0 ? `<div id="box-${getSafeId(p.nama, p.s3)}">${renderBtn(p.nama, p.s3, p.h3, 'blue', p.d3)}</div>` : ''}
+                     </div>
+                </div>`;
+            });
+            katalog.innerHTML = content + `</div>`;
+            updateAZSidebar(data);
+        }
 
         // Fungsi Search Flexible
         function filterProducts() {
@@ -514,12 +528,10 @@
         }
 
         function editQty(nama, satuan, val, harga, warna, detail) {
-            if (val === "") return; // Jika kosong karena dihapus, abaikan sementara
+            if (val === "") return;
             
-            // Hapus timeout sebelumnya agar tidak mengeksekusi angka setengah (misal: baru ketik 5 dari 500)
             clearTimeout(qtyInputTimeout);
             
-            // Setel delay 1000ms (1 detik) sebelum perubahan diproses ke sistem utama
             qtyInputTimeout = setTimeout(() => {
                 const qty = parseInt(val);
                 const key = `${nama} (${satuan})`;
@@ -533,7 +545,7 @@
                     (isNaN(qty) || qty <= 0 ? -currentQty : qty - currentQty), 
                     detail
                 );
-            }, 1000); // 1000ms = 1 detik. Silakan sesuaikan jika dirasa terlalu lambat/cepat.
+            }, 1000);
         }
 
         function toggleCart() { document.getElementById('cart-footer').classList.toggle('hidden'); if(!document.getElementById('cart-footer').classList.contains('hidden')) renderCartList(); }
@@ -546,29 +558,24 @@
             let total = 0, p = `*ORDER TOKO DAMAI*\n👤 Nama: *${name.toUpperCase()}*\n\n`;
             for (let k in cart) {
                 let sub = cart[k].qty * cart[k].harga;
-                // Modifikasi penambahan x harga satuan di bawah ini
                 p += `✅ *${cart[k].namaAsli}*\n   ${cart[k].qty} ${cart[k].satuanAsli} (${cart[k].detail}) x ${formatRupiah(cart[k].harga)} = *Rp ${formatRupiah(sub)}*\n`;
                 total += sub;
             }
             p += `\n💰 *TOTAL: Rp ${formatRupiah(total)}*\n\n_Catatan: Harga dapat berubah sewaktu-waktu._`;
-            window.open(`https://wa.me/6285815022210?text=${encodeURIComponent(p)}`);
+            
+            // Menggunakan variabel waNumber yang diambil dari Cell B7
+            window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(p)}`);
         }
 
-    async function fetchUpdateDate() {
+        async function fetchUpdateDate() {
             try {
-                // Mengambil data dari stokUrl (sheet stock)
                 const response = await fetch(stokUrl + "&v=" + Date.now()); 
                 const csvText = await response.text();
                 const rows = csvText.split(/\r?\n/).filter(row => row.trim() !== "");
                 
                 if (rows.length > 1) {
-                    // Ambil baris ke-2 (indeks 1) yaitu sel A2
                     let tglAsli = rows[1].split(',')[0].replace(/^"|"$/g, '').trim();
-                    
-                    // Hapus kata "s.d " (baik huruf kecil maupun besar)
                     let tglBersih = tglAsli.replace(/s\.d\s*/i, "").trim();
-                    
-                    // Tampilkan ke header
                     document.getElementById('header-update-date').innerText = "Update: " + tglBersih;
                 }
             } catch (e) {
