@@ -557,15 +557,41 @@
         function sendToWhatsApp() {
             const name = document.getElementById('custName').value.trim();
             if (!name) return alert("MOHON ISI NAMA ANDA!");
+        
+            // Daftar kata mutiara santai, lucu, & penyamangat
+            const kataMutiara = [
+                "Rezeki sudah ada yang atur, tapi sembako tetap harus dibeli! 🛒✨",
+                "Terima kasih sudah belanja! Makanan enak, hati senang, dompet tetap tenang. 😊",
+                "Belanja hari ini, kenyang sampai esok hari! Selamat menikmati harimu. 😃",
+                "Kata pepatah: Hati gembira adalah obat, tapi perut kenyang adalah kunci utama! 🍜",
+                "Semangat beraktivitas! Semoga harimu semanis gula pasir dan sedamai Toko Damai. 😇",
+                "Hidup itu sederhana: Beli bahan masakan, masak enak, makan kenyang, tidur nyenyak! 🍳",
+                "Belanja sembako adalah bentuk keseriusan menjaga kedamaian isi rumah! 🔥"
+                "Lupa nama mantan boleh, tapi lupa beli beras jangan sampai ya! 🌾",
+                "Belanja di Toko Damai: Kebutuhan tercukupi, dompet tak terlukai, rumah tangga damai! ✨",
+                "Masalah hidup memang berat, tapi kalau perut kenyang semuanya terasa lebih ringan! 🍚",
+                "Minyak goreng boleh panas, tapi kepala harus tetap dingin. Semangat hari ini! 🍳",
+                "Uang memang tak bisa membeli kebahagiaan, tapi bisa beli sembako yang bikin bahagia! 🛍️",
+                "Dapur ngebul, perut kenyang, tidur pun nyenyak. Selamat menikmati harimu! 🍲",
+                "Cinta bisa bikin berbunga-bunga, tapi sembako yang bikin dapur tetap ngebul! 🔥",
+                "Kerja keras bagaikan kuda, belanja sembako bagaikan raja. Mantap! 👑",
+                "Sembako aman, hati tenang, hari-hari pun terasa jauh lebih lapang! 🕊️",
+                "Pagi-pagi seduh kopi manis, semoga rezekimu hari ini makin lancar dan mengalir deras! ☕"
+            ];
+        
+            // Acak 1 kata mutiara secara random
+            const quoteRandom = kataMutiara[Math.floor(Math.random() * kataMutiara.length)];
+        
             let total = 0, p = `*ORDER TOKO DAMAI*\n👤 Nama: *${name.toUpperCase()}*\n\n`;
             for (let k in cart) {
                 let sub = cart[k].qty * cart[k].harga;
                 p += `✅ *${cart[k].namaAsli}*\n   ${cart[k].qty} ${cart[k].satuanAsli} (${cart[k].detail}) x ${formatRupiah(cart[k].harga)} = *Rp ${formatRupiah(sub)}*\n`;
                 total += sub;
             }
-            p += `\n💰 *TOTAL: Rp ${formatRupiah(total)}*\n\n_Catatan: Harga dapat berubah sewaktu-waktu._`;
             
-            // Menggunakan variabel waNumber yang diambil dari Cell B7
+            // Menambahkan catatan & kata acak di bagian bawah pesan WA
+            p += `\n💰 *TOTAL: Rp ${formatRupiah(total)}*\n\n_Catatan: Harga dapat berubah sewaktu-waktu._\n\n💬 _"${quoteRandom}"_`;
+            
             window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(p)}`);
         }
 
